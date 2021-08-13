@@ -72,6 +72,7 @@ typedef void (^UUCentralStateChangedBlock)(CBManagerState state);
 // Passthrough properties to read values directly from CBPeripheral
 @property (nonnull, nonatomic, strong, readonly) NSString* identifier;
 @property (nullable, nonatomic, strong, readonly) NSString* name;
+@property (nullable, nonatomic, strong, readonly) NSString* friendlyName;
 @property (assign, readonly) CBPeripheralState peripheralState;
 
 // Passthrough properties to read values directly from advertisement data

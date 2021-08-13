@@ -394,6 +394,17 @@ dispatch_queue_t UUCoreBluetoothQueue(void)
     return self.peripheral.name;
 }
 
+- (nullable NSString*) friendlyName
+{
+    NSString* name = [self.advertisementData uuSafeGetString:CBAdvertisementDataLocalNameKey];
+    if (name.length == 0)
+    {
+        name = self.peripheral.name;
+    }
+    
+    return name;
+}
+
 - (CBPeripheralState) peripheralState
 {
     return self.peripheral.state;
