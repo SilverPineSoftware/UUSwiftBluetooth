@@ -13,39 +13,22 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     @IBOutlet weak var tableView: UITableView!
 
     private var tableData: [UUPeripheral] = []
-    private var nearbyDevices: [String:UUPeripheral] = [:]
+    
+    private var scanner = UUBluetoothScanner()
     
     override func viewDidLoad()
     {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        
     }
     
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
         
-        UUCoreBluetooth.sharedInstance().startScan(forServices: nil, allowDuplicates: false, peripheralClass: UUPeripheral.classForCoder(), filters: nil)
-        { peripheral in
-            
-            self.nearbyDevices[peripheral.identifier] = peripheral
-            self.tableData.removeAll()
-            
-            for p in self.nearbyDevices
-            {
-                self.tableData.append(p.value)
-            }
-            
-            DispatchQueue.main.async
-            {
-                self.tableView.reloadData()
-            }
-            
-            
-        } willRestoreStateCallback: { args in
-            
-        }
-
+        let filters = [PeripheralFilter()]
+        scanner.startScanning(services: nil, allowDuplicates: false, peripheralClass: nil, filters: filters, callback: self.handleNearbyPeripheralsChanged)
     }
 
     func numberOfSections(in tableView: UITableView) -> Int
@@ -65,9 +48,43 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             return UITableViewCell()
         }
         
+        
+        
         let rowData = tableData[indexPath.row]
         cell.update(peripheral: rowData)
         return cell
+    }
+    
+    
+    private func handleNearbyPeripheralsChanged(_ list: [UUPeripheral])
+    {
+        self.tableData.removeAll()
+        self.tableData.append(contentsOf: list)
+        
+        DispatchQueue.main.async
+        {
+            self.tableView.reloadData()
+        }
+    }
+    
+    
+}
+
+class PeripheralFilter: NSObject, UUPeripheralFilter
+{
+    func shouldDiscover(_ peripheral: UUPeripheral) -> Bool
+    {
+        guard let name = peripheral.friendlyName else
+        {
+            return false
+        }
+        
+        if name.isEmpty
+        {
+            return false
+        }
+        
+        return true
     }
 }
 

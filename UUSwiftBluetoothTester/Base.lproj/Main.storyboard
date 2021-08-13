@@ -45,15 +45,15 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="252" text="Connected" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kUU-sg-0i4">
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="252" horizontalCompressionResistancePriority="751" text="Connected" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kUU-sg-0i4">
                                                     <rect key="frame" x="310" y="11" width="84" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="T27-QS-ipp">
-                                                    <rect key="frame" x="20" y="40" width="42" height="21"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="T27-QS-ipp">
+                                                    <rect key="frame" x="20" y="40" width="37.5" height="18"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
@@ -71,6 +71,7 @@
                                                 <constraint firstItem="T27-QS-ipp" firstAttribute="leading" secondItem="emY-gW-1AR" secondAttribute="leadingMargin" id="U9G-VE-iaz"/>
                                                 <constraint firstItem="T27-QS-ipp" firstAttribute="top" secondItem="6ku-mR-Xsg" secondAttribute="bottom" constant="8" id="WGg-dR-VVJ"/>
                                                 <constraint firstItem="mbN-Jc-D3L" firstAttribute="trailing" secondItem="emY-gW-1AR" secondAttribute="trailingMargin" id="jbf-8f-deJ"/>
+                                                <constraint firstItem="kUU-sg-0i4" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="T27-QS-ipp" secondAttribute="trailing" constant="10" id="joS-Jr-N7p"/>
                                                 <constraint firstItem="h4n-Kj-Emm" firstAttribute="leading" secondItem="emY-gW-1AR" secondAttribute="leadingMargin" id="n6V-bS-qmb"/>
                                                 <constraint firstItem="6ku-mR-Xsg" firstAttribute="leading" secondItem="emY-gW-1AR" secondAttribute="leadingMargin" id="rxN-s2-6TW"/>
                                             </constraints>
@@ -78,9 +79,9 @@
                                         <connections>
                                             <outlet property="connectionStateLabel" destination="kUU-sg-0i4" id="Kh6-o7-KeZ"/>
                                             <outlet property="friendlyNameLabel" destination="6ku-mR-Xsg" id="fXq-m5-LsT"/>
-                                            <outlet property="idLabel" destination="h4n-Kj-Emm" id="FjO-dQ-d2x"/>
+                                            <outlet property="idLabel" destination="T27-QS-ipp" id="EKK-26-edx"/>
                                             <outlet property="rssiLabel" destination="mbN-Jc-D3L" id="Bjc-km-fqY"/>
-                                            <outlet property="timeSinceLastUpdateLabel" destination="T27-QS-ipp" id="dLb-Ec-dy2"/>
+                                            <outlet property="timeSinceLastUpdateLabel" destination="h4n-Kj-Emm" id="7Xn-nZ-N7T"/>
                                         </connections>
                                     </tableViewCell>
                                 </prototypes>
