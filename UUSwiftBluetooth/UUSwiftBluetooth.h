@@ -14,5 +14,5 @@ FOUNDATION_EXPORT double UUSwiftBluetoothVersionNumber;
 FOUNDATION_EXPORT const unsigned char UUSwiftBluetoothVersionString[];
 
 // In this header, you should import all the public headers of your framework using statements like #import <UUSwiftBluetooth/PublicHeader.h>
-
+#import <UUSwiftBluetooth/UUCoreBluetooth.h>
 
