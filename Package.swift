@@ -28,10 +28,13 @@ let package = Package(
 
 	targets: [
 		.target(
-			name: "UUSwiftBluetooth",
-			dependencies: ["UUSwiftCore"],
-			path: "UUSwiftBluetooth",
-			exclude: ["Info.plist"])
+			name: "UUCoreBluetooth",
+			path: "UUCoreBluetooth"
+        .target(
+            name: "UUSwiftBluetooth",
+            dependencies: ["UUSwiftCore"],
+            path: "UUSwiftBluetooth",
+            exclude: ["Info.plist"])
 	],
 	swiftLanguageVersions: [
 		.v4_2,
