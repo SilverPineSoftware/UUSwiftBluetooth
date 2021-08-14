@@ -6,7 +6,8 @@
 //
 
 import UIKit
-import UUCoreBluetooth
+import CoreBluetooth
+import UUSwiftCore
 
 public typealias UUPeripheralListBlock = (([UUPeripheral])->())
 
@@ -23,12 +24,12 @@ public class UUBluetoothScanner: NSObject
         callback: @escaping UUPeripheralListBlock)
     {
         self.nearbyPeripheralCallback = callback
-        UUCoreBluetooth.sharedInstance().startScan(forServices: services, allowDuplicates: allowDuplicates, peripheralClass: peripheralClass, filters: filters, peripheralFoundCallback: self.handlePeripheralFound, willRestoreStateCallback: self.handleWillRestoreState)
+        //UUCoreBluetooth.sharedInstance().startScan(forServices: services, allowDuplicates: allowDuplicates, peripheralClass: peripheralClass, filters: filters, peripheralFoundCallback: self.handlePeripheralFound, willRestoreStateCallback: self.handleWillRestoreState)
     }
     
     public func stopScanning()
     {
-        UUCoreBluetooth.sharedInstance().stopScanning()
+        //UUCoreBluetooth.sharedInstance().stopScanning()
     }
     
     private func handlePeripheralFound(peripheral: UUPeripheral)
@@ -37,7 +38,7 @@ public class UUBluetoothScanner: NSObject
         
         let sorted = nearbyPeripherals.values.sorted
         { lhs, rhs in
-            return lhs.rssi.intValue > rhs.rssi.intValue
+            return lhs.rssi > rhs.rssi
         }
         
         nearbyPeripheralCallback(sorted)

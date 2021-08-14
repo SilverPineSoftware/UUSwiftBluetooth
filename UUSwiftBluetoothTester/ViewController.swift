@@ -74,12 +74,7 @@ class PeripheralFilter: NSObject, UUPeripheralFilter
 {
     func shouldDiscover(_ peripheral: UUPeripheral) -> Bool
     {
-        guard let name = peripheral.friendlyName else
-        {
-            return false
-        }
-        
-        if name.isEmpty
+        if (peripheral.friendlyName.isEmpty)
         {
             return false
         }
