@@ -28,9 +28,6 @@ let package = Package(
 
 	targets: [
 		.target(
-			name: "UUCoreBluetooth",
-			path: "UUCoreBluetooth"
-        .target(
             name: "UUSwiftBluetooth",
             dependencies: ["UUSwiftCore"],
             path: "UUSwiftBluetooth",
