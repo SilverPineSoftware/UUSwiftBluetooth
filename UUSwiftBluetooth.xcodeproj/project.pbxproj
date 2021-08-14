@@ -122,26 +122,9 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		08A2094526C73FB1008F3534 /* UUCoreBluetooth */ = {
-			isa = PBXGroup;
-			children = (
-				08A2090E26C70780008F3534 /* UUCoreBluetooth.h */,
-				08A2090A26C70780008F3534 /* UUCoreBluetooth.m */,
-				08A2091026C70780008F3534 /* UUDictionary.h */,
-				08A2090B26C70780008F3534 /* UUDictionary.m */,
-				08A2090F26C70780008F3534 /* UUMacros.h */,
-				08A2090926C70780008F3534 /* UUString.h */,
-				08A2090C26C70780008F3534 /* UUString.m */,
-				08A2090D26C70780008F3534 /* UUTimer.h */,
-				08A2090826C70780008F3534 /* UUTimer.m */,
-			);
-			path = UUCoreBluetooth;
-			sourceTree = "<group>";
-		};
 		C5C67CB326C6098E004DF50D = {
 			isa = PBXGroup;
 			children = (
-				08A2094526C73FB1008F3534 /* UUCoreBluetooth */,
 				C5C67CC826C609D6004DF50D /* LICENSE */,
 				C5C67CCA26C609D6004DF50D /* Package.swift */,
 				C5C67CC926C609D6004DF50D /* README.md */,
@@ -165,6 +148,15 @@
 			isa = PBXGroup;
 			children = (
 				C5C67CC026C6098F004DF50D /* UUSwiftBluetooth.h */,
+				08A2090E26C70780008F3534 /* UUCoreBluetooth.h */,
+				08A2090A26C70780008F3534 /* UUCoreBluetooth.m */,
+				08A2091026C70780008F3534 /* UUDictionary.h */,
+				08A2090B26C70780008F3534 /* UUDictionary.m */,
+				08A2090F26C70780008F3534 /* UUMacros.h */,
+				08A2090926C70780008F3534 /* UUString.h */,
+				08A2090C26C70780008F3534 /* UUString.m */,
+				08A2090D26C70780008F3534 /* UUTimer.h */,
+				08A2090826C70780008F3534 /* UUTimer.m */,
 				C5C67CC126C6098F004DF50D /* Info.plist */,
 			);
 			path = UUSwiftBluetooth;
