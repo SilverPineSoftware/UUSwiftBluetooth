@@ -16,36 +16,36 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma mark - Block Signatures
 ////////////////////////////////////////////////////////////////////////////////
-
-typedef void (^UUCentralStateChangedBlock)(CBManagerState state);
-typedef void (^UUWillRestoreStateBlock)(NSDictionary<NSString *, id> * _Nullable dict);
-typedef void (^UUPeripheralFoundBlock)(CBPeripheral* _Nonnull peripheral, NSDictionary<NSString*, id>* _Nullable advertisementData, NSNumber* _Nonnull rssi);
-typedef void (^UUPeripheralConnectedBlock)(CBPeripheral* _Nonnull peripheral);
-typedef void (^UUPeripheralDisconnectedBlock)(CBPeripheral* _Nonnull peripheral, NSError* _Nullable error);
-typedef void (^UUPeripheralNameUpdatedBlock)(CBPeripheral* _Nonnull peripheral);
-typedef void (^UUDidModifyServicesBlock)(CBPeripheral* _Nonnull peripheral, NSArray<CBService*>* _Nonnull invalidatedServices);
-typedef void (^UUDidReadRssiBlock)(CBPeripheral* _Nonnull peripheral, NSNumber* _Nonnull rssi, NSError* _Nullable error);
-typedef void (^UUDiscoverServicesBlock)(CBPeripheral* _Nonnull peripheral, NSError* _Nullable error);
-typedef void (^UUDiscoverIncludedServicesBlock)(CBPeripheral* _Nonnull peripheral, CBService* _Nonnull service, NSError* _Nullable error);
-typedef void (^UUDiscoverCharacteristicsBlock)(CBPeripheral* _Nonnull peripheral, CBService* _Nonnull service, NSError* _Nullable error);
-typedef void (^UUDiscoverCharacteristicsForServiceUuidBlock)(CBPeripheral* _Nonnull peripheral, CBService* _Nullable service, NSError* _Nullable error);
-typedef void (^UUUpdateValueForCharacteristicsBlock)(CBPeripheral* _Nonnull peripheral, CBCharacteristic* _Nonnull characteristic, NSError* _Nullable error);
-typedef void (^UUReadValueForCharacteristicsBlock)(CBPeripheral* _Nonnull peripheral, CBCharacteristic* _Nonnull characteristic, NSError* _Nullable error);
-typedef void (^UUWriteValueForCharacteristicsBlock)(CBPeripheral* _Nonnull peripheral, CBCharacteristic* _Nonnull characteristic, NSError* _Nullable error);
-typedef void (^UUSetNotifyValueForCharacteristicsBlock)(CBPeripheral* _Nonnull peripheral, CBCharacteristic* _Nonnull characteristic, NSError* _Nullable error);
-typedef void (^UUDiscoverDescriptorsBlock)(CBPeripheral* _Nonnull peripheral, CBCharacteristic* _Nonnull characteristic, NSError* _Nullable error);
-typedef void (^UUUpdateValueForDescriptorBlock)(CBPeripheral* _Nonnull peripheral, CBDescriptor* _Nonnull descriptor, NSError* _Nullable error);
-typedef void (^UUWriteValueForDescriptorBlock)(CBPeripheral* _Nonnull peripheral, CBDescriptor* _Nonnull descriptor, NSError* _Nullable error);
-
-typedef void (^UUPeripheralBlock)(UUPeripheral* _Nonnull peripheral);
-typedef void (^UUPeripheralErrorBlock)(UUPeripheral* _Nonnull peripheral, NSError* _Nullable error);
-
-typedef void (^UUCentralStateChangedBlock)(CBManagerState state);
+//
+//typedef void (^UUCentralStateChangedBlock)(CBManagerState state);
+//typedef void (^UUWillRestoreStateBlock)(NSDictionary<NSString *, id> * _Nullable dict);
+//typedef void (^UUPeripheralFoundBlock)(CBPeripheral* _Nonnull peripheral, NSDictionary<NSString*, id>* _Nullable advertisementData, NSNumber* _Nonnull rssi);
+//typedef void (^UUPeripheralConnectedBlock)(CBPeripheral* _Nonnull peripheral);
+//typedef void (^UUPeripheralDisconnectedBlock)(CBPeripheral* _Nonnull peripheral, NSError* _Nullable error);
+//typedef void (^UUPeripheralNameUpdatedBlock)(CBPeripheral* _Nonnull peripheral);
+//typedef void (^UUDidModifyServicesBlock)(CBPeripheral* _Nonnull peripheral, NSArray<CBService*>* _Nonnull invalidatedServices);
+//typedef void (^UUDidReadRssiBlock)(CBPeripheral* _Nonnull peripheral, NSNumber* _Nonnull rssi, NSError* _Nullable error);
+//typedef void (^UUDiscoverServicesBlock)(CBPeripheral* _Nonnull peripheral, NSError* _Nullable error);
+//typedef void (^UUDiscoverIncludedServicesBlock)(CBPeripheral* _Nonnull peripheral, CBService* _Nonnull service, NSError* _Nullable error);
+//typedef void (^UUDiscoverCharacteristicsBlock)(CBPeripheral* _Nonnull peripheral, CBService* _Nonnull service, NSError* _Nullable error);
+//typedef void (^UUDiscoverCharacteristicsForServiceUuidBlock)(CBPeripheral* _Nonnull peripheral, CBService* _Nullable service, NSError* _Nullable error);
+//typedef void (^UUUpdateValueForCharacteristicsBlock)(CBPeripheral* _Nonnull peripheral, CBCharacteristic* _Nonnull characteristic, NSError* _Nullable error);
+//typedef void (^UUReadValueForCharacteristicsBlock)(CBPeripheral* _Nonnull peripheral, CBCharacteristic* _Nonnull characteristic, NSError* _Nullable error);
+//typedef void (^UUWriteValueForCharacteristicsBlock)(CBPeripheral* _Nonnull peripheral, CBCharacteristic* _Nonnull characteristic, NSError* _Nullable error);
+//typedef void (^UUSetNotifyValueForCharacteristicsBlock)(CBPeripheral* _Nonnull peripheral, CBCharacteristic* _Nonnull characteristic, NSError* _Nullable error);
+//typedef void (^UUDiscoverDescriptorsBlock)(CBPeripheral* _Nonnull peripheral, CBCharacteristic* _Nonnull characteristic, NSError* _Nullable error);
+//typedef void (^UUUpdateValueForDescriptorBlock)(CBPeripheral* _Nonnull peripheral, CBDescriptor* _Nonnull descriptor, NSError* _Nullable error);
+//typedef void (^UUWriteValueForDescriptorBlock)(CBPeripheral* _Nonnull peripheral, CBDescriptor* _Nonnull descriptor, NSError* _Nullable error);
+//
+//typedef void (^UUPeripheralBlock)(UUPeripheral* _Nonnull peripheral);
+//typedef void (^UUPeripheralErrorBlock)(UUPeripheral* _Nonnull peripheral, NSError* _Nullable error);
+//
+//typedef void (^UUCentralStateChangedBlock)(CBManagerState state);
 
 ////////////////////////////////////////////////////////////////////////////////
 #pragma mark - UUPeripheral
 ////////////////////////////////////////////////////////////////////////////////
-
+/*
 // UUPeripheral is a convenience class that wraps a CBPeripheral and it's
 // advertisement data into one object.
 //
@@ -95,11 +95,11 @@ typedef void (^UUCentralStateChangedBlock)(CBManagerState state);
                    rssi:(nullable NSNumber*)rssi;
 
 @end
-
+*/
 ////////////////////////////////////////////////////////////////////////////////
 #pragma mark - UUPeripheralFilter
 ////////////////////////////////////////////////////////////////////////////////
-
+/*
 // UUPeripheralFilter is a way for calling code to post filter scanning results
 // based on properties of the peripheral advertisement, such as RSSI, name,
 // or other advertisement data.
@@ -110,7 +110,7 @@ typedef void (^UUCentralStateChangedBlock)(CBManagerState state);
 
 @end
 
-
+*/
 
 ////////////////////////////////////////////////////////////////////////////////
 #pragma mark - Common Filters
@@ -129,41 +129,41 @@ typedef void (^UUCentralStateChangedBlock)(CBManagerState state);
 #pragma mark - Helper C Functions
 ////////////////////////////////////////////////////////////////////////////////
 
-NSString* _Nonnull UUCBManagerStateToString(CBManagerState state);
-NSString* _Nonnull UUCBPeripheralStateToString(CBPeripheralState state);
-NSString* _Nonnull UUCBCharacteristicPropertiesToString(CBCharacteristicProperties props);
+//NSString* _Nonnull UUCBManagerStateToString(CBManagerState state);
+//NSString* _Nonnull UUCBPeripheralStateToString(CBPeripheralState state);
+//NSString* _Nonnull UUCBCharacteristicPropertiesToString(CBCharacteristicProperties props);
 
 ////////////////////////////////////////////////////////////////////////////////
 #pragma mark - UUCoreBluetoothErrorCode
 ////////////////////////////////////////////////////////////////////////////////
 
-typedef NS_ENUM(NSUInteger, UUCoreBluetoothErrorCode)
-{
-    // A operation attempt was manually timed out by UUCoreBluetooth
-    UUCoreBluetoothErrorCodeTimeout = 1,
-    
-    // A method call was not attempted because the CBPeripheral was not connected.
-    UUCoreBluetoothErrorCodeNotConnected = 2,
-    
-    // A CoreBluetooth operation failed for some reason. Check inner error for
-    // more information.  This can be returned from any Core Bluetooth delegate
-    // method that returns an NSError
-    UUCoreBluetoothErrorCodeOperationFailed = 3,
-    
-    // didFailToConnectPeripheral was called
-    UUCoreBluetoothErrorCodeConnectionFailed = 4,
-    
-    // didDisconnectPeripheral was called
-    UUCoreBluetoothErrorCodeDisconnected = 5,
-    
-    // An operation was passed an invalid argument.  Inspect user info for
-    // specific details
-    UUCoreBluetoothErrorCodeInvalidParam = 6,
-    
-    // An operation was attempted while CBCentralManager was in a state other
-    // that 'On'
-    UUCoreBluetoothErrorCodeCentralNotReady = 7,
-};
+//typedef NS_ENUM(NSUInteger, UUCoreBluetoothErrorCode)
+//{
+//    // A operation attempt was manually timed out by UUCoreBluetooth
+//    UUCoreBluetoothErrorCodeTimeout = 1,
+//    
+//    // A method call was not attempted because the CBPeripheral was not connected.
+//    UUCoreBluetoothErrorCodeNotConnected = 2,
+//    
+//    // A CoreBluetooth operation failed for some reason. Check inner error for
+//    // more information.  This can be returned from any Core Bluetooth delegate
+//    // method that returns an NSError
+//    UUCoreBluetoothErrorCodeOperationFailed = 3,
+//    
+//    // didFailToConnectPeripheral was called
+//    UUCoreBluetoothErrorCodeConnectionFailed = 4,
+//    
+//    // didDisconnectPeripheral was called
+//    UUCoreBluetoothErrorCodeDisconnected = 5,
+//    
+//    // An operation was passed an invalid argument.  Inspect user info for
+//    // specific details
+//    UUCoreBluetoothErrorCodeInvalidParam = 6,
+//    
+//    // An operation was attempted while CBCentralManager was in a state other
+//    // that 'On'
+//    UUCoreBluetoothErrorCodeCentralNotReady = 7,
+//};
 
 ////////////////////////////////////////////////////////////////////////////////
 #pragma mark - Constants
@@ -172,7 +172,7 @@ typedef NS_ENUM(NSUInteger, UUCoreBluetoothErrorCode)
 extern  NSString * _Nonnull const kUUCoreBluetoothErrorDomain;
 extern  NSTimeInterval const kUUCoreBluetoothTimeoutDisabled;
 
-
+/*
 ////////////////////////////////////////////////////////////////////////////////
 #pragma mark - CBCentralManager (UUCoreBluetooth)
 ////////////////////////////////////////////////////////////////////////////////
@@ -212,8 +212,9 @@ extern  NSTimeInterval const kUUCoreBluetoothTimeoutDisabled;
 // method, the disconnected block passed in at connect time will be invoked.
 - (void) uuDisconnectPeripheral:(nonnull CBPeripheral*)peripheral timeout:(NSTimeInterval)timeout;
 
-@end
+@end*/
 
+/*
 ////////////////////////////////////////////////////////////////////////////////
 #pragma mark - CBPeripheral (UUCoreBluetooth)
 ////////////////////////////////////////////////////////////////////////////////
@@ -289,39 +290,40 @@ extern  NSTimeInterval const kUUCoreBluetoothTimeoutDisabled;
                          completion:(nonnull UUDiscoverCharacteristicsForServiceUuidBlock)completion;
 
 @end
+*/
 
-////////////////////////////////////////////////////////////////////////////////
-#pragma mark - CBCharacteristic (UUCoreBluetooth)
-////////////////////////////////////////////////////////////////////////////////
-
-@interface CBCharacteristic (UUCoreBluetooth)
-
-// Returns true if properties contains CBCharacteristicPropertyNotify or
-// CBCharacteristicPropertyIndicate
-- (BOOL) uuCanToggleNotify;
-
-// Returns true if properties contains CBCharacteristicPropertyRead
-- (BOOL) uuCanReadData;
-
-// Returns true if properties contains CBCharacteristicPropertyWrite
-- (BOOL) uuCanWriteData;
-
-// Returns true if properties contains CBCharacteristicPropertyWriteWithoutResponse
-- (BOOL) uuCanWriteWithoutResponse;
-
-@end
-
-////////////////////////////////////////////////////////////////////////////////
-#pragma mark - NSUUID (UUCoreBluetooth)
-////////////////////////////////////////////////////////////////////////////////
-
-@interface CBUUID (UUCoreBluetooth)
-
-// Some UUID's have a common name, if UUIDString does not match, it is returned,
-// otherwise 'Unknown'.
-- (nonnull NSString*) uuCommonName;
-
-@end
+//////////////////////////////////////////////////////////////////////////////////
+//#pragma mark - CBCharacteristic (UUCoreBluetooth)
+//////////////////////////////////////////////////////////////////////////////////
+//
+//@interface CBCharacteristic (UUCoreBluetooth)
+//
+//// Returns true if properties contains CBCharacteristicPropertyNotify or
+//// CBCharacteristicPropertyIndicate
+//- (BOOL) uuCanToggleNotify;
+//
+//// Returns true if properties contains CBCharacteristicPropertyRead
+//- (BOOL) uuCanReadData;
+//
+//// Returns true if properties contains CBCharacteristicPropertyWrite
+//- (BOOL) uuCanWriteData;
+//
+//// Returns true if properties contains CBCharacteristicPropertyWriteWithoutResponse
+//- (BOOL) uuCanWriteWithoutResponse;
+//
+//@end
+//
+//////////////////////////////////////////////////////////////////////////////////
+//#pragma mark - NSUUID (UUCoreBluetooth)
+//////////////////////////////////////////////////////////////////////////////////
+//
+//@interface CBUUID (UUCoreBluetooth)
+//
+//// Some UUID's have a common name, if UUIDString does not match, it is returned,
+//// otherwise 'Unknown'.
+//- (nonnull NSString*) uuCommonName;
+//
+//@end
 
 ////////////////////////////////////////////////////////////////////////////////
 #pragma mark - UUCoreBluetooth

@@ -15,10 +15,10 @@ import UUSwiftCore
 open class UUPeripheral
 {
     // Reference to the underlying CBPeripheral
-    private var underlyingPeripheral: CBPeripheral!
+    var underlyingPeripheral: CBPeripheral!
     
     // The most recent advertisement data
-    private var advertisementData: [String: Any] = [:]
+    var advertisementData: [String: Any] = [:]
     
     // Timestamp of when this peripheral was first seen
     private(set) public var firstAdvertisementTime: Date = Date()
@@ -89,5 +89,30 @@ open class UUPeripheral
     open func parseManufacturingData()
     {
         
+    }
+    
+    
+    
+    func updateFromScan(
+        _ peripheral: CBPeripheral,
+        _ updatedAdvertisement: [String:Any],
+        _ rssi: Int)
+    {
+        underlyingPeripheral = peripheral
+        advertisementData = updatedAdvertisement
+        lastAdvertisementTime = Date()
+        updateRssi(rssi)
+        parseManufacturingData()
+    }
+    
+    func updateRssi(_ rssi: Int)
+    {
+        // Per CoreBluetooth documentation, a value of 127 indicates the RSSI
+        // reading is not available
+        if rssi != 127
+        {
+            self.rssi = rssi
+            self.lastRssiUpdateTime = Date()
+        }
     }
 }

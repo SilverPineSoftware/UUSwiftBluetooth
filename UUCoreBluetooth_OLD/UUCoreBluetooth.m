@@ -29,184 +29,184 @@
 #pragma mark - Constants
 ////////////////////////////////////////////////////////////////////////////////
 
-const char * _Nonnull const kUUCoreBluetoothQueueName = "UUCoreBluetoothQueue";
+//const char * _Nonnull const kUUCoreBluetoothQueueName = "UUCoreBluetoothQueue";
 
-NSString * _Nonnull const kUUCoreBluetoothErrorDomain = @"UUCoreBluetoothErrorDomain";
+//NSString * _Nonnull const kUUCoreBluetoothErrorDomain = @"UUCoreBluetoothErrorDomain";
 NSTimeInterval const kUUCoreBluetoothTimeoutDisabled = -1;
 
-NSString * _Nonnull const kUUCoreBluetoothConnectWatchdogBucket = @"UUCoreBluetoothConnectWatchdogBucket";
-NSString * _Nonnull const kUUCoreBluetoothServiceDiscoveryWatchdogBucket = @"UUCoreBluetoothServiceDiscoveryWatchdogBucket";
-NSString * _Nonnull const kUUCoreBluetoothCharacteristicDiscoveryWatchdogBucket = @"UUCoreBluetoothCharacteristicDiscoveryWatchdogBucket";
-NSString * _Nonnull const kUUCoreBluetoothIncludedServicesDiscoveryWatchdogBucket = @"UUCoreBluetoothIncludedServicesDiscoveryWatchdogBucket";
-NSString * _Nonnull const kUUCoreBluetoothDescriptorDiscoveryWatchdogBucket = @"UUCoreBluetoothDescriptorDiscoveryWatchdogBucket";
-NSString * _Nonnull const kUUCoreBluetoothCharacteristicNotifyStateWatchdogBucket = @"UUCoreBluetoothCharacteristicNotifyStateWatchdogBucket";
-NSString * _Nonnull const kUUCoreBluetoothReadCharacteristicValueWatchdogBucket = @"UUCoreBluetoothReadCharacteristicValueWatchdogBucket";
-NSString * _Nonnull const kUUCoreBluetoothWriteCharacteristicValueWatchdogBucket = @"UUCoreBluetoothWriteCharacteristicValueWatchdogBucket";
-NSString * _Nonnull const kUUCoreBluetoothReadRssiWatchdogBucket = @"UUCoreBluetoothReadRssiWatchdogBucket";
-NSString * _Nonnull const kUUCoreBluetoothPollRssiBucket = @"UUCoreBluetoothPollRssiBucket";
-NSString * _Nonnull const kUUCoreBluetoothDisconnectWatchdogBucket = @"UUCoreBluetoothDisconnectWatchdogBucket";
+//NSString * _Nonnull const kUUCoreBluetoothConnectWatchdogBucket = @"UUCoreBluetoothConnectWatchdogBucket";
+//NSString * _Nonnull const kUUCoreBluetoothServiceDiscoveryWatchdogBucket = @"UUCoreBluetoothServiceDiscoveryWatchdogBucket";
+//NSString * _Nonnull const kUUCoreBluetoothCharacteristicDiscoveryWatchdogBucket = @"UUCoreBluetoothCharacteristicDiscoveryWatchdogBucket";
+//NSString * _Nonnull const kUUCoreBluetoothIncludedServicesDiscoveryWatchdogBucket = @"UUCoreBluetoothIncludedServicesDiscoveryWatchdogBucket";
+//NSString * _Nonnull const kUUCoreBluetoothDescriptorDiscoveryWatchdogBucket = @"UUCoreBluetoothDescriptorDiscoveryWatchdogBucket";
+//NSString * _Nonnull const kUUCoreBluetoothCharacteristicNotifyStateWatchdogBucket = @"UUCoreBluetoothCharacteristicNotifyStateWatchdogBucket";
+//NSString * _Nonnull const kUUCoreBluetoothReadCharacteristicValueWatchdogBucket = @"UUCoreBluetoothReadCharacteristicValueWatchdogBucket";
+//NSString * _Nonnull const kUUCoreBluetoothWriteCharacteristicValueWatchdogBucket = @"UUCoreBluetoothWriteCharacteristicValueWatchdogBucket";
+//NSString * _Nonnull const kUUCoreBluetoothReadRssiWatchdogBucket = @"UUCoreBluetoothReadRssiWatchdogBucket";
+//NSString * _Nonnull const kUUCoreBluetoothPollRssiBucket = @"UUCoreBluetoothPollRssiBucket";
+//NSString * _Nonnull const kUUCoreBluetoothDisconnectWatchdogBucket = @"UUCoreBluetoothDisconnectWatchdogBucket";
 
 
 ////////////////////////////////////////////////////////////////////////////////
 #pragma mark - NSError (UUCoreBluetooth)
 ////////////////////////////////////////////////////////////////////////////////
-
-@interface NSError (UUCoreBluetooth)
-
-+ (instancetype) uuCoreBluetoothError:(UUCoreBluetoothErrorCode)errorCode;
-+ (instancetype) uuCoreBluetoothError:(UUCoreBluetoothErrorCode)errorCode inner:(nonnull NSError*)inner;
-+ (instancetype) uuCoreBluetoothError:(UUCoreBluetoothErrorCode)errorCode userInfo:(nullable NSDictionary*)userInfo;
-
-@end
-
-@implementation NSError (UUCoreBluetooth)
-
-+ (instancetype) uuCoreBluetoothError:(UUCoreBluetoothErrorCode)errorCode
-{
-    return [self uuCoreBluetoothError:errorCode userInfo:nil];
-}
-
-+ (instancetype) uuCoreBluetoothError:(UUCoreBluetoothErrorCode)errorCode inner:(nonnull NSError*)inner
-{
-    return [self uuCoreBluetoothError:errorCode userInfo:@{ NSUnderlyingErrorKey : inner }];
-}
-
-+ (instancetype) uuCoreBluetoothError:(UUCoreBluetoothErrorCode)errorCode userInfo:(NSDictionary*)userInfo
-{
-    NSMutableDictionary* md = [NSMutableDictionary dictionary];
-    [md setValue:[self errorDecriptionForCode:errorCode] forKey:NSLocalizedDescriptionKey];
-    [md setValue:[self recoverySuggestionForCode:errorCode] forKey:NSLocalizedRecoverySuggestionErrorKey];
-    
-    if (userInfo)
-    {
-        [md addEntriesFromDictionary:userInfo];
-    }
-    
-    return [NSError errorWithDomain:kUUCoreBluetoothErrorDomain code:errorCode userInfo:md];
-}
-
-+ (nonnull instancetype) uuOperationCompleteError:(NSError*)error
-{
-    if (error == nil)
-    {
-        return nil;
-    }
-    else if ([kUUCoreBluetoothErrorDomain isEqualToString:error.domain])
-    {
-        return error;
-    }
-    else
-    {
-        return [self uuCoreBluetoothError:UUCoreBluetoothErrorCodeOperationFailed inner:error];
-    }
-}
-
-+ (nonnull instancetype) uuConnectionFailedError:(NSError*)error
-{
-    if (error)
-    {
-        return [self uuCoreBluetoothError:UUCoreBluetoothErrorCodeConnectionFailed inner:error];
-    }
-    else
-    {
-        return nil;
-    }
-}
-
-+ (nonnull instancetype) uuDisconnectedError:(NSError*)error
-{
-    if (error)
-    {
-        return [self uuCoreBluetoothError:UUCoreBluetoothErrorCodeDisconnected inner:error];
-    }
-    else
-    {
-        return nil;
-    }
-}
-
-+ (nonnull instancetype) uuInvalidParamError:(nonnull NSString*)param reason:(nonnull NSString*)reason
-{
-    NSMutableDictionary* md = [NSMutableDictionary dictionary];
-    [md setValue:param forKey:@"param"];
-    [md setValue:reason forKey:@"reason"];
-    
-    return [self uuCoreBluetoothError:UUCoreBluetoothErrorCodeInvalidParam userInfo:md];
-}
-
-+ (nonnull instancetype) uuExpectNonNilParamError:(nonnull NSString*)param
-{
-    NSString* reason = [NSString stringWithFormat:@"%@ must not be nil.", param];
-    return [self uuInvalidParamError:param reason:reason];
-}
-
-+ (NSString*) errorDecriptionForCode:(UUCoreBluetoothErrorCode)errorCode
-{
-    switch (errorCode)
-    {
-        case UUCoreBluetoothErrorCodeTimeout:
-            return @"Timeout";
-            
-        case UUCoreBluetoothErrorCodeNotConnected:
-            return @"NotConnected";
-            
-        case UUCoreBluetoothErrorCodeOperationFailed:
-            return @"OperationFailed";
-            
-        case UUCoreBluetoothErrorCodeConnectionFailed:
-            return @"ConnectionFailed";
-            
-        case UUCoreBluetoothErrorCodeDisconnected:
-            return @"Disconnected";
-            
-        case UUCoreBluetoothErrorCodeInvalidParam:
-            return @"InvalidParam";
-            
-        case UUCoreBluetoothErrorCodeCentralNotReady:
-            return @"CentralNotReady";
-            
-        default:
-            return [NSString stringWithFormat:@"UUCoreBluetoothErrorCode-%@", @(errorCode)];
-    }
-}
-
-+ (NSString*) recoverySuggestionForCode:(UUCoreBluetoothErrorCode)errorCode
-{
-    switch (errorCode)
-    {
-        case UUCoreBluetoothErrorCodeTimeout:
-            return @"Make sure the peripheral is connected and in range, and try again.";
-            
-        case UUCoreBluetoothErrorCodeNotConnected:
-            return @"Connect to the peripheral and try the operation again.";
-            
-        case UUCoreBluetoothErrorCodeOperationFailed:
-            return @"Inspect inner error for more details.";
-            
-        case UUCoreBluetoothErrorCodeConnectionFailed:
-            return @"Connection attempt failed.";
-            
-        case UUCoreBluetoothErrorCodeDisconnected:
-            return @"Peripheral disconnected.";
-            
-        case UUCoreBluetoothErrorCodeInvalidParam:
-            return @"An invalid parameter was passed in.";
-            
-        case UUCoreBluetoothErrorCodeCentralNotReady:
-            return @"Core Bluetooth is not ready to accept commands.";
-            
-            
-        default:
-            return @"";
-    }
-}
-
-@end
+//
+//@interface NSError (UUCoreBluetooth)
+//
+//+ (instancetype) uuCoreBluetoothError:(UUCoreBluetoothErrorCode)errorCode;
+//+ (instancetype) uuCoreBluetoothError:(UUCoreBluetoothErrorCode)errorCode inner:(nonnull NSError*)inner;
+//+ (instancetype) uuCoreBluetoothError:(UUCoreBluetoothErrorCode)errorCode userInfo:(nullable NSDictionary*)userInfo;
+//
+//@end
+//
+//@implementation NSError (UUCoreBluetooth)
+//
+//+ (instancetype) uuCoreBluetoothError:(UUCoreBluetoothErrorCode)errorCode
+//{
+//    return [self uuCoreBluetoothError:errorCode userInfo:nil];
+//}
+//
+//+ (instancetype) uuCoreBluetoothError:(UUCoreBluetoothErrorCode)errorCode inner:(nonnull NSError*)inner
+//{
+//    return [self uuCoreBluetoothError:errorCode userInfo:@{ NSUnderlyingErrorKey : inner }];
+//}
+//
+//+ (instancetype) uuCoreBluetoothError:(UUCoreBluetoothErrorCode)errorCode userInfo:(NSDictionary*)userInfo
+//{
+//    NSMutableDictionary* md = [NSMutableDictionary dictionary];
+//    [md setValue:[self errorDecriptionForCode:errorCode] forKey:NSLocalizedDescriptionKey];
+//    [md setValue:[self recoverySuggestionForCode:errorCode] forKey:NSLocalizedRecoverySuggestionErrorKey];
+//    
+//    if (userInfo)
+//    {
+//        [md addEntriesFromDictionary:userInfo];
+//    }
+//    
+//    return [NSError errorWithDomain:kUUCoreBluetoothErrorDomain code:errorCode userInfo:md];
+//}
+//
+//+ (nonnull instancetype) uuOperationCompleteError:(NSError*)error
+//{
+//    if (error == nil)
+//    {
+//        return nil;
+//    }
+//    else if ([kUUCoreBluetoothErrorDomain isEqualToString:error.domain])
+//    {
+//        return error;
+//    }
+//    else
+//    {
+//        return [self uuCoreBluetoothError:UUCoreBluetoothErrorCodeOperationFailed inner:error];
+//    }
+//}
+//
+//+ (nonnull instancetype) uuConnectionFailedError:(NSError*)error
+//{
+//    if (error)
+//    {
+//        return [self uuCoreBluetoothError:UUCoreBluetoothErrorCodeConnectionFailed inner:error];
+//    }
+//    else
+//    {
+//        return nil;
+//    }
+//}
+//
+//+ (nonnull instancetype) uuDisconnectedError:(NSError*)error
+//{
+//    if (error)
+//    {
+//        return [self uuCoreBluetoothError:UUCoreBluetoothErrorCodeDisconnected inner:error];
+//    }
+//    else
+//    {
+//        return nil;
+//    }
+//}
+//
+//+ (nonnull instancetype) uuInvalidParamError:(nonnull NSString*)param reason:(nonnull NSString*)reason
+//{
+//    NSMutableDictionary* md = [NSMutableDictionary dictionary];
+//    [md setValue:param forKey:@"param"];
+//    [md setValue:reason forKey:@"reason"];
+//    
+//    return [self uuCoreBluetoothError:UUCoreBluetoothErrorCodeInvalidParam userInfo:md];
+//}
+//
+//+ (nonnull instancetype) uuExpectNonNilParamError:(nonnull NSString*)param
+//{
+//    NSString* reason = [NSString stringWithFormat:@"%@ must not be nil.", param];
+//    return [self uuInvalidParamError:param reason:reason];
+//}
+//
+//+ (NSString*) errorDecriptionForCode:(UUCoreBluetoothErrorCode)errorCode
+//{
+//    switch (errorCode)
+//    {
+//        case UUCoreBluetoothErrorCodeTimeout:
+//            return @"Timeout";
+//            
+//        case UUCoreBluetoothErrorCodeNotConnected:
+//            return @"NotConnected";
+//            
+//        case UUCoreBluetoothErrorCodeOperationFailed:
+//            return @"OperationFailed";
+//            
+//        case UUCoreBluetoothErrorCodeConnectionFailed:
+//            return @"ConnectionFailed";
+//            
+//        case UUCoreBluetoothErrorCodeDisconnected:
+//            return @"Disconnected";
+//            
+//        case UUCoreBluetoothErrorCodeInvalidParam:
+//            return @"InvalidParam";
+//            
+//        case UUCoreBluetoothErrorCodeCentralNotReady:
+//            return @"CentralNotReady";
+//            
+//        default:
+//            return [NSString stringWithFormat:@"UUCoreBluetoothErrorCode-%@", @(errorCode)];
+//    }
+//}
+//
+//+ (NSString*) recoverySuggestionForCode:(UUCoreBluetoothErrorCode)errorCode
+//{
+//    switch (errorCode)
+//    {
+//        case UUCoreBluetoothErrorCodeTimeout:
+//            return @"Make sure the peripheral is connected and in range, and try again.";
+//            
+//        case UUCoreBluetoothErrorCodeNotConnected:
+//            return @"Connect to the peripheral and try the operation again.";
+//            
+//        case UUCoreBluetoothErrorCodeOperationFailed:
+//            return @"Inspect inner error for more details.";
+//            
+//        case UUCoreBluetoothErrorCodeConnectionFailed:
+//            return @"Connection attempt failed.";
+//            
+//        case UUCoreBluetoothErrorCodeDisconnected:
+//            return @"Peripheral disconnected.";
+//            
+//        case UUCoreBluetoothErrorCodeInvalidParam:
+//            return @"An invalid parameter was passed in.";
+//            
+//        case UUCoreBluetoothErrorCodeCentralNotReady:
+//            return @"Core Bluetooth is not ready to accept commands.";
+//            
+//            
+//        default:
+//            return @"";
+//    }
+//}
+//
+//@end
 
 ////////////////////////////////////////////////////////////////////////////////
 #pragma mark - UUCoreBluetooth - C Helper Methods
 ////////////////////////////////////////////////////////////////////////////////
-
+/*
 NSString* _Nonnull UUCBManagerStateToString(CBManagerState state)
 {
     switch (state)
@@ -315,27 +315,27 @@ NSString* _Nonnull UUCBCharacteristicPropertiesToString(CBCharacteristicProperti
     
     return [parts componentsJoinedByString:@", "];
 }
-
-dispatch_queue_t UUCoreBluetoothQueue(void)
-{
-    static dispatch_queue_t theSharedCoreBluetoothQueue = nil;
-    static dispatch_once_t onceToken;
-    
-    dispatch_once (&onceToken, ^
-    {
-        dispatch_queue_attr_t attr = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INITIATED, 0);
-        theSharedCoreBluetoothQueue = dispatch_queue_create(kUUCoreBluetoothQueueName, attr);
-    });
-    
-    return theSharedCoreBluetoothQueue;
-    
-    
-}
+*/
+//dispatch_queue_t UUCoreBluetoothQueue(void)
+//{
+//    static dispatch_queue_t theSharedCoreBluetoothQueue = nil;
+//    static dispatch_once_t onceToken;
+//    
+//    dispatch_once (&onceToken, ^
+//    {
+//        dispatch_queue_attr_t attr = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INITIATED, 0);
+//        theSharedCoreBluetoothQueue = dispatch_queue_create(kUUCoreBluetoothQueueName, attr);
+//    });
+//    
+//    return theSharedCoreBluetoothQueue;
+//    
+//    
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 // UUPeripheral
 ////////////////////////////////////////////////////////////////////////////////
-
+/*
 @interface UUPeripheral ()
 
 @property (nonnull, nonatomic, strong, readwrite) CBPeripheral* peripheral;
@@ -352,38 +352,38 @@ dispatch_queue_t UUCoreBluetoothQueue(void)
 - (void) parseManufacturingData
 {
     
-}
-
-- (void) updateFromScan:(nonnull CBPeripheral*)peripheral
-      advertisementData:(nullable NSDictionary<NSString*, id>* )advertisementData
-                   rssi:(nullable NSNumber*)rssi
-{
-    self.peripheral = peripheral;
-    self.advertisementData = advertisementData;
-    
-    NSDate* now = [NSDate date];
-    if (self.firstAdvertisementTime == nil)
-    {
-        self.firstAdvertisementTime = now;
-    }
-    
-    self.lastAdvertisementTime = now;
-    
-    [self updateRssi:rssi];
-    [self parseManufacturingData];
-}
-
-- (void) updateRssi:(nonnull NSNumber*)rssi
-{
-    // Per CoreBluetooth documentation, a value of 127 indicates the RSSI
-    // reading is not available
-    if (rssi.integerValue != 127)
-    {
-        self.rssi = rssi;
-        self.lastRssiUpdateTime = [NSDate date];
-    }
-}
-
+}*/
+//
+//- (void) updateFromScan:(nonnull CBPeripheral*)peripheral
+//      advertisementData:(nullable NSDictionary<NSString*, id>* )advertisementData
+//                   rssi:(nullable NSNumber*)rssi
+//{
+//    self.peripheral = peripheral;
+//    self.advertisementData = advertisementData;
+//    
+//    NSDate* now = [NSDate date];
+//    if (self.firstAdvertisementTime == nil)
+//    {
+//        self.firstAdvertisementTime = now;
+//    }
+//    
+//    self.lastAdvertisementTime = now;
+//    
+//    [self updateRssi:rssi];
+//    [self parseManufacturingData];
+//}
+//
+//- (void) updateRssi:(nonnull NSNumber*)rssi
+//{
+//    // Per CoreBluetooth documentation, a value of 127 indicates the RSSI
+//    // reading is not available
+//    if (rssi.integerValue != 127)
+//    {
+//        self.rssi = rssi;
+//        self.lastRssiUpdateTime = [NSDate date];
+//    }
+//}
+/*
 - (nonnull NSString*) identifier
 {
     return [self.peripheral.identifier UUIDString];
@@ -422,7 +422,7 @@ dispatch_queue_t UUCoreBluetoothQueue(void)
 
 @end
 
-
+*/
 ////////////////////////////////////////////////////////////////////////////////
 // Common Filters
 ////////////////////////////////////////////////////////////////////////////////
@@ -446,7 +446,7 @@ dispatch_queue_t UUCoreBluetoothQueue(void)
 ////////////////////////////////////////////////////////////////////////////////
 #pragma mark - UUPeripheralDelegate
 ////////////////////////////////////////////////////////////////////////////////
-
+/*
 @interface UUPeripheralDelegate : NSObject<CBPeripheralDelegate>
 
 @end
@@ -644,58 +644,60 @@ dispatch_queue_t UUCoreBluetoothQueue(void)
 }
 
 @end
+*/
 
-////////////////////////////////////////////////////////////////////////////////
-#pragma mark - CBCharacteristic (UUCoreBluetooth)
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//#pragma mark - CBCharacteristic (UUCoreBluetooth)
+//////////////////////////////////////////////////////////////////////////////////
+//
+//@implementation CBCharacteristic (UUCoreBluetooth)
+//
+//- (BOOL) uuCanToggleNotify
+//{
+//    return (UUIsCBCharacteristicPropertySet(self.properties, CBCharacteristicPropertyNotify) ||
+//            UUIsCBCharacteristicPropertySet(self.properties, CBCharacteristicPropertyIndicate));
+//}
+//
+//- (BOOL) uuCanReadData
+//{
+//    return UUIsCBCharacteristicPropertySet(self.properties, CBCharacteristicPropertyRead);
+//}
+//
+//- (BOOL) uuCanWriteData
+//{
+//    return UUIsCBCharacteristicPropertySet(self.properties, CBCharacteristicPropertyWrite);
+//}
+//
+//- (BOOL) uuCanWriteWithoutResponse
+//{
+//    return UUIsCBCharacteristicPropertySet(self.properties, CBCharacteristicPropertyWriteWithoutResponse);
+//}
+//
+//@end
+//
+//////////////////////////////////////////////////////////////////////////////////
+//#pragma mark - NSUUID (UUCoreBluetooth)
+//////////////////////////////////////////////////////////////////////////////////
+//
+//@implementation CBUUID (UUCoreBluetooth)
+//
+//- (nonnull NSString*) uuCommonName
+//{
+//    NSString* name = [NSString stringWithFormat:@"%@", self];
+//    NSString* uuid = [self UUIDString];
+//    if ([name isEqualToString:uuid])
+//    {
+//        return @"Unknown";
+//    }
+//    else
+//    {
+//        return name;
+//    }
+//}
+//
+//@end
 
-@implementation CBCharacteristic (UUCoreBluetooth)
-
-- (BOOL) uuCanToggleNotify
-{
-    return (UUIsCBCharacteristicPropertySet(self.properties, CBCharacteristicPropertyNotify) ||
-            UUIsCBCharacteristicPropertySet(self.properties, CBCharacteristicPropertyIndicate));
-}
-
-- (BOOL) uuCanReadData
-{
-    return UUIsCBCharacteristicPropertySet(self.properties, CBCharacteristicPropertyRead);
-}
-
-- (BOOL) uuCanWriteData
-{
-    return UUIsCBCharacteristicPropertySet(self.properties, CBCharacteristicPropertyWrite);
-}
-
-- (BOOL) uuCanWriteWithoutResponse
-{
-    return UUIsCBCharacteristicPropertySet(self.properties, CBCharacteristicPropertyWriteWithoutResponse);
-}
-
-@end
-
-////////////////////////////////////////////////////////////////////////////////
-#pragma mark - NSUUID (UUCoreBluetooth)
-////////////////////////////////////////////////////////////////////////////////
-
-@implementation CBUUID (UUCoreBluetooth)
-
-- (nonnull NSString*) uuCommonName
-{
-    NSString* name = [NSString stringWithFormat:@"%@", self];
-    NSString* uuid = [self UUIDString];
-    if ([name isEqualToString:uuid])
-    {
-        return @"Unknown";
-    }
-    else
-    {
-        return name;
-    }
-}
-
-@end
-
+/*
 ////////////////////////////////////////////////////////////////////////////////
 #pragma mark - CBPeripheral (UUCoreBluetooth)
 ////////////////////////////////////////////////////////////////////////////////
@@ -1368,141 +1370,142 @@ dispatch_queue_t UUCoreBluetoothQueue(void)
 }
 
 @end
+*/
 
 
 
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-#pragma mark - UUCentralManagerDelegate
-////////////////////////////////////////////////////////////////////////////////
-
-@interface UUCentralManagerDelegate : NSObject<CBCentralManagerDelegate>
-
-@end
-
-@interface UUCentralManagerDelegate ()
-
-@property (nonnull, nonatomic, strong, readwrite) CBCentralManager* centralManager;
-@property (nullable, nonatomic, copy) UUCentralStateChangedBlock centralStateChangedBlock;
-@property (nullable, nonatomic, copy) UUPeripheralFoundBlock peripheralFoundBlock;
-@property (nullable, nonatomic, strong) NSMutableDictionary< NSString*, UUPeripheralConnectedBlock >* connectBlocks;
-@property (nullable, nonatomic, strong) NSMutableDictionary< NSString*, UUPeripheralDisconnectedBlock >* disconnectBlocks;
-
-
-@end
-
-@implementation UUCentralManagerDelegate
-
-- (nonnull id) init
-{
-    self = [super init];
-    
-    if (self)
-    {
-        self.connectBlocks = [NSMutableDictionary dictionary];
-        self.disconnectBlocks = [NSMutableDictionary dictionary];
-    }
-    
-    return self;
-}
-
-- (void)centralManagerDidUpdateState:(CBCentralManager *)central
-{
-    UUCoreBluetoothLog(@"Central state changed to %@ (%@)", UUCBManagerStateToString(central.state), @(central.state));
-    
-    UUCentralStateChangedBlock block = self.centralStateChangedBlock;
-    if (block)
-    {
-        block(central.state);
-    }
-}
-
- - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral
-      advertisementData:(NSDictionary<NSString *, id> *)advertisementData
-                   RSSI:(NSNumber *)RSSI
- {
-     UUCoreBluetoothLog(@"peripheral: %@, RSSI: %@, advertisement: %@", peripheral, RSSI, advertisementData);
- 
-     UUPeripheralFoundBlock block = self.peripheralFoundBlock;
-     if (block)
-     {
-         block(peripheral, advertisementData, RSSI);
-     }
- }
-
-- (void)centralManager:(CBCentralManager*)central didConnectPeripheral:(CBPeripheral*)peripheral
-{
-    UUPeripheralConnectedBlock block = [self.connectBlocks uuSafeGet:peripheral.uuIdentifier];
-    [self.connectBlocks uuSafeRemove:peripheral.uuIdentifier];
-    
-    if (block)
-    {
-        block(peripheral);
-    }
-}
-
-- (void)centralManager:(CBCentralManager*)central didFailToConnectPeripheral:(CBPeripheral*)peripheral error:(nullable NSError *)error
-{
-    UUPeripheralDisconnectedBlock block = [self.disconnectBlocks uuSafeGet:peripheral.uuIdentifier];
-    [self.disconnectBlocks uuSafeRemove:peripheral.uuIdentifier];
-    [self.connectBlocks uuSafeRemove:peripheral.uuIdentifier];
-    
-    if (block)
-    {
-        error = [NSError uuConnectionFailedError:error];
-        block(peripheral, error);
-    }
-}
-
-- (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(nullable NSError *)error
-{
-    UUPeripheralDisconnectedBlock block = [self.disconnectBlocks uuSafeGet:peripheral.uuIdentifier];
-    [self.disconnectBlocks uuSafeRemove:peripheral.uuIdentifier];
-    [self.connectBlocks uuSafeRemove:peripheral.uuIdentifier];
-    
-    if (block)
-    {
-        error = [NSError uuDisconnectedError:error];
-        block(peripheral, error);
-    }
-}
-
-
-@end
-
-
+//////////////////////////////////////////////////////////////////////////////////
+//#pragma mark - UUCentralManagerDelegate
+//////////////////////////////////////////////////////////////////////////////////
+//
+//@interface UUCentralManagerDelegate : NSObject<CBCentralManagerDelegate>
+//
+//@end
+//
+//@interface UUCentralManagerDelegate ()
+//
+//@property (nonnull, nonatomic, strong, readwrite) CBCentralManager* centralManager;
+//@property (nullable, nonatomic, copy) UUCentralStateChangedBlock centralStateChangedBlock;
+//@property (nullable, nonatomic, copy) UUPeripheralFoundBlock peripheralFoundBlock;
+//@property (nullable, nonatomic, strong) NSMutableDictionary< NSString*, UUPeripheralConnectedBlock >* connectBlocks;
+//@property (nullable, nonatomic, strong) NSMutableDictionary< NSString*, UUPeripheralDisconnectedBlock >* disconnectBlocks;
+//
+//
+//@end
+//
+//@implementation UUCentralManagerDelegate
+//
+//- (nonnull id) init
+//{
+//    self = [super init];
+//    
+//    if (self)
+//    {
+//        self.connectBlocks = [NSMutableDictionary dictionary];
+//        self.disconnectBlocks = [NSMutableDictionary dictionary];
+//    }
+//    
+//    return self;
+//}
+//
+//- (void)centralManagerDidUpdateState:(CBCentralManager *)central
+//{
+//    UUCoreBluetoothLog(@"Central state changed to %@ (%@)", UUCBManagerStateToString(central.state), @(central.state));
+//    
+//    UUCentralStateChangedBlock block = self.centralStateChangedBlock;
+//    if (block)
+//    {
+//        block(central.state);
+//    }
+//}
+//
+// - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral
+//      advertisementData:(NSDictionary<NSString *, id> *)advertisementData
+//                   RSSI:(NSNumber *)RSSI
+// {
+//     UUCoreBluetoothLog(@"peripheral: %@, RSSI: %@, advertisement: %@", peripheral, RSSI, advertisementData);
+// 
+//     UUPeripheralFoundBlock block = self.peripheralFoundBlock;
+//     if (block)
+//     {
+//         block(peripheral, advertisementData, RSSI);
+//     }
+// }
+//
+//- (void)centralManager:(CBCentralManager*)central didConnectPeripheral:(CBPeripheral*)peripheral
+//{
+//    UUPeripheralConnectedBlock block = [self.connectBlocks uuSafeGet:peripheral.uuIdentifier];
+//    [self.connectBlocks uuSafeRemove:peripheral.uuIdentifier];
+//    
+//    if (block)
+//    {
+//        block(peripheral);
+//    }
+//}
+//
+//- (void)centralManager:(CBCentralManager*)central didFailToConnectPeripheral:(CBPeripheral*)peripheral error:(nullable NSError *)error
+//{
+//    UUPeripheralDisconnectedBlock block = [self.disconnectBlocks uuSafeGet:peripheral.uuIdentifier];
+//    [self.disconnectBlocks uuSafeRemove:peripheral.uuIdentifier];
+//    [self.connectBlocks uuSafeRemove:peripheral.uuIdentifier];
+//    
+//    if (block)
+//    {
+//        error = [NSError uuConnectionFailedError:error];
+//        block(peripheral, error);
+//    }
+//}
+//
+//- (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(nullable NSError *)error
+//{
+//    UUPeripheralDisconnectedBlock block = [self.disconnectBlocks uuSafeGet:peripheral.uuIdentifier];
+//    [self.disconnectBlocks uuSafeRemove:peripheral.uuIdentifier];
+//    [self.connectBlocks uuSafeRemove:peripheral.uuIdentifier];
+//    
+//    if (block)
+//    {
+//        error = [NSError uuDisconnectedError:error];
+//        block(peripheral, error);
+//    }
+//}
+//
+//
+//@end
 
 
-@interface UUCentralManagerRestoringDelegate : UUCentralManagerDelegate
-
-@end
-
-@interface UUCentralManagerRestoringDelegate ()
-
-@property (nullable, nonatomic, copy) UUWillRestoreStateBlock willRestoreStateBlock;
-
-@end
-
-@implementation UUCentralManagerRestoringDelegate
-
-- (void)centralManager:(CBCentralManager *)central willRestoreState:(NSDictionary<NSString *, id> *)dict
-{
-    UUCoreBluetoothLog(@"Restoring state, dict: %@", dict);
-    UUWillRestoreStateBlock block = self.willRestoreStateBlock;
-    if (block)
-    {
-        block(dict);
-    }
-}
-
-@end
-
-
+//
+//
+//@interface UUCentralManagerRestoringDelegate : UUCentralManagerDelegate
+//
+//@end
+//
+//@interface UUCentralManagerRestoringDelegate ()
+//
+//@property (nullable, nonatomic, copy) UUWillRestoreStateBlock willRestoreStateBlock;
+//
+//@end
+//
+//@implementation UUCentralManagerRestoringDelegate
+//
+//- (void)centralManager:(CBCentralManager *)central willRestoreState:(NSDictionary<NSString *, id> *)dict
+//{
+//    UUCoreBluetoothLog(@"Restoring state, dict: %@", dict);
+//    UUWillRestoreStateBlock block = self.willRestoreStateBlock;
+//    if (block)
+//    {
+//        block(dict);
+//    }
+//}
+//
+//@end
 
 
 
+
+/*
 ////////////////////////////////////////////////////////////////////////////////
 #pragma mark - CBCentralManager (UUCoreBluetooth)
 ////////////////////////////////////////////////////////////////////////////////
@@ -1676,6 +1679,7 @@ dispatch_queue_t UUCoreBluetoothQueue(void)
 }
 
 @end
+*/
 
 
 
@@ -2110,36 +2114,36 @@ static NSDictionary<NSString*, id>* theSharedInstanceInitOptions = nil;
     }
 }
 
-+ (void) startWatchdogTimer:(nonnull NSString*)timerId
-                    timeout:(NSTimeInterval)timeout
-                   userInfo:(nullable id)userInfo
-                      block:(nonnull void (^)(id _Nullable userInfo))block
-{
-    [self cancelWatchdogTimer:timerId];
-    
-    if (timeout > 0)
-    {
-        UUTimer* t = [[UUTimer alloc] initWithId:timerId
-                                        interval:timeout
-                                        userInfo:userInfo
-                                          repeat:NO
-                                           queue:UUCoreBluetoothQueue()
-                                           block:^(UUTimer * _Nonnull timer)
-        {
-            if (block)
-            {
-                block(timer.userInfo);
-            }
-        }];
-        
-        [t start];
-    }
-}
-
-+ (void) cancelWatchdogTimer:(nonnull NSString*)timerId
-{
-    UUTimer* t = [UUTimer findActiveTimer:timerId];
-    [t cancel];
-}
+//+ (void) startWatchdogTimer:(nonnull NSString*)timerId
+//                    timeout:(NSTimeInterval)timeout
+//                   userInfo:(nullable id)userInfo
+//                      block:(nonnull void (^)(id _Nullable userInfo))block
+//{
+//    [self cancelWatchdogTimer:timerId];
+//
+//    if (timeout > 0)
+//    {
+//        UUTimer* t = [[UUTimer alloc] initWithId:timerId
+//                                        interval:timeout
+//                                        userInfo:userInfo
+//                                          repeat:NO
+//                                           queue:UUCoreBluetoothQueue()
+//                                           block:^(UUTimer * _Nonnull timer)
+//        {
+//            if (block)
+//            {
+//                block(timer.userInfo);
+//            }
+//        }];
+//
+//        [t start];
+//    }
+//}
+//
+//+ (void) cancelWatchdogTimer:(nonnull NSString*)timerId
+//{
+//    UUTimer* t = [UUTimer findActiveTimer:timerId];
+//    [t cancel];
+//}
 
 @end

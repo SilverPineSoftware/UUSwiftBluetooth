@@ -9,8 +9,6 @@ import UIKit
 import CoreBluetooth
 import UUSwiftCore
 
-public typealias UUPeripheralListBlock = (([UUPeripheral])->())
-
 public class UUBluetoothScanner: NSObject
 {
     private var nearbyPeripherals: [String:UUPeripheral] = [:]
