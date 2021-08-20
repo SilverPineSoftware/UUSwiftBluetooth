@@ -22,12 +22,12 @@ public class UUBluetoothScanner: NSObject
         callback: @escaping UUPeripheralListBlock)
     {
         self.nearbyPeripheralCallback = callback
-        //UUCoreBluetooth.sharedInstance().startScan(forServices: services, allowDuplicates: allowDuplicates, peripheralClass: peripheralClass, filters: filters, peripheralFoundCallback: self.handlePeripheralFound, willRestoreStateCallback: self.handleWillRestoreState)
+        UUCoreBluetooth.shared.startScan(serviceUuids: services, allowDuplicates: allowDuplicates, peripheralClass: peripheralClass, filters: filters, peripheralFoundCallback: handlePeripheralFound, willRestoreCallback: handleWillRestoreState)
     }
     
     public func stopScanning()
     {
-        //UUCoreBluetooth.sharedInstance().stopScanning()
+        UUCoreBluetooth.shared.stopScan()
     }
     
     private func handlePeripheralFound(peripheral: UUPeripheral)

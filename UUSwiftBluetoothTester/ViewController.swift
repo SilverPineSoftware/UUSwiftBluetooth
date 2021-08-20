@@ -14,7 +14,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
     private var tableData: [UUPeripheral] = []
     
-    //private var scanner = UUBluetoothScanner()
+    private var scanner = UUBluetoothScanner()
     
     override func viewDidLoad()
     {
@@ -28,7 +28,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         super.viewWillAppear(animated)
         
         let filters = [PeripheralFilter()]
-        //scanner.startScanning(services: nil, allowDuplicates: false, peripheralClass: nil, filters: filters, callback: self.handleNearbyPeripheralsChanged)
+        scanner.startScanning(services: nil, allowDuplicates: false, peripheralClass: nil, filters: filters, callback: self.handleNearbyPeripheralsChanged)
+    
     }
 
     func numberOfSections(in tableView: UITableView) -> Int

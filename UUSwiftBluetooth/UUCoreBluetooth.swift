@@ -290,7 +290,7 @@ public class UUCoreBluetooth
     
     private func handleCentralStatePoweredOn()
     {
-        if !isScanning
+        if isScanning
         {
             resumeScanning()
         }
@@ -301,13 +301,13 @@ public class UUCoreBluetooth
         NSLog("Central is resetting")
     }
     
-    public func startScanForServices(
-        _ serviceUuids: [CBUUID]?,
-        _ allowDuplicates: Bool,
-        _ peripheralClass: AnyClass?,
-        _ filters: [UUPeripheralFilter]?,
-        _ peripheralFoundCallback: @escaping UUPeripheralBlock,
-        _ willRestoreCallback: @escaping UUWillRestoreStateBlock)
+    public func startScan(
+        serviceUuids: [CBUUID]?,
+        allowDuplicates: Bool,
+        peripheralClass: AnyClass?,
+        filters: [UUPeripheralFilter]?,
+        peripheralFoundCallback: @escaping UUPeripheralBlock,
+        willRestoreCallback: @escaping UUWillRestoreStateBlock)
     {
         var opts: [String:Any] = [:]
         opts[CBCentralManagerScanOptionAllowDuplicatesKey] = allowDuplicates
@@ -344,7 +344,6 @@ public class UUCoreBluetooth
         resumeScanning()
     }
 
-    
     private func resumeScanning()
     {
         centralManager.uuScanForPeripherals(scanUuidList, scanOptions, handlePeripheralFound, handleWillRestoreState)
@@ -384,15 +383,18 @@ public class UUCoreBluetooth
         
         return true
     }
+    
+    public func stopScan()
+    {
+        isScanning = false
+        peripheralFoundBlock = nil
+        centralManager.uuStopScan()
+    }
+    
+    
 
      /*
-    - (void) stopScanning
-    {
-        self.isScanning = NO;
-        self.peripheralFoundBlock = nil;
-        [self.centralManager uuStopScanning];
-    }
-
+     
     - (void) connectPeripheral:(nonnull UUPeripheral*)peripheral
                        timeout:(NSTimeInterval)timeout
              disconnectTimeout:(NSTimeInterval)disconnectTimeout
