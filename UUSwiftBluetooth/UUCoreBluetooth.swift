@@ -188,7 +188,7 @@ public class UUCoreBluetooth
     private var peripheralClass: AnyClass? = nil
     private var scanOptions: [String:Any]? = nil
     private var scanFilters: [UUPeripheralFilter]? = nil
-    private var isScanning: Bool = false
+    private(set) public var isScanning: Bool = false
     private var isConfiguredForStateRestoration: Bool = false
     
     private var peripheralFoundBlock: UUPeripheralBlock? = nil

@@ -11,7 +11,9 @@ import UUSwiftBluetooth
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource
 {
     @IBOutlet weak var tableView: UITableView!
-
+    @IBOutlet weak var rightNavBarItem: UIBarButtonItem!
+    @IBOutlet weak var leftNavBarItem: UIBarButtonItem!
+    
     private var tableData: [UUPeripheral] = []
     
     private var scanner = UUBluetoothScanner()
@@ -26,10 +28,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
-        
-        let filters = [PeripheralFilter()]
-        scanner.startScanning(services: nil, allowDuplicates: false, peripheralClass: nil, filters: filters, callback: self.handleNearbyPeripheralsChanged)
-    
     }
 
     func numberOfSections(in tableView: UITableView) -> Int
@@ -56,6 +54,12 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return cell
     }
     
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
+    {
+        let rowData = tableData[indexPath.row]
+        performSegue(withIdentifier: "showPeripheralDetail", sender: rowData)
+    }
+    
     
     private func handleNearbyPeripheralsChanged(_ list: [UUPeripheral])
     {
@@ -68,6 +72,41 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }
     }
     
+    
+    
+    @IBAction func onRightNavBarButtonTapped(_ sender: Any)
+    {
+        toggleScanning()
+    }
+    
+    @IBAction func onLeftNavBarButtonTapped(_ sender: Any)
+    {
+        performSegue(withIdentifier: "showSettings", sender: nil)
+    }
+    
+    private func toggleScanning()
+    {
+        if (scanner.isScanning)
+        {
+            scanner.stopScan()
+            rightNavBarItem.title = "Scan"
+        }
+        else
+        {
+            let filters = [PeripheralFilter()]
+            scanner.startScan(services: nil, allowDuplicates: false, peripheralClass: nil, filters: filters, callback: self.handleNearbyPeripheralsChanged)
+            rightNavBarItem.title = "Stop"
+        }
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?)
+    {
+        if let dest = segue.destination as? PeripheralViewController,
+           let peripheral = sender as? UUPeripheral
+        {
+            dest.peripheral = peripheral
+        }
+    }
     
 }
 

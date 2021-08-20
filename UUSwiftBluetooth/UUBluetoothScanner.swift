@@ -14,7 +14,7 @@ public class UUBluetoothScanner: NSObject
     private var nearbyPeripherals: [String:UUPeripheral] = [:]
     private var nearbyPeripheralCallback: UUPeripheralListBlock = { _ in }
     
-    public func startScanning(
+    public func startScan(
         services: [CBUUID]? = nil,
         allowDuplicates: Bool = false,
         peripheralClass: AnyClass? = nil,
@@ -25,7 +25,12 @@ public class UUBluetoothScanner: NSObject
         UUCoreBluetooth.shared.startScan(serviceUuids: services, allowDuplicates: allowDuplicates, peripheralClass: peripheralClass, filters: filters, peripheralFoundCallback: handlePeripheralFound, willRestoreCallback: handleWillRestoreState)
     }
     
-    public func stopScanning()
+    public var isScanning: Bool
+    {
+        return UUCoreBluetooth.shared.isScanning
+    }
+    
+    public func stopScan()
     {
         UUCoreBluetooth.shared.stopScan()
     }
