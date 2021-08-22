@@ -15,7 +15,7 @@ import UUSwiftCore
 open class UUPeripheral
 {
     // Reference to the underlying CBPeripheral
-    var underlyingPeripheral: CBPeripheral!
+    public var underlyingPeripheral: CBPeripheral!
     
     // The most recent advertisement data
     var advertisementData: [String: Any] = [:]
@@ -68,6 +68,11 @@ open class UUPeripheral
     public var peripheralState: CBPeripheralState
     {
         return underlyingPeripheral.state
+    }
+    
+    public var services: [CBService]?
+    {
+        return underlyingPeripheral.services
     }
     
     // Returns value of CBAdvertisementDataIsConnectable from advertisement data.  Default

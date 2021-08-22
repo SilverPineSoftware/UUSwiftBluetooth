@@ -251,6 +251,12 @@ public class UUCoreBluetooth
         return centralManager.state
     }
     
+    // Returns a flag indicating whether the central state is powered on or not.
+    public var uuIsPoweredOn: Bool
+    {
+        return centralManager.uuIsPoweredOn
+    }
+    
     public func registerForCentralStateChanges(_ block: UUCentralStateChangedBlock?)
     {
         centralStateChangedBlock = block
@@ -324,23 +330,7 @@ public class UUCoreBluetooth
         isScanning = true
         willRestoreStateBlock = willRestoreCallback
         peripheralFoundBlock = peripheralFoundCallback
-            
-//
-//        __weak typeof(self) weakSelf = self;
-//        self.peripheralFoundBlock = ^(CBPeripheral * _Nonnull peripheral, NSDictionary<NSString *,id> * _Nullable advertisementData, NSNumber * _Nonnull rssi)
-//        {
-//            UUPeripheral* uuPeripheral = [weakSelf updatedPeripheralFromScan:peripheral advertisementData:advertisementData rssi:rssi];
-//
-//            UUCoreBluetoothLog(@"Updated peripheral after scan. peripheral: %@, rssi: %@, advertisement: %@",
-//                               uuPeripheral.peripheral, uuPeripheral.rssi, uuPeripheral.advertisementData);
-//
-//            if ([weakSelf shouldDiscoverPeripheral:uuPeripheral])
-//            {
-//                peripheralFoundBlock(uuPeripheral);
-//            }
-//        };
-//
-        
+       
         resumeScanning()
     }
 
@@ -391,40 +381,34 @@ public class UUCoreBluetooth
         centralManager.uuStopScan()
     }
     
+    public func connectPeripheral(
+        _ peripheral: UUPeripheral,
+        _ timeout: TimeInterval,
+        _ disconnectTimeout: TimeInterval,
+        _ connected: @escaping UUPeripheralBlock,
+        _ disconnected: @escaping UUPeripheralErrorBlock)
+    {
+        centralManager.uuConnectPeripheral(peripheral.underlyingPeripheral, nil, timeout, disconnectTimeout,
+        { connectedPeripheral in
+            
+            let uuPeripheral = self.updatedPeripheralFromCbPeripheral(connectedPeripheral)
+            connected(uuPeripheral)
+        },
+        { disconnectedPeripheral, disconnectError in
+            
+            disconnectedPeripheral.uuCancelAllTimers()
+            
+            let uuPeripheral = self.updatedPeripheralFromCbPeripheral(disconnectedPeripheral)
+            connected(uuPeripheral)
+        })
+    }
     
-
-     /*
-     
-    - (void) connectPeripheral:(nonnull UUPeripheral*)peripheral
-                       timeout:(NSTimeInterval)timeout
-             disconnectTimeout:(NSTimeInterval)disconnectTimeout
-                     connected:(nonnull UUPeripheralBlock)connected
-                  disconnected:(nonnull UUPeripheralErrorBlock)disconnected
+    public func disconnectPeripheral(_ peripheral: UUPeripheral, _ timeout: TimeInterval)
     {
-        [self.centralManager uuConnectPeripheral:peripheral.peripheral
-                                         options:nil
-                                         timeout:timeout
-                               disconnectTimeout:disconnectTimeout
-                                       connected:^(CBPeripheral * _Nonnull peripheral)
-        {
-            UUPeripheral* uuPeripheral = [self updatedPeripheralFromCbPeripheral:peripheral];
-            connected(uuPeripheral);
-            
-        }
-        disconnected:^(CBPeripheral * _Nonnull peripheral, NSError * _Nullable error)
-        {
-            [peripheral uuCancelAllTimers];
-            
-            UUPeripheral* uuPeripheral = [self updatedPeripheralFromCbPeripheral:peripheral];
-            disconnected(uuPeripheral, error);
-        }];
+        centralManager.uuDisconnectPeripheral(peripheral.underlyingPeripheral, timeout)
     }
 
-    - (void) disconnectPeripheral:(nonnull UUPeripheral*)peripheral timeout:(NSTimeInterval)timeout;
-    {
-        [self.centralManager uuDisconnectPeripheral:peripheral.peripheral timeout:timeout];
-    }
-
+    /*
     // Begins polling RSSI for a peripheral.  When the RSSI is successfully
     // retrieved, the peripheralFoundBlock is called.  This method is useful to
     // perform a crude 'ranging' logic when already connected to a peripheral
@@ -567,19 +551,6 @@ public class UUCoreBluetooth
         peripherals.removeValue(forKey: peripheral.identifier)
     }
 }
-
-
-public extension UUCoreBluetooth
-{
-    static var isBluetoothPoweredOn: Bool
-    {
-        // TODO: this method
-        return false
-    }
-}
-
-
-
 
 // MARK:- Global Helper functions
 

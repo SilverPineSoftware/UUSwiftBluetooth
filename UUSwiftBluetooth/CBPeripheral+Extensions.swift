@@ -149,7 +149,7 @@ extension CBPeripheral
         return formatTimerId(.pollRssiBucket)
     }
 
-    private func uuCancelAllTimers()
+    func uuCancelAllTimers()
     {
         let list = UUTimer.listActiveTimers()
         for t in list
@@ -181,7 +181,7 @@ extension CBPeripheral
     
     private var uuCanAttemptOperation: Error?
     {
-        if (!UUCoreBluetooth.isBluetoothPoweredOn)
+        if (!UUCoreBluetooth.shared.uuIsPoweredOn)
         {
             return NSError.uuCoreBluetoothError(.centralNotReady)
         }
@@ -197,11 +197,11 @@ extension CBPeripheral
     // Block based wrapper around CBPeripheral discoverServices, with an optional
     // timeout value.  A negative timeout value will disable the timeout.
     public func uuDiscoverServices(
-        _ serviceUuidList: [CBUUID],
+        _ serviceUuidList: [CBUUID]?,
         _ timeout: TimeInterval,
         _ completion: @escaping UUDiscoverServicesBlock)
     {
-        NSLog("Discovering services for \(uuIdentifier) - \(uuName), timeout: \(timeout), service list: \(serviceUuidList)")
+        NSLog("Discovering services for \(uuIdentifier) - \(uuName), timeout: \(timeout), service list: \(String(describing: serviceUuidList))")
         
         let timerId = uuServiceDiscoveryWatchdogTimerId()
         
