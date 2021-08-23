@@ -11,6 +11,9 @@ import UUSwiftCore
 
 public typealias UUPeripheralBlock = ((UUPeripheral)->())
 public typealias UUPeripheralErrorBlock = ((UUPeripheral, Error?)->())
+public typealias UUPeripheralCharacteristicErrorBlock = ((UUPeripheral, CBCharacteristic, Error?)->())
+public typealias UUPeripheralDescriptorErrorBlock = ((UUPeripheral, CBDescriptor, Error?)->())
+public typealias UUPeripheralIntegerErrorBlock = ((UUPeripheral, Int, Error?)->())
 
 // UUPeripheral is a convenience class that wraps a CBPeripheral and it's
 // advertisement data into one object.
@@ -19,6 +22,8 @@ open class UUPeripheral
 {
     public class Defaults
     {
+        public static let connectTimeout: TimeInterval = 60.0
+        public static let disconnectTimeout: TimeInterval = 10.0
         public static let operationTimeout: TimeInterval = 60.0
     }
     
@@ -167,12 +172,9 @@ open class UUPeripheral
     // is disconnected from the phone side, or if the remote device disconnects
     // from the phone
     public func connect(
-       //_ peripheral: CBPeripheral,
-       //_ options: [String:Any]?,
-       _ timeout: TimeInterval,
-       _ disconnectTimeout: TimeInterval,
-       _ connected: @escaping UUPeripheralBlock,
-       _ disconnected: @escaping UUPeripheralErrorBlock)
+       timeout: TimeInterval = Defaults.connectTimeout,
+       connected: @escaping UUPeripheralBlock,
+       disconnected: @escaping UUPeripheralErrorBlock)
     {
         guard centralManager.isPoweredOn else
         {
@@ -181,9 +183,9 @@ open class UUPeripheral
             return
         }
         
-        let timerId = uuConnectWatchdogTimerId()
+        let timerId = TimerId.connect
         
-        let connectedBlock: UUPeripheralConnectedBlock =
+        let connectedBlock: UUCBPeripheralBlock =
         { p in
             
             //NSLog("Connected to \(peripheral.uuIdentifier) - \(peripheral.uuName)")
@@ -192,7 +194,7 @@ open class UUPeripheral
             connected(self)
         };
         
-        let disconnectedBlock: UUPeripheralDisconnectedBlock =
+        let disconnectedBlock: UUCBPeripheralErrorBlock =
         { p, error in
             
             //NSLog("Disconnected from \(peripheral.uuIdentifier) - \(peripheral.uuName), error: \(String(describing: error))")
@@ -204,7 +206,7 @@ open class UUPeripheral
         centralManager.registerConnectionBlocks(self, connectedBlock, disconnectedBlock)
         
         startTimer(timerId, timeout)
-        { //p in
+        {
             
             NSLog("Connect timeout for \(self.debugName)")
              
@@ -226,10 +228,8 @@ open class UUPeripheral
 
     // Wrapper around CBCentralManager cancelPeripheralConnection.  After calling this
     // method, the disconnected block passed in at connect time will be invoked.
-   public func disconnect(_ timeout: TimeInterval)
+    public func disconnect(timeout: TimeInterval = Defaults.disconnectTimeout)
    {
-        //centralManager.disconnectPeripheral(self, timeout)
-    
         guard centralManager.isPoweredOn else
         {
             NSLog("Central is not powered on, cannot cancel a connection!")
@@ -238,11 +238,10 @@ open class UUPeripheral
             return
         }
         
-        let timerId = uuDisconnectWatchdogTimerId()
+        let timerId = TimerId.disconnect
         
         startTimer(timerId, timeout)
-        { //p in
-            
+        {
             NSLog("Disconnect timeout for \(self.debugName)")
             
             self.cancelTimer(timerId)
@@ -259,13 +258,13 @@ open class UUPeripheral
     // Block based wrapper around CBPeripheral discoverServices, with an optional
     // timeout value.  A negative timeout value will disable the timeout.
     public func discoverServices(
-        serviceUUIDs: [CBUUID]? = nil,
+        _ serviceUUIDs: [CBUUID]? = nil,
         timeout: TimeInterval = Defaults.operationTimeout,
         completion: @escaping UUPeripheralErrorBlock)
     {
         NSLog("Discovering services for \(self.debugName), timeout: \(timeout), service list: \(String(describing: serviceUUIDs))")
         
-        let timerId = TimerBucket.serviceDiscovery
+        let timerId = TimerId.serviceDiscovery
         
         delegate.discoverServicesBlock =
         { peripheral, errOpt in
@@ -299,14 +298,14 @@ open class UUPeripheral
     // Block based wrapper around CBPeripheral discoverCharacteristics:forService,
     // with an optional timeout value.  A negative timeout value will disable the timeout.
     public func discoverCharacteristics(
-        characteristicUUIDs: [CBUUID]?,
-        service: CBService,
+        _ characteristicUUIDs: [CBUUID]?,
+        for service: CBService,
         timeout: TimeInterval = Defaults.operationTimeout,
         completion: @escaping UUPeripheralErrorBlock)
     {
         NSLog("Discovering characteristics for \(self.debugName), timeout: \(timeout), service: \(service), characteristic list: \(String(describing: characteristicUUIDs))")
         
-        let timerId = TimerBucket.characteristicDiscovery
+        let timerId = TimerId.characteristicDiscovery
         
         delegate.discoverCharacteristicsBlock =
         { peripheral, service, error in
@@ -340,237 +339,225 @@ open class UUPeripheral
     // Block based wrapper around CBPeripheral discoverIncludedServices:forService,
     // with an optional timeout value.  A negative timeout value will disable the timeout.
     public func discoverIncludedServices(
-        _ serviceUuidList: [CBUUID]?,
-        _ service: CBService,
-        _ timeout: TimeInterval,
-        _ completion: @escaping UUDiscoverIncludedServicesBlock)
+        _ includedServiceUUIDs: [CBUUID]?,
+        for service: CBService,
+        timeout: TimeInterval = Defaults.operationTimeout,
+        completion: @escaping UUPeripheralErrorBlock)
     {
-        NSLog("Discovering included services for \(self.debugName), timeout: \(timeout), service: \(service), service list: \(String(describing: serviceUuidList))")
+        NSLog("Discovering included services for \(self.debugName), timeout: \(timeout), service: \(service), service list: \(String(describing: includedServiceUUIDs))")
         
-        let timerId = uuIncludedServicesDiscoveryWatchdogTimerId()
+        let timerId = TimerId.includedServicesDiscovery
         
         delegate.discoverIncludedServicesBlock =
         { peripheral, service, error in
             
-            let err = NSError.uuOperationCompleteError(error as NSError?)
-            
-            NSLog("Included services discovery finished for \(self.debugName), service: \(service), error: \(String(describing: err)), includedServices: \(String(describing: service.includedServices))")
-            
-            self.cancelTimer(timerId)
-            completion(peripheral, service, error)
-        }
-        
-        startTimer(timerId, timeout)
-        { //peripheral in
-            
-            NSLog("Included services discovery timeout for \(self.debugName)")
-            
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.delegate.peripheral(self.underlyingPeripheral, didDiscoverIncludedServicesFor: service, error: err)
+            self.finishOperation(timerId, peripheral, error, completion)
         }
         
         if let err = canAttemptOperation
         {
-            dispatchQueue.async
-            {
-                self.delegate.peripheral(self.underlyingPeripheral, didDiscoverIncludedServicesFor: service, error: err)
-            }
-            
+            endDiscoverIncludedServices(service, err)
             return
         }
         
-        underlyingPeripheral.discoverIncludedServices(serviceUuidList, for: service)
+        startTimer(timerId, timeout)
+        {
+            let err = NSError.uuCoreBluetoothError(.timeout)
+            self.endDiscoverIncludedServices(service, err)
+        }
+        
+        underlyingPeripheral.discoverIncludedServices(includedServiceUUIDs, for: service)
+    }
+    
+    private func endDiscoverIncludedServices(_ service: CBService, _ error: Error?)
+    {
+        dispatchQueue.async
+        {
+            self.delegate.peripheral(self.underlyingPeripheral, didDiscoverIncludedServicesFor: service, error: error)
+        }
     }
     
     // Block based wrapper around CBPeripheral discoverDescriptorsForCharacteristic,
     // with an optional timeout value.  A negative timeout value will disable the timeout.
     public func discoverDescriptorsForCharacteristic(
-        _ characteristic: CBCharacteristic,
-        _ timeout: TimeInterval,
-        _ completion: @escaping UUDiscoverDescriptorsBlock)
+        for characteristic: CBCharacteristic,
+        timeout: TimeInterval = Defaults.operationTimeout,
+        completion: @escaping UUPeripheralCharacteristicErrorBlock)
     {
         NSLog("Discovering descriptors for \(self.debugName), timeout: \(timeout), characteristic: \(characteristic)")
         
-        let timerId = uuDescriptorDiscoveryWatchdogTimerId()
+        let timerId = TimerId.descriptorDiscovery
         
         delegate.discoverDescriptorsBlock =
         { peripheral, characteristic, error in
             
-            let err = NSError.uuOperationCompleteError(error as NSError?)
-            
-            NSLog("Descriptor discovery finished for \(self.debugName), characteristic: \(characteristic), error: \(String(describing: err)), descriptors: \(String(describing: characteristic.descriptors))")
-            
-            self.cancelTimer(timerId)
-            completion(peripheral, characteristic, error)
-        }
-        
-        startTimer(timerId, timeout)
-        { //peripheral in
-            
-            NSLog("Descriptor discovery timeout for \(self.debugName)")
-            
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.delegate.peripheral(self.underlyingPeripheral, didDiscoverDescriptorsFor: characteristic, error: err)
+            self.finishOperation(timerId, peripheral, characteristic, error, completion)
         }
         
         if let err = canAttemptOperation
         {
-            dispatchQueue.async
-            {
-                self.delegate.peripheral(self.underlyingPeripheral, didDiscoverDescriptorsFor: characteristic, error: err)
-            }
-            
+            endDescriptorDiscovery(characteristic, err)
             return
         }
         
+        startTimer(timerId, timeout)
+        {
+            let err = NSError.uuCoreBluetoothError(.timeout)
+            self.endDescriptorDiscovery(characteristic, err)
+        }
+        
         underlyingPeripheral.discoverDescriptors(for: characteristic)
+    }
+    
+    private func endDescriptorDiscovery(_ characteristic: CBCharacteristic, _ error: Error?)
+    {
+        dispatchQueue.async
+        {
+            self.delegate.peripheral(self.underlyingPeripheral, didDiscoverDescriptorsFor: characteristic, error: error)
+        }
     }
     
     // Block based wrapper around CBPeripheral setNotifyValue, with an optional
     // timeout value.  A negative timeout value will disable the timeout.
     public func setNotifyValue(
         _ enabled: Bool,
-        _ characteristic: CBCharacteristic,
-        _ timeout: TimeInterval,
-        _ notifyHandler: UUUpdateValueForCharacteristicsBlock?,
-        _ completion: @escaping UUSetNotifyValueForCharacteristicsBlock)
+        for characteristic: CBCharacteristic,
+        timeout: TimeInterval = Defaults.operationTimeout,
+        notifyHandler: UUPeripheralCharacteristicErrorBlock?,
+        completion: @escaping UUPeripheralCharacteristicErrorBlock)
     {
         NSLog("Set Notify State for \(self.debugName), enabled: \(enabled), timeout: \(timeout), characateristic: \(characteristic)")
         
-        let timerId = uuCharacteristicNotifyStateWatchdogTimerId()
+        let timerId = TimerId.characteristicNotifyState
         
         delegate.setNotifyValueForCharacteristicBlock =
         { peripheral, characteristic, error in
             
-            let err = NSError.uuOperationCompleteError(error as NSError?)
-            
-            NSLog("Set Notify State finished for \(self.debugName), characteristic: \(characteristic), error: \(String(describing: err))")
-            
-            self.cancelTimer(timerId)
-            completion(peripheral, characteristic, err)
+            self.finishOperation(timerId, peripheral, characteristic, error, completion)
         };
         
         if (enabled)
         {
-            delegate.registerUpdateHandler(notifyHandler, characteristic)
+            let handler: UUCBPeripheralCharacteristicErrorBlock =
+            { p, characteristic, error in
+                notifyHandler?(self, characteristic, error)
+            }
+            
+            delegate.registerUpdateHandler(handler, characteristic)
         }
         else
         {
             delegate.removeUpdateHandlerForCharacteristic(characteristic)
         }
         
-        startTimer(timerId, timeout)
-        { //peripheral in
-            
-            NSLog("Set Notify State timeout for \(self.debugName)")
-            
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.delegate.peripheral(self.underlyingPeripheral, didUpdateNotificationStateFor: characteristic, error: err)
-        }
-        
         if let err = canAttemptOperation
         {
-            dispatchQueue.async
-            {
-                self.delegate.peripheral(self.underlyingPeripheral, didUpdateNotificationStateFor: characteristic, error: err)
-            }
-            
+            self.endSetNotify(characteristic, err)
             return
+        }
+        
+        startTimer(timerId, timeout)
+        {
+            let err = NSError.uuCoreBluetoothError(.timeout)
+            self.endSetNotify(characteristic, err)
         }
         
         underlyingPeripheral.setNotifyValue(enabled, for: characteristic)
     }
+    
+    private func endSetNotify(_ characteristic: CBCharacteristic, _ error: Error?)
+    {
+        dispatchQueue.async
+        {
+            self.delegate.peripheral(self.underlyingPeripheral, didUpdateNotificationStateFor: characteristic, error: error)
+        }
+    }
 
     // Block based wrapper around CBPeripheral readValue:forCharacteristic, with an
     // optional timeout value.  A negative timeout value will disable the timeout.
-    public func readValueForCharacteristic(
-        _ characteristic: CBCharacteristic,
-        _ timeout: TimeInterval,
-        _ completion: @escaping UUReadValueForCharacteristicsBlock)
+    public func readValue(
+        for characteristic: CBCharacteristic,
+        timeout: TimeInterval = Defaults.operationTimeout,
+        completion: @escaping UUPeripheralCharacteristicErrorBlock)
     {
         NSLog("Read value for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
         
-        let timerId = uuReadCharacteristicValueWatchdogTimerId()
+        let timerId = TimerId.readCharacteristic
         
         delegate.registerReadHandler(
         { peripheral, characteristic, error in
             
-            let err = NSError.uuOperationCompleteError(error as NSError?)
+            let err = self.prepareToFinishOperation(timerId, error)
             
-            NSLog("Read value finished for \(self.debugName), characteristic: \(characteristic), error: \(String(describing: err))")
-            
-            self.cancelTimer(timerId)
             self.delegate.removeReadHandler(characteristic)
-            completion(peripheral, characteristic, err)
+            completion(self, characteristic, err)
             
         }, characteristic)
         
         startTimer(timerId, timeout)
-        { //peripheral in
-            
-            NSLog("Read value timeout for \(self.debugName)")
-            
+        {
             let err = NSError.uuCoreBluetoothError(.timeout)
-            self.delegate.peripheral(self.underlyingPeripheral, didUpdateValueFor: characteristic, error: err)
+            self.endReadValue(characteristic, err)
         }
         
         if let err = canAttemptOperation
         {
-            dispatchQueue.async
-            {
-                self.delegate.peripheral(self.underlyingPeripheral, didUpdateValueFor: characteristic, error: err)
-            }
-            
+            endReadValue(characteristic, err)
             return
         }
         
         underlyingPeripheral.readValue(for: characteristic)
     }
     
+    private func endReadValue(_ characteristic: CBCharacteristic, _ error: Error?)
+    {
+        dispatchQueue.async
+        {
+            self.delegate.peripheral(self.underlyingPeripheral, didUpdateValueFor: characteristic, error: error)
+        }
+    }
+    
     // Block based wrapper around CBPeripheral readValue:forCharacteristic, with an
     // optional timeout value.  A negative timeout value will disable the timeout.
-    public func readValueForDescriptor(
-        _ descriptor: CBDescriptor,
-        _ timeout: TimeInterval,
-        _ completion: @escaping UUReadValueForDescriptorBlock)
+    public func readValue(
+        for descriptor: CBDescriptor,
+        timeout: TimeInterval = Defaults.operationTimeout,
+        completion: @escaping UUPeripheralDescriptorErrorBlock)
     {
         NSLog("Read value for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
         
-        let timerId = uuReadDescriptorValueWatchdogTimerId()
+        let timerId = TimerId.readDescriptor
         
         delegate.registerReadHandler(
         { peripheral, descriptor, error in
             
-            let err = NSError.uuOperationCompleteError(error as NSError?)
-            
-            NSLog("Read value finished for \(self.debugName), descriptor: \(descriptor), error: \(String(describing: err))")
-            
-            self.cancelTimer(timerId)
+            let err = self.prepareToFinishOperation(timerId, error)
             self.delegate.removeReadHandler(descriptor)
-            completion(peripheral, descriptor, err)
+            completion(self, descriptor, err)
             
         }, descriptor)
         
-        startTimer(timerId, timeout)
-        { //peripheral in
-            
-            NSLog("Read descriptor timeout for \(self.debugName)")
-            
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.delegate.peripheral(self.underlyingPeripheral, didUpdateValueFor: descriptor, error: err)
-        }
-        
         if let err = canAttemptOperation
         {
-            dispatchQueue.async
-            {
-                self.delegate.peripheral(self.underlyingPeripheral, didUpdateValueFor: descriptor, error: err)
-            }
-            
+            endReadDescriptor(descriptor, err)
             return
         }
         
+        startTimer(timerId, timeout)
+        {
+            let err = NSError.uuCoreBluetoothError(.timeout)
+            self.endReadDescriptor(descriptor, err)
+        }
+        
         underlyingPeripheral.readValue(for: descriptor)
+    }
+    
+    private func endReadDescriptor(_ descriptor: CBDescriptor, _ error: Error?)
+    {
+        dispatchQueue.async
+        {
+            self.delegate.peripheral(self.underlyingPeripheral, didUpdateValueFor: descriptor, error: error)
+        }
     }
     
     // Block based wrapper around CBPeripheral writeValue:forCharacteristic:type with type
@@ -578,47 +565,44 @@ open class UUPeripheral
     // timeout value will disable the timeout.
     public func writeValue(
         _ data: Data,
-        _ characteristic: CBCharacteristic,
-        _ timeout: TimeInterval,
-        _ completion: @escaping UUWriteValueForCharacteristicsBlock)
+        for characteristic: CBCharacteristic,
+        timeout: TimeInterval = Defaults.operationTimeout,
+        completion: @escaping UUPeripheralCharacteristicErrorBlock)
     {
         NSLog("Write value \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
         
-        let timerId = uuWriteCharacteristicValueWatchdogTimerId()
+        let timerId = TimerId.writeCharacteristic
         
         delegate.registerWriteHandler(
         { peripheral, characteristic, error in
         
-            let err = NSError.uuOperationCompleteError(error as NSError?)
-            
-            NSLog("Write value finished for \(self.debugName), characteristic: \(characteristic), error: \(String(describing: err))")
-            
-            self.cancelTimer(timerId)
+            let err = self.prepareToFinishOperation(timerId, error)
             self.delegate.removeWriteHandler(characteristic)
-            completion(peripheral, characteristic, err)
+            completion(self, characteristic, err)
             
         }, characteristic)
         
+        if let err = canAttemptOperation
+        {
+            endWriteValue(characteristic, err)
+            return
+        }
+        
         startTimer(timerId, timeout)
-        { //peripheral in
-            
-            NSLog("Write value timeout for \(self.debugName)")
-            
+        {
             let err = NSError.uuCoreBluetoothError(.timeout)
             self.delegate.peripheral(self.underlyingPeripheral, didWriteValueFor: characteristic, error: err)
         }
         
-        if let err = canAttemptOperation
-        {
-            dispatchQueue.async
-            {
-                self.delegate.peripheral(self.underlyingPeripheral, didWriteValueFor: characteristic, error: err)
-            }
-            
-            return
-        }
-        
         underlyingPeripheral.writeValue(data, for: characteristic, type: .withResponse)
+    }
+    
+    private func endWriteValue(_ characteristic: CBCharacteristic, _ error: Error?)
+    {
+        dispatchQueue.async
+        {
+            self.delegate.peripheral(self.underlyingPeripheral, didWriteValueFor: characteristic, error: error)
+        }
     }
 
     // Block based wrapper around CBPeripheral writeValue:forCharacteristic:type with type
@@ -626,8 +610,8 @@ open class UUPeripheral
     // Per CoreBluetooth documentation, there is no garauntee of delivery.
     public func writeValueWithoutResponse(
         _ data: Data,
-        _ characteristic: CBCharacteristic,
-        _ completion: @escaping UUWriteValueForCharacteristicsBlock)
+        for characteristic: CBCharacteristic,
+        completion: @escaping UUPeripheralCharacteristicErrorBlock)
     {
         NSLog("Write value without response \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic)")
         
@@ -635,7 +619,7 @@ open class UUPeripheral
         {
             dispatchQueue.async
             {
-                completion(self.underlyingPeripheral, characteristic, err)
+                completion(self, characteristic, err)
             }
             
             return
@@ -649,95 +633,85 @@ open class UUPeripheral
     // timeout value will disable the timeout.
     public func writeValue(
         _ data: Data,
-        _ descriptor: CBDescriptor,
-        _ timeout: TimeInterval,
-        _ completion: @escaping UUWriteValueForDescriptorBlock)
+        for descriptor: CBDescriptor,
+        timeout: TimeInterval = Defaults.operationTimeout,
+        completion: @escaping UUPeripheralDescriptorErrorBlock)
     {
         NSLog("Write value \(data.uuToHexString()), for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
         
-        let timerId = uuWriteDescriptorValueWatchdogTimerId()
-        
-        //let delegate = Self.uuDelegateForPeripheral(self)
-        //self.delegate = delegate
+        let timerId = TimerId.writeDescriptor
         
         delegate.registerWriteHandler(
         { peripheral, descriptor, error in
         
-            let err = NSError.uuOperationCompleteError(error as NSError?)
+            let err = self.prepareToFinishOperation(timerId, error)
             
-            NSLog("Write value finished for \(self.debugName), descriptor: \(descriptor), error: \(String(describing: err))")
-            
-            self.cancelTimer(timerId)
             self.delegate.removeWriteHandler(descriptor)
-            completion(peripheral, descriptor, err)
+            completion(self, descriptor, err)
             
         }, descriptor)
         
-        startTimer(timerId, timeout)
-        { //peripheral in
-            
-            NSLog("Write descriptor value timeout for \(self.debugName)")
-            
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.delegate.peripheral(self.underlyingPeripheral, didWriteValueFor: descriptor, error: err)
-        }
-        
         if let err = canAttemptOperation
         {
-            dispatchQueue.async
-            {
-                self.delegate.peripheral(self.underlyingPeripheral, didWriteValueFor: descriptor, error: err)
-            }
-            
+            endWriteValue(descriptor, err)
             return
+        }
+        
+        startTimer(timerId, timeout)
+        {
+            let err = NSError.uuCoreBluetoothError(.timeout)
+            self.endWriteValue(descriptor, err)
         }
         
         underlyingPeripheral.writeValue(data, for: descriptor)
     }
     
-    // TODO: Read/Write descriptors
+    private func endWriteValue(_ descriptor: CBDescriptor, _ error: Error?)
+    {
+        dispatchQueue.async
+        {
+            self.delegate.peripheral(self.underlyingPeripheral, didWriteValueFor: descriptor, error: error)
+        }
+    }
     
     // Block based wrapper around CBPeripheral readRssi, with an optional
     // timeout value.  A negative timeout value will disable the timeout.
-    public func readRssi(
-        _ timeout: TimeInterval,
-        _ completion: @escaping UUDidReadRssiBlock)
+    public func readRSSI(
+        timeout: TimeInterval = Defaults.operationTimeout,
+        completion: @escaping UUPeripheralIntegerErrorBlock)
     {
         NSLog("Reading RSSI for \(self.debugName), timeout: \(timeout)")
         
-        let timerId = uuReadRssiWatchdogTimerId()
+        let timerId = TimerId.readRssi
         
         delegate.didReadRssiBlock =
         { peripheral, rssi, error in
             
-            let err = NSError.uuOperationCompleteError(error as NSError?)
-            
-            NSLog("Read RSSI finished for \(self.debugName), rssi: \(rssi), error: \(String(describing: err))")
-            
-            self.cancelTimer(timerId)
-            completion(peripheral, rssi, error)
-        }
-        
-        startTimer(timerId, timeout)
-        { //peripheral in
-            
-            NSLog("Read RSSI timeout for \(self.debugName)")
-            
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.delegate.peripheral(self.underlyingPeripheral, didReadRSSI: NSNumber(127), error: err)
+            let err = self.prepareToFinishOperation(timerId, error)
+            completion(self, rssi, err)
         }
         
         if let err = canAttemptOperation
         {
-            dispatchQueue.async
-            {
-                self.delegate.peripheral(self.underlyingPeripheral, didReadRSSI: NSNumber(127), error: err)
-            }
-            
+            endReadRssi(err)
             return
         }
         
+        startTimer(timerId, timeout)
+        {
+            let err = NSError.uuCoreBluetoothError(.timeout)
+            self.endReadRssi(err)
+        }
+        
         underlyingPeripheral.readRSSI()
+    }
+    
+    private func endReadRssi(_ error: Error?)
+    {
+        dispatchQueue.async
+        {
+            self.delegate.peripheral(self.underlyingPeripheral, didReadRSSI: NSNumber(127), error: error)
+        }
     }
     
     // Convenience wrapper to perform both service and characteristic discovery at
@@ -780,15 +754,37 @@ open class UUPeripheral
     
     
     
-    
-    private func finishOperation(_ timerBucket: TimerBucket, _ peripheral: CBPeripheral, _ error: Error?, _ completion: @escaping UUPeripheralErrorBlock)
+    private func prepareToFinishOperation(
+        _ timerBucket: TimerId,
+        _ error: Error?) -> Error?
     {
         let err = NSError.uuOperationCompleteError(error as NSError?)
         
         NSLog("Finished \(timerBucket) for \(debugName), error: \(String(describing: err))")
         
         cancelTimer(timerBucket)
+        return err
+    }
+    
+    private func finishOperation(
+        _ timerBucket: TimerId,
+        _ peripheral: CBPeripheral,
+        _ error: Error?,
+        _ completion: @escaping UUPeripheralErrorBlock)
+    {
+        let err = prepareToFinishOperation(timerBucket, error)
         completion(self, err)
+    }
+    
+    private func finishOperation(
+        _ timerBucket: TimerId,
+        _ peripheral: CBPeripheral,
+        _ characteristic: CBCharacteristic,
+        _ error: Error?,
+        _ completion: @escaping UUPeripheralCharacteristicErrorBlock)
+    {
+        let err = prepareToFinishOperation(timerBucket, error)
+        completion(self, characteristic, err)
     }
     
     
@@ -823,94 +819,28 @@ open class UUPeripheral
     
     // MARK:- Timers
     
-    private enum TimerBucket: String
+    private enum TimerId: String
     {
-        case connectWatchdogBucket
+        case connect
+        case disconnect
         case serviceDiscovery
         case characteristicDiscovery
-        case includedServicesDiscoveryWatchdogBucket
-        case descriptorDiscoveryWatchdogBucket
-        case characteristicNotifyStateWatchdogBucket
-        case readCharacteristicValueWatchdogBucket
-        case writeCharacteristicValueWatchdogBucket
-        case readDescriptorValueWatchdogBucket
-        case writeDescriptorValueWatchdogBucket
-        case readRssiWatchdogBucket
-        case pollRssiBucket
-        case disconnectWatchdogBucket
-
+        case includedServicesDiscovery
+        case descriptorDiscovery
+        case characteristicNotifyState
+        case readCharacteristic
+        case writeCharacteristic
+        case readDescriptor
+        case writeDescriptor
+        case readRssi
+        case pollRssi
     }
 
-    private func formatTimerId(_ bucket: TimerBucket) -> String
+    private func formatTimerId(_ bucket: TimerId) -> String
     {
         return "\(identifier)__\(bucket.rawValue)"
     }
 
-    private func uuConnectWatchdogTimerId() -> String
-    {
-        return formatTimerId(.connectWatchdogBucket)
-    }
-
-    private func uuDisconnectWatchdogTimerId() -> String
-    {
-        return formatTimerId(.disconnectWatchdogBucket)
-    }
-
-//    private func uuServiceDiscoveryWatchdogTimerId() -> String
-//    {
-//        return formatTimerId(.serviceDiscoveryWatchdogBucket)
-//    }
-
-//    private func uuCharacteristicDiscoveryWatchdogTimerId() -> String
-//    {
-//        return formatTimerId(.characteristicDiscoveryWatchdogBucket)
-//    }
-
-    private func uuIncludedServicesDiscoveryWatchdogTimerId() -> String
-    {
-        return formatTimerId(.includedServicesDiscoveryWatchdogBucket)
-    }
-
-    private func uuDescriptorDiscoveryWatchdogTimerId() -> String
-    {
-        return formatTimerId(.descriptorDiscoveryWatchdogBucket)
-    }
-
-    private func uuCharacteristicNotifyStateWatchdogTimerId() -> String
-    {
-        return formatTimerId(.characteristicNotifyStateWatchdogBucket)
-    }
-
-    private func uuReadCharacteristicValueWatchdogTimerId() -> String
-    {
-        return formatTimerId(.readCharacteristicValueWatchdogBucket)
-    }
-    
-    private func uuReadDescriptorValueWatchdogTimerId() -> String
-    {
-        return formatTimerId(.readDescriptorValueWatchdogBucket)
-    }
-
-    private func uuWriteCharacteristicValueWatchdogTimerId() -> String
-    {
-        return formatTimerId(.writeCharacteristicValueWatchdogBucket)
-    }
-    
-    private func uuWriteDescriptorValueWatchdogTimerId() -> String
-    {
-        return formatTimerId(.writeDescriptorValueWatchdogBucket)
-    }
-
-    private func uuReadRssiWatchdogTimerId() -> String
-    {
-        return formatTimerId(.readRssiWatchdogBucket)
-    }
-
-    private func uuPollRssiTimerId() -> String
-    {
-        return formatTimerId(.pollRssiBucket)
-    }
-    
     private func cancelAllTimers()
     {
         let list = UUTimer.listActiveTimers()
@@ -923,29 +853,7 @@ open class UUPeripheral
         }
     }
     
-    private func startTimer(_ timerId: String, _ timeout: TimeInterval, _ block: @escaping ()->())
-    {
-        NSLog("Starting timer \(timerId) with timeout: \(timeout)")
-        
-        UUTimer.startWatchdogTimer(timerId, timeout, nil, queue: dispatchQueue)
-        { _ in
-            
-            block()
-//            if let p = info as? CBPeripheral
-//            {
-//                block(p)
-//            }
-        }
-    }
-    
-    private func cancelTimer(_ timerId: String)
-    {
-        UUTimer.cancelWatchdogTimer(timerId)
-    }
-    
-    
-    
-    private func startTimer(_ timerBucket: TimerBucket, _ timeout: TimeInterval, _ block: @escaping ()->())
+    private func startTimer(_ timerBucket: TimerId, _ timeout: TimeInterval, _ block: @escaping ()->())
     {
         let timerId = formatTimerId(timerBucket)
         NSLog("Starting bucket timer \(timerId) with timeout: \(timeout)")
@@ -954,14 +862,10 @@ open class UUPeripheral
         { _ in
             
             block()
-//            if let p = info as? CBPeripheral
-//            {
-//                block(p)
-//            }
         }
     }
     
-    private func cancelTimer(_ timerBucket: TimerBucket)
+    private func cancelTimer(_ timerBucket: TimerId)
     {
         let timerId = formatTimerId(timerBucket)
         UUTimer.cancelWatchdogTimer(timerId)

@@ -13,28 +13,8 @@ import UUSwiftCore
 
 public typealias UUCentralStateChangedBlock = ((CBManagerState)->())
 public typealias UUPeripheralFoundBlock = ((CBPeripheral, [String:Any], Int)->())
-public typealias UUPeripheralConnectedBlock = ((CBPeripheral)->())
-public typealias UUPeripheralDisconnectedBlock = ((CBPeripheral, Error?)->())
 public typealias UUWillRestoreStateBlock = (([String:Any])->())
-public typealias UUPeripheralNameUpdatedBlock = ((CBPeripheral)->())
-public typealias UUDidModifyServicesBlock = ((CBPeripheral, [CBService])->())
-public typealias UUDidReadRssiBlock = ((CBPeripheral, NSNumber, Error?)->())
-//public typealias UUDiscoverServicesBlock = ((CBPeripheral, Error?)->())
-public typealias UUDiscoverIncludedServicesBlock = ((CBPeripheral, CBService, Error?)->())
-//public typealias UUDiscoverCharacteristicsBlock = ((CBPeripheral, CBService, Error?)->())
-public typealias UUDiscoverCharacteristicsForServiceUuidBlock = ((CBPeripheral, CBService?, Error?)->())
-public typealias UUUpdateValueForCharacteristicsBlock = ((CBPeripheral, CBCharacteristic, Error?)->())
-public typealias UUReadValueForCharacteristicsBlock = ((CBPeripheral, CBCharacteristic, Error?)->())
-public typealias UUWriteValueForCharacteristicsBlock = ((CBPeripheral, CBCharacteristic, Error?)->())
-public typealias UUSetNotifyValueForCharacteristicsBlock = ((CBPeripheral, CBCharacteristic, Error?)->())
-public typealias UUDiscoverDescriptorsBlock = ((CBPeripheral, CBCharacteristic, Error?)->())
-public typealias UUUpdateValueForDescriptorBlock = ((CBPeripheral, CBDescriptor, Error?)->())
-public typealias UUReadValueForDescriptorBlock = ((CBPeripheral, CBDescriptor, Error?)->())
-public typealias UUWriteValueForDescriptorBlock = ((CBPeripheral, CBDescriptor, Error?)->())
 public typealias UUPeripheralListBlock = (([UUPeripheral])->())
-
-public typealias UUCBPeripheralBlock = ((CBPeripheral)->())
-
 
 
 /**
@@ -220,7 +200,7 @@ public class UUCentralManager
     }
     
     
-    func registerConnectionBlocks(_ peripheral: UUPeripheral, _ connectedBlock: @escaping UUPeripheralConnectedBlock, _ disconnectedBlock: @escaping UUPeripheralDisconnectedBlock)
+    func registerConnectionBlocks(_ peripheral: UUPeripheral, _ connectedBlock: @escaping UUCBPeripheralBlock, _ disconnectedBlock: @escaping UUCBPeripheralErrorBlock)
     {
         let key = peripheral.identifier
         delegate.connectBlocks[key] = connectedBlock

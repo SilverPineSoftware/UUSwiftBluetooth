@@ -9,41 +9,32 @@ import UIKit
 import CoreBluetooth
 import UUSwiftCore
 
+typealias UUCBPeripheralBlock = ((CBPeripheral)->())
 typealias UUCBPeripheralErrorBlock = ((CBPeripheral, Error?)->())
 typealias UUCBPeripheralServiceErrorBlock = ((CBPeripheral, CBService, Error?)->())
+typealias UUCBPeripheralCharacteristicErrorBlock = ((CBPeripheral, CBCharacteristic, Error?)->())
+typealias UUCBPeripheralDescriptorErrorBlock = ((CBPeripheral, CBDescriptor, Error?)->())
+typealias UUCBPeripheralIntErrorBlock = ((CBPeripheral, Int, Error?)->())
+typealias UUCBPeripheralServiceListBlock = ((CBPeripheral, [CBService])->())
 
 class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
 {
-    /*private(set) var centralManager: CBCentralManager!
-    private(set) var peripheral: CBPeripheral!
-    private(set) var dispatchQueue: DispatchQueue!
-    
-    required init(_ centralManager: CBCentralManager, _ peripheral: CBPeripheral, _ dispatchQueue: DispatchQueue)
-    {
-        super.init()
-        
-        self.centralManager = centralManager
-        self.peripheral = peripheral
-        self.dispatchQueue = dispatchQueue
-        self.peripheral.delegate = self
-    }*/
-    
-    var peripheralNameUpdatedBlock: UUPeripheralNameUpdatedBlock? = nil
-    var didModifyServicesBlock: UUDidModifyServicesBlock? = nil
-    var didReadRssiBlock: UUDidReadRssiBlock? = nil
+    var peripheralNameUpdatedBlock: UUCBPeripheralBlock? = nil
+    var didModifyServicesBlock: UUCBPeripheralServiceListBlock? = nil
+    var didReadRssiBlock: UUCBPeripheralIntErrorBlock? = nil
     var discoverServicesBlock: UUCBPeripheralErrorBlock? = nil
-    var discoverIncludedServicesBlock: UUDiscoverIncludedServicesBlock? = nil
+    var discoverIncludedServicesBlock: UUCBPeripheralServiceErrorBlock? = nil
     var discoverCharacteristicsBlock: UUCBPeripheralServiceErrorBlock? = nil
-    var updateValueForCharacteristicBlocks: [String:UUUpdateValueForCharacteristicsBlock] = [:]
-    var readValueForCharacteristicBlocks: [String:UUUpdateValueForCharacteristicsBlock] = [:]
-    var writeValueForCharacteristicBlocks: [String:UUWriteValueForCharacteristicsBlock] = [:]
-    var updateValueForDescriptorBlocks: [String:UUUpdateValueForDescriptorBlock] = [:]
-    var readValueForDescriptorBlocks: [String:UUReadValueForDescriptorBlock] = [:]
-    var writeValueForDescriptorBlocks: [String:UUWriteValueForDescriptorBlock] = [:]
-    var setNotifyValueForCharacteristicBlock: UUSetNotifyValueForCharacteristicsBlock? = nil
-    var discoverDescriptorsBlock: UUDiscoverDescriptorsBlock? = nil
+    var updateValueForCharacteristicBlocks: [String:UUCBPeripheralCharacteristicErrorBlock] = [:]
+    var readValueForCharacteristicBlocks: [String:UUCBPeripheralCharacteristicErrorBlock] = [:]
+    var writeValueForCharacteristicBlocks: [String:UUCBPeripheralCharacteristicErrorBlock] = [:]
+    var updateValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
+    var readValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
+    var writeValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
+    var setNotifyValueForCharacteristicBlock: UUCBPeripheralCharacteristicErrorBlock? = nil
+    var discoverDescriptorsBlock: UUCBPeripheralCharacteristicErrorBlock? = nil
 
-    func registerUpdateHandler(_ handler: UUUpdateValueForCharacteristicsBlock?, _ characteristic: CBCharacteristic)
+    func registerUpdateHandler(_ handler: UUCBPeripheralCharacteristicErrorBlock?, _ characteristic: CBCharacteristic)
     {
         updateValueForCharacteristicBlocks[characteristic.uuid.uuidString] = handler
     }
@@ -53,7 +44,7 @@ class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
         updateValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuid.uuidString)
     }
 
-    func registerReadHandler(_ handler: UUReadValueForCharacteristicsBlock?, _ characteristic: CBCharacteristic)
+    func registerReadHandler(_ handler: UUCBPeripheralCharacteristicErrorBlock?, _ characteristic: CBCharacteristic)
     {
         readValueForCharacteristicBlocks[characteristic.uuid.uuidString] = handler
     }
@@ -63,7 +54,7 @@ class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
         readValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuid.uuidString)
     }
 
-    func registerWriteHandler(_ handler: UUWriteValueForCharacteristicsBlock?, _ characteristic: CBCharacteristic)
+    func registerWriteHandler(_ handler: UUCBPeripheralCharacteristicErrorBlock?, _ characteristic: CBCharacteristic)
     {
         writeValueForCharacteristicBlocks[characteristic.uuid.uuidString] = handler
     }
@@ -73,7 +64,7 @@ class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
         writeValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuid.uuidString)
     }
     
-    func registerUpdateHandler(_ handler: UUUpdateValueForDescriptorBlock?, _ descriptor: CBDescriptor)
+    func registerUpdateHandler(_ handler: UUCBPeripheralDescriptorErrorBlock?, _ descriptor: CBDescriptor)
     {
         updateValueForDescriptorBlocks[descriptor.uuid.uuidString] = handler
     }
@@ -83,7 +74,7 @@ class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
         updateValueForDescriptorBlocks.removeValue(forKey: descriptor.uuid.uuidString)
     }
 
-    func registerReadHandler(_ handler: UUReadValueForDescriptorBlock?, _ descriptor: CBDescriptor)
+    func registerReadHandler(_ handler: UUCBPeripheralDescriptorErrorBlock?, _ descriptor: CBDescriptor)
     {
         readValueForDescriptorBlocks[descriptor.uuid.uuidString] = handler
     }
@@ -93,7 +84,7 @@ class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
         readValueForDescriptorBlocks.removeValue(forKey: descriptor.uuid.uuidString)
     }
 
-    func registerWriteHandler(_ handler: UUWriteValueForDescriptorBlock?, _ descriptor: CBDescriptor)
+    func registerWriteHandler(_ handler: UUCBPeripheralDescriptorErrorBlock?, _ descriptor: CBDescriptor)
     {
         writeValueForDescriptorBlocks[descriptor.uuid.uuidString] = handler
     }
@@ -117,7 +108,7 @@ class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
     {
         let block = didReadRssiBlock
         didReadRssiBlock = nil
-        block?(peripheral, RSSI, error)
+        block?(peripheral, RSSI.intValue, error)
     }
     
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?)

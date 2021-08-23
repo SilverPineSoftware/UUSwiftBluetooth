@@ -11,21 +11,10 @@ import UUSwiftCore
 
 class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
 {
-    //private(set) var centralManager: CBCentralManager!
-    
-    // Callbacks
     var centralStateChangedBlock: UUCentralStateChangedBlock? = nil
     var peripheralFoundBlock: UUPeripheralFoundBlock? = nil
-    var connectBlocks: [String: UUPeripheralConnectedBlock] = [:]
-    var disconnectBlocks: [String: UUPeripheralDisconnectedBlock] = [:]
-    
-//    required init(_ centralManager: CBCentralManager)
-//    {
-//        super.init()
-//        
-//        self.centralManager = centralManager
-//    }
-    
+    var connectBlocks: [String: UUCBPeripheralBlock] = [:]
+    var disconnectBlocks: [String: UUCBPeripheralErrorBlock] = [:]
     
     // MARK:- CBCentralManagerDelegate
     

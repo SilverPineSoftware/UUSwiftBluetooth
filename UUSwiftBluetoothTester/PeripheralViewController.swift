@@ -74,32 +74,24 @@ class PeripheralViewController: UIViewController
     
     private func onConnect()
     {
-        peripheral?.connect(60.0, 10.0) { p in
+        peripheral?.connect(connected:
+        { connectedPeripheral in
+            
             NSLog("Connected!")
             self.refreshHeaderButtons()
-        } _: { pp, e in
-        
+            
+        }, disconnected:
+        { disconnectedPeripheral, disconnectError in
+            
             NSLog("Disconnected!")
             self.refreshHeaderButtons()
-        
-        }
-        /*
-        if let p = peripheral
-        {
-            UUCentralManager.shared.connectPeripheral(p, 60.0, 10.0) { p in
-                NSLog("Connected!")
-                self.refreshHeaderButtons()
-            } _: { pp, e in
-                NSLog("Disconnected!")
-                self.refreshHeaderButtons()
-            }
-
-        }*/
+            
+        })
     }
     
     private func onDisconnect()
     {
-        peripheral?.disconnect(30.0)
+        peripheral?.disconnect()
         
     }
     
@@ -110,7 +102,6 @@ class PeripheralViewController: UIViewController
             return
         }
         
-        //peripheral
         peripheral.discoverServices
         { updatedPeripheral, errOpt in
             
@@ -214,10 +205,15 @@ extension PeripheralViewController: UITableViewDataSource, UITableViewDelegate
         {
             if let service = peripheral?.services?[indexPath.row]
             {
-                peripheral?.discoverCharacteristics(characteristicUUIDs: nil, service: service)
+                peripheral?.discoverCharacteristics(nil, for: service)
                 { updatedPeripheral, characteristicDiscoveryError in
                     
                     NSLog("Characteristic discovery complete")
+                }
+                
+                peripheral?.discoverIncludedServices(nil, for: service)
+                { updatedPeripheral, includedServiceDiscoveryError in
+                    NSLog("Included services discovered")
                 }
             }
         }
