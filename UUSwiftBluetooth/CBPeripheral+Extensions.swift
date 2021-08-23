@@ -20,7 +20,9 @@ extension CBPeripheral
     {
         return name ?? ""
     }
-    
+}
+
+/*
     private static var uuSharedDelegates: [String:UUPeripheralDelegate] = [:]
     private static let uuSharedDelegatesMutex = NSRecursiveLock()
         
@@ -35,7 +37,7 @@ extension CBPeripheral
             return existing
         }
         
-        let delegate = UUPeripheralDelegate(peripheral)
+        let delegate = UUPeripheralDelegate(UUCentralManagerFactory.sharedCentralManager.centralManager, peripheral, DispatchQueue.uuBluetooth)
         uuAddDelegate(delegate)
         return delegate
     }
@@ -164,7 +166,7 @@ extension CBPeripheral
     func uuStartTimer(_ timerId: String, _ timeout: TimeInterval, _ block: @escaping UUCBPeripheralBlock)
     {
         NSLog("Starting timer \(timerId) with timeout: \(timeout)")
-        UUCoreBluetooth.startWatchdogTimer(timerId, timeout: timeout, userInfo: self)
+        UUTimer.startWatchdogTimer(timerId, timeout, self, queue: uuDelegate.dispatchQueue)
         { info in
             
             if let p = info as? CBPeripheral
@@ -181,7 +183,7 @@ extension CBPeripheral
     
     private var uuCanAttemptOperation: Error?
     {
-        if (!UUCoreBluetooth.shared.uuIsPoweredOn)
+        if (!uuDelegate.centralManager.uuIsPoweredOn)
         {
             return NSError.uuCoreBluetoothError(.centralNotReady)
         }
@@ -196,7 +198,7 @@ extension CBPeripheral
     
     // Block based wrapper around CBPeripheral discoverServices, with an optional
     // timeout value.  A negative timeout value will disable the timeout.
-    public func uuDiscoverServices(
+   /* public func uuDiscoverServices(
         _ serviceUuidList: [CBUUID]?,
         _ timeout: TimeInterval,
         _ completion: @escaping UUDiscoverServicesBlock)
@@ -229,7 +231,7 @@ extension CBPeripheral
         
         if let err = uuCanAttemptOperation
         {
-            UUCoreBluetooth.dispatchQueue.async
+            DispatchQueue.uuBluetooth.async
             {
                 delegate.peripheral(self, didDiscoverServices: err)
             }
@@ -238,7 +240,7 @@ extension CBPeripheral
         }
         
         discoverServices(serviceUuidList)
-    }
+    }*/
 
     // Block based wrapper around CBPeripheral discoverCharacteristics:forService,
     // with an optional timeout value.  A negative timeout value will disable the timeout.
@@ -274,7 +276,7 @@ extension CBPeripheral
         
         if let err = uuCanAttemptOperation
         {
-            UUCoreBluetooth.dispatchQueue.async
+            delegate.dispatchQueue.async
             {
                 delegate.peripheral(self, didDiscoverCharacteristicsFor: service, error: err)
             }
@@ -321,7 +323,7 @@ extension CBPeripheral
         
         if let err = uuCanAttemptOperation
         {
-            UUCoreBluetooth.dispatchQueue.async
+            delegate.dispatchQueue.async
             {
                 delegate.peripheral(self, didDiscoverIncludedServicesFor: service, error: err)
             }
@@ -376,7 +378,7 @@ extension CBPeripheral
         
         if let err = uuCanAttemptOperation
         {
-            UUCoreBluetooth.dispatchQueue.async
+            delegate.dispatchQueue.async
             {
                 delegate.peripheral(self, didDiscoverDescriptorsFor: characteristic, error: err)
             }
@@ -443,7 +445,7 @@ extension CBPeripheral
         
         if let err = uuCanAttemptOperation
         {
-            UUCoreBluetooth.dispatchQueue.async
+            delegate.dispatchQueue.async
             {
                 delegate.peripheral(self, didUpdateNotificationStateFor: characteristic, error: err)
             }
@@ -501,7 +503,7 @@ extension CBPeripheral
         
         if let err = uuCanAttemptOperation
         {
-            UUCoreBluetooth.dispatchQueue.async
+            delegate.dispatchQueue.async
             {
                 delegate.peripheral(self, didUpdateValueFor: characteristic, error: err)
             }
@@ -559,7 +561,7 @@ extension CBPeripheral
         
         if let err = uuCanAttemptOperation
         {
-            UUCoreBluetooth.dispatchQueue.async
+            delegate.dispatchQueue.async
             {
                 delegate.peripheral(self, didUpdateValueFor: descriptor, error: err)
             }
@@ -610,7 +612,7 @@ extension CBPeripheral
         
         if let err = uuCanAttemptOperation
         {
-            UUCoreBluetooth.dispatchQueue.async
+            delegate.dispatchQueue.async
             {
                 delegate.peripheral(self, didWriteValueFor: characteristic, error: err)
             }
@@ -642,7 +644,7 @@ extension CBPeripheral
         
         if let err = uuCanAttemptOperation
         {
-            UUCoreBluetooth.dispatchQueue.async
+            uuDelegate.dispatchQueue.async
             {
                 completion(self, characteristic, err)
             }
@@ -693,7 +695,7 @@ extension CBPeripheral
         
         if let err = uuCanAttemptOperation
         {
-            UUCoreBluetooth.dispatchQueue.async
+            delegate.dispatchQueue.async
             {
                 delegate.peripheral(self, didWriteValueFor: descriptor, error: err)
             }
@@ -740,7 +742,7 @@ extension CBPeripheral
         
         if let err = uuCanAttemptOperation
         {
-            UUCoreBluetooth.dispatchQueue.async
+            delegate.dispatchQueue.async
             {
                 delegate.peripheral(self, didReadRSSI: NSNumber(127), error: err)
             }
@@ -754,7 +756,7 @@ extension CBPeripheral
     // Convenience wrapper to perform both service and characteristic discovery at
     // one time.  This method is useful when you know both service and characteristic
     // UUID's ahead of time.
-    public func uuDiscoverCharactertistics(
+    /*public func uuDiscoverCharactertistics(
         _ characteristicUuidList: [CBUUID]?,
         _ serviceUuid: CBUUID,
         _ timeout: TimeInterval,
@@ -784,5 +786,6 @@ extension CBPeripheral
                 self.uuDiscoverCharacteristics(characteristicUuidList, foundService, remainingTimeout, completion)
             }
         }
-    }
+    }*/
 }
+*/

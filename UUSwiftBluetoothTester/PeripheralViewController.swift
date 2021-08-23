@@ -74,9 +74,19 @@ class PeripheralViewController: UIViewController
     
     private func onConnect()
     {
+        peripheral?.connect(60.0, 10.0) { p in
+            NSLog("Connected!")
+            self.refreshHeaderButtons()
+        } _: { pp, e in
+        
+            NSLog("Disconnected!")
+            self.refreshHeaderButtons()
+        
+        }
+        /*
         if let p = peripheral
         {
-            UUCoreBluetooth.shared.connectPeripheral(p, 60.0, 10.0) { p in
+            UUCentralManager.shared.connectPeripheral(p, 60.0, 10.0) { p in
                 NSLog("Connected!")
                 self.refreshHeaderButtons()
             } _: { pp, e in
@@ -84,11 +94,12 @@ class PeripheralViewController: UIViewController
                 self.refreshHeaderButtons()
             }
 
-        }
+        }*/
     }
     
     private func onDisconnect()
     {
+        peripheral?.disconnect(30.0)
         
     }
     
@@ -100,7 +111,7 @@ class PeripheralViewController: UIViewController
         }
         
         //peripheral
-        peripheral.underlyingPeripheral.uuDiscoverServices(nil, 30.0)
+        peripheral.discoverServices(nil, 30.0)
         { updatedPeripheral, errOpt in
             
             NSLog("Service discovery complete")

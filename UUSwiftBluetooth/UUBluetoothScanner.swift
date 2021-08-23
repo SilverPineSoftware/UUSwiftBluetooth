@@ -9,10 +9,23 @@ import UIKit
 import CoreBluetooth
 import UUSwiftCore
 
-public class UUBluetoothScanner: NSObject
+public class UUBluetoothScanner //: NSObject
 {
+    private var centralManager: UUCentralManager
+//    private var delegate: UUCentralManagerDelegate
+//    private var centralManager: CBCentralManager
     private var nearbyPeripherals: [String:UUPeripheral] = [:]
     private var nearbyPeripheralCallback: UUPeripheralListBlock = { _ in }
+    
+    public required init(_ centralManager: UUCentralManager)
+    {
+        self.centralManager = centralManager
+    }
+    
+//    required init(_ centralManager: CBCentralManager)
+//    {
+//        self.centralManager = centralManager
+//    }
     
     public func startScan(
         services: [CBUUID]? = nil,
@@ -22,17 +35,17 @@ public class UUBluetoothScanner: NSObject
         callback: @escaping UUPeripheralListBlock)
     {
         self.nearbyPeripheralCallback = callback
-        UUCoreBluetooth.shared.startScan(serviceUuids: services, allowDuplicates: allowDuplicates, peripheralClass: peripheralClass, filters: filters, peripheralFoundCallback: handlePeripheralFound, willRestoreCallback: handleWillRestoreState)
+        self.centralManager.startScan(serviceUuids: services, allowDuplicates: allowDuplicates, peripheralClass: peripheralClass, filters: filters, peripheralFoundCallback: handlePeripheralFound, willRestoreCallback: handleWillRestoreState)
     }
     
     public var isScanning: Bool
     {
-        return UUCoreBluetooth.shared.isScanning
+        return self.centralManager.isScanning
     }
     
     public func stopScan()
     {
-        UUCoreBluetooth.shared.stopScan()
+        self.centralManager.stopScan()
     }
     
     private func handlePeripheralFound(peripheral: UUPeripheral)

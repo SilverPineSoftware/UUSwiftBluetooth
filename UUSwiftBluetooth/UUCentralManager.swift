@@ -39,147 +39,12 @@ public typealias UUCBPeripheralBlock = ((CBPeripheral)->())
 
 
 
-
-/*
-func UUCoreBluetoothQueue() -> DispatchQueue
+public class UUCentralManager
 {
-    DispatchQueue(label: "UUCoreBluetoothQueue", qos: .userInitiated, attributes: [], target: <#T##DispatchQueue?#>)
-//    static dispatch_queue_t theSharedCoreBluetoothQueue = nil;
-//    static dispatch_once_t onceToken;
-//
-//    dispatch_once (&onceToken, ^
-//    {
-//        dispatch_queue_attr_t attr = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INITIATED, 0);
-//        theSharedCoreBluetoothQueue = dispatch_queue_create(kUUCoreBluetoothQueueName, attr);
-//    });
-//
-//    return theSharedCoreBluetoothQueue;
-    
-    
-}*/
-
-//static sharedBackgroundQueue = DispatchQueue(l
-
-
-public class UUCoreBluetooth
-{
-    static var dispatchQueue = DispatchQueue(label: "UUCoreBluetoothQueue", qos: .userInitiated, attributes: [], autoreleaseFrequency: .inherit, target: nil)
-
-    
-//    private static var internalShared: UUCoreBluetooth? = nil
-//
-//    public static var shared: UUCoreBluetooth
-//    {
-//        if (internalShared == nil)
-//        {
-//            internalShared = UUCoreBluetooth()
-//        }
-//
-//        return internalShared!
-//    }
-    /*
-    
-    // UUCoreBluetooth provides a small set of convenience wrappers around the
-    // CoreBluetooth block based extensions defined above.  Additionally, all of
-    // the UUCoreBluetooth methods operate on the UUPeripheral wrapper object
-    // instead of CBPeripheral directly.
-    @interface UUCoreBluetooth : NSObject
-
-    // Singleton instance
-    + (nonnull instancetype) sharedInstance;
-
-    // Sets a static dictionary that is passed into the CBCentralManager init method
-    //
-    // NOTE: Once sharedInstance  has been called, the set method has no effect.
-    //
-    // Use these to prepare UUCoreBluetooth for state restoration/preservation
-    + (void) setSharedInstanceInitOptions:(nullable NSDictionary<NSString*, id>*)options;
-
-    // Reference to the underlying central
-    @property (nonnull, nonatomic, strong, readonly) CBCentralManager* centralManager;
-
-    // Returns current CBCentralManager.state value
-    - (CBManagerState) centralState;
-
-    // Register a listener for central state changes
-    - (void) registerForCentralStateChanges:(nullable UUCentralStateChangedBlock)block;
-
-    // Initiates a CoreBluetooth scan for nearby peripherals
-    //
-    // serviceUUIDs - list of service's to scan for.
-    //
-    // allowDuplicates controls how the CBCentralManagerScanOptionAllowDuplicatesKey
-    // scanning option is initialized.
-    //
-    // peripheralClass allows callers to pass in their custom UUPeripheral derived
-    // class so that peripheral objects returned from scan are already thier
-    // custom object.  If nil, UUPeripheral is used.
-    //
-    // filters - An array of UUPeripheralFilter objects to narrow down which
-    // objects are returned in the peripheralFoundBlock.  The peripheral filtering
-    // logic is an AND algorithm, meaning that a peripheral is only returned if it
-    // passes ALL filters.
-    //
-    // peripheralFoundBlock - block used to notify callers of new peripherals
-    //
-    - (void) startScanForServices:(nullable NSArray<CBUUID *> *)serviceUUIDs
-                  allowDuplicates:(BOOL)allowDuplicates
-                  peripheralClass:(nullable Class)peripheralClass
-                          filters:(nullable NSArray< NSObject<UUPeripheralFilter>* >*)filters
-          peripheralFoundCallback:(nonnull UUPeripheralBlock)peripheralFoundBlock
-         willRestoreStateCallback:(nonnull UUWillRestoreStateBlock)willRestoreStateBlock;
-
-    // Stop an ongoing scan
-    - (void) stopScanning;
-
-    // Flag indicating if UUCoreBluetooth is currently scanning.  This does NOT map
-    // directly to the CBCentralManager.isScanning flag.  This flag is used internally
-    // to resume scanning if the central manager has to go through a restart.
-    @property (assign, readonly) BOOL isScanning;
-
-    // Convenience wrapper around CBCentralManager uuConnectPeripheral that uses nil
-    // for the connect options
-    - (void) connectPeripheral:(nonnull UUPeripheral*)peripheral
-                       timeout:(NSTimeInterval)timeout
-             disconnectTimeout:(NSTimeInterval)disconnectTimeout
-                     connected:(nonnull UUPeripheralBlock)connected
-                  disconnected:(nonnull UUPeripheralErrorBlock)disconnected;
-
-    // Convenience wrapper around CBCentralManager uuDisconnectPeripheral
-    - (void) disconnectPeripheral:(nonnull UUPeripheral*)peripheral timeout:(NSTimeInterval)timeout;
-
-    // Begins polling RSSI for a peripheral.  When the RSSI is successfully
-    // retrieved, the peripheralFoundBlock is called.  This method is useful to
-    // perform a crude 'ranging' logic when already connected to a peripheral
-    - (void) startRssiPolling:(nonnull UUPeripheral*)peripheral
-                     interval:(NSTimeInterval)interval
-            peripheralUpdated:(nonnull UUPeripheralBlock)peripheralUpdated;
-
-    // Stop RSSI polling for a peripheral
-    - (void) stopRssiPolling:(nonnull UUPeripheral*)peripheral;
-
-    // Returns a flag indicating if RSSI polling is active
-    - (BOOL) isPollingForRssi:(nonnull UUPeripheral*)peripheral;
-
-    // Cancels any existing timer with this ID, and kicks off a new timer
-    // on the UUCoreBluetooth queue. If the timeout value is negative, the
-    // new timer will not be started.
-    + (void) startWatchdogTimer:(nonnull NSString*)timerId
-                        timeout:(NSTimeInterval)timeout
-                       userInfo:(nullable id)userInfo
-                          block:(nonnull void (^)(id _Nullable userInfo))block;
-
-    + (void) cancelWatchdogTimer:(nonnull NSString*)timerId;
-
-    // Flag indicating if background state restoration identifier was used to initialize core bluetooth
-    @property (assign, readonly) BOOL isConfiguredForStateRestoration;
-
-    @end
-    */
-    
+    private var dispatchQueue = DispatchQueue(label: "UUCentralManagerQueue", qos: .userInitiated, attributes: [], autoreleaseFrequency: .inherit, target: nil)
     
     private var delegate: UUCentralManagerDelegate
-    private var centralManager: CBCentralManager
+    var centralManager: CBCentralManager
     
     private var peripherals: [String: UUPeripheral] = [:]
     private var peripheralsMutex = NSRecursiveLock()
@@ -197,42 +62,10 @@ public class UUCoreBluetooth
     private var willRestoreStateBlock: UUWillRestoreStateBlock? = nil
     private var options: [String:Any]? = nil
     
-    private static var theSharedInstance: UUCoreBluetooth? = nil
-    private static var theSharedInstanceOptions: [String:Any]? = nil
     
-    
-    public static var shared: UUCoreBluetooth
+    public static var shared: UUCentralManager
     {
-        if (theSharedInstance == nil)
-        {
-            let opts = theSharedInstanceOptions ?? defaultOptions()
-            theSharedInstance = UUCoreBluetooth(opts)
-        }
-        
-        return theSharedInstance!
-    }
-    
-    public static func setSharedInstanceInitOptions(_ options: [String:Any]?)
-    {
-        theSharedInstanceOptions = options
-        
-        if (theSharedInstance != nil)
-        {
-            let existingRestoreId = theSharedInstance?.options?.uuSafeGetString(CBCentralManagerOptionRestoreIdentifierKey) ?? ""
-            let incomingRestoreId = theSharedInstanceOptions?.uuSafeGetString(CBCentralManagerOptionRestoreIdentifierKey) ?? ""
-            if (existingRestoreId != incomingRestoreId)
-            {
-                NSLog("UUCoreBluetooth init options have changed! Setting theSharedInstance to nil");
-                theSharedInstance = nil
-            }
-        }
-    }
-    
-    private static func defaultOptions() -> [String:Any]
-    {
-        var md: [String:Any] = [:]
-        md[CBCentralManagerOptionShowPowerAlertKey] = false
-        return md
+        return UUCentralManagerFactory.sharedCentralManager
     }
     
     required init(_ opts: [String:Any]?)
@@ -242,7 +75,7 @@ public class UUCoreBluetooth
         options = opts
         isConfiguredForStateRestoration = (options?.uuSafeGetString(CBCentralManagerOptionRestoreIdentifierKey) != nil)
         delegate = isConfiguredForStateRestoration ? UUCentralManagerRestoringDelegate() : UUCentralManagerDelegate()
-        centralManager = CBCentralManager(delegate: delegate, queue: UUCoreBluetooth.dispatchQueue, options: options)
+        centralManager = CBCentralManager(delegate: delegate, queue: dispatchQueue, options: options)
         delegate.centralStateChangedBlock = handleCentralStateChanged
     }
     
@@ -252,9 +85,9 @@ public class UUCoreBluetooth
     }
     
     // Returns a flag indicating whether the central state is powered on or not.
-    public var uuIsPoweredOn: Bool
+    public var isPoweredOn: Bool
     {
-        return centralManager.uuIsPoweredOn
+        return centralManager.state == .poweredOn
     }
     
     public func registerForCentralStateChanges(_ block: UUCentralStateChangedBlock?)
@@ -275,7 +108,8 @@ public class UUCoreBluetooth
             
             if (state != .poweredOn)
             {
-                centralManager.uuNotifyDisconnect(p.underlyingPeripheral, nil)
+                // TODO: How to do this one
+                //centralManager.uuNotifyDisconnect(p.underlyingPeripheral, nil)
             }
         }
         
@@ -330,13 +164,15 @@ public class UUCoreBluetooth
         isScanning = true
         willRestoreStateBlock = willRestoreCallback
         peripheralFoundBlock = peripheralFoundCallback
+        
+        delegate.peripheralFoundBlock = handlePeripheralFound
        
         resumeScanning()
     }
 
     private func resumeScanning()
     {
-        centralManager.uuScanForPeripherals(scanUuidList, scanOptions, handlePeripheralFound, handleWillRestoreState)
+        centralManager.scanForPeripherals(withServices: scanUuidList, options: scanOptions)
     }
     
     private func handlePeripheralFound(_ peripheral: CBPeripheral, _ advertisementData: [String:Any], _ rssi: Int)
@@ -378,9 +214,26 @@ public class UUCoreBluetooth
     {
         isScanning = false
         peripheralFoundBlock = nil
-        centralManager.uuStopScan()
+        centralManager.stopScan()
     }
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    /*
     public func connectPeripheral(
         _ peripheral: UUPeripheral,
         _ timeout: TimeInterval,
@@ -407,7 +260,158 @@ public class UUCoreBluetooth
     {
         centralManager.uuDisconnectPeripheral(peripheral.underlyingPeripheral, timeout)
     }
+*/
+    
+    
+    
+    
+    
+    // Block based wrapper around CBCentralManager connectPeripheral:options with a
+    // timeout value.  If a negative timeout is passed there will be no timeout used.
+    // The connected block is only invoked upon successfully connection.  The
+    // disconnected block is invoked in the case of a connection failure, timeout
+    // or disconnection.
+    //
+    // Each block will only be invoked at most one time.  After a successful
+    // connection, the disconnect block will be called back when the peripheral
+    // is disconnected from the phone side, or if the remote device disconnects
+    // from the phone
+    public func connectPeripheral(
+       _ peripheral: UUPeripheral,
+       //_ options: [String:Any]?,
+       _ timeout: TimeInterval,
+       _ disconnectTimeout: TimeInterval,
+       _ connected: @escaping UUPeripheralBlock,
+       _ disconnected: @escaping UUPeripheralErrorBlock)
+    {
+       //NSLog("Connecting to \(peripheral.uuIdentifier) - \(peripheral.uuName), timeout: \(timeout)")
+       
+       guard isPoweredOn else
+       {
+           let err = NSError.uuCoreBluetoothError(.centralNotReady)
+           disconnected(peripheral, err)
+           return
+       }
+       
+       let timerId = peripheral.uuConnectWatchdogTimerId()
+       
+       //let delegate = uuCentralManagerDelegate
+       
+       let connectedBlock: UUPeripheralConnectedBlock =
+       { p in
+           
+           //NSLog("Connected to \(peripheral.uuIdentifier) - \(peripheral.uuName)")
+           
+           peripheral.cancelTimer(timerId)
+           connected(peripheral)
+       };
+       
+       let disconnectedBlock: UUPeripheralDisconnectedBlock =
+       { p, error in
+           
+           //NSLog("Disconnected from \(peripheral.uuIdentifier) - \(peripheral.uuName), error: \(String(describing: error))")
+           
+           peripheral.cancelTimer(timerId)
+           disconnected(peripheral, error)
+       }
+       
+        let key = peripheral.identifier
+       delegate.connectBlocks[key] = connectedBlock
+       delegate.disconnectBlocks[key] = disconnectedBlock
+       
+       peripheral.startTimer(timerId, timeout)
+       { p in
+           
+           //NSLog("Connect timeout for \(peripheral.uuIdentifier) - \(peripheral.uuName)")
+            
+            self.delegate.connectBlocks.removeValue(forKey: key)
+            self.delegate.disconnectBlocks.removeValue(forKey: key)
+            
+            // Issue the disconnect but disconnect any delegate's.  In the case of
+            // CBCentralManager being off or reset when this happens, immediately
+            // calling the disconnected block ensures there is not an infinite
+            // timeout situation.
+           self.disconnectPeripheral(peripheral, disconnectTimeout)
+            
+           let err = NSError.uuCoreBluetoothError(.timeout)
+           peripheral.cancelTimer(timerId)
+           disconnected(peripheral, err)
+       }
+       
+        //connect(peripheral.underlyingPeripheral, options: nil)
+        centralManager.connect(peripheral.underlyingPeripheral, options: nil)
+    }
 
+    // Wrapper around CBCentralManager cancelPeripheralConnection.  After calling this
+    // method, the disconnected block passed in at connect time will be invoked.
+   public func disconnectPeripheral(
+       _ peripheral: UUPeripheral,
+       _ timeout: TimeInterval)
+   {
+       //NSLog("Cancelling connection to peripheral \(peripheral.uuIdentifier) - \(peripheral.uuName), timeout: \(timeout)")
+       
+       guard isPoweredOn else
+       {
+           NSLog("Central is not powered on, cannot cancel a connection!")
+           let err = NSError.uuCoreBluetoothError(.centralNotReady)
+        notifyDisconnect(peripheral.underlyingPeripheral, err)
+           return
+       }
+       
+       let timerId = peripheral.uuDisconnectWatchdogTimerId()
+       
+       peripheral.startTimer(timerId, timeout)
+       { p in
+           
+           //NSLog("Disconnect timeout for \(peripheral.uuIdentifier) - \(peripheral.uuName)")
+           
+           peripheral.cancelTimer(timerId)
+           self.notifyDisconnect(p, NSError.uuCoreBluetoothError(.timeout))
+           
+           // Just in case the timeout fires and a real disconnect is needed, this is the last
+           // ditch effort to close the connection
+        self.centralManager.cancelPeripheralConnection(p)
+       }
+       
+    centralManager.cancelPeripheralConnection(peripheral.underlyingPeripheral)
+   }
+   
+   private func notifyDisconnect(_ peripheral: CBPeripheral, _ error: Error?)
+   {
+       //let delegate =  uuCentralManagerDelegate
+       
+       let key = peripheral.uuIdentifier
+       let disconnectBlock = delegate.disconnectBlocks[key]
+       delegate.disconnectBlocks.removeValue(forKey: key)
+       delegate.connectBlocks.removeValue(forKey: key)
+       
+       if let block = disconnectBlock
+       {
+           block(peripheral, error)
+       }
+       else
+       {
+           NSLog("No delegate to notify disconnected")
+       }
+   }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     /*
     // Begins polling RSSI for a peripheral.  When the RSSI is successfully
     // retrieved, the peripheralFoundBlock is called.  This method is useful to
@@ -483,19 +487,21 @@ public class UUCoreBluetooth
 
      */
     
+    
     private func findPeripheralFromCbPeripheral(_ peripheral: CBPeripheral) -> UUPeripheral
     {
         defer { peripheralsMutex.unlock() }
         peripheralsMutex.lock()
         
-        var uuPeripheral = peripherals[peripheral.uuIdentifier]
+        var uuPeripheral = peripherals[peripheral.identifier.uuidString]
         if (uuPeripheral == nil)
         {
-            uuPeripheral = UUPeripheral(peripheral)
+            uuPeripheral = UUPeripheral(dispatchQueue, self, peripheral)
             
             //let f = peripheralClass?.self.ini
         }
-        return UUPeripheral(peripheral)
+        
+        return uuPeripheral!
     }
     
     private func updatedPeripheralFromCbPeripheral(_ peripheral: CBPeripheral) -> UUPeripheral
@@ -665,11 +671,11 @@ public func UUCBCharacteristicPropertiesToString(_ props: CBCharacteristicProper
 
 
 
-
-extension UUCoreBluetooth // Timers
+/*
+extension UUCentralManager // Timers
 {
     static func startWatchdogTimer(_ timerId: String, timeout: TimeInterval, userInfo: Any?, block: UUWatchdogTimerBlock?)
     {
         UUTimer.startWatchdogTimer(timerId, timeout, userInfo, queue: dispatchQueue, block)
     }
-}
+}*/

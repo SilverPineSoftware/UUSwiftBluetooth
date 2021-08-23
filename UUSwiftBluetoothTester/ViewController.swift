@@ -16,7 +16,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     private var tableData: [UUPeripheral] = []
     
-    private var scanner = UUBluetoothScanner()
+    private var scanner = UUBluetoothScanner(UUCentralManager.shared)
     
     override func viewDidLoad()
     {

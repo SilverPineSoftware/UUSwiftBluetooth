@@ -11,16 +11,19 @@ import UUSwiftCore
 
 class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
 {
+    /*private(set) var centralManager: CBCentralManager!
     private(set) var peripheral: CBPeripheral!
+    private(set) var dispatchQueue: DispatchQueue!
     
-    required init(_ peripheral: CBPeripheral)
+    required init(_ centralManager: CBCentralManager, _ peripheral: CBPeripheral, _ dispatchQueue: DispatchQueue)
     {
         super.init()
         
+        self.centralManager = centralManager
         self.peripheral = peripheral
+        self.dispatchQueue = dispatchQueue
         self.peripheral.delegate = self
-    }
-    
+    }*/
     
     var peripheralNameUpdatedBlock: UUPeripheralNameUpdatedBlock? = nil
     var didModifyServicesBlock: UUDidModifyServicesBlock? = nil

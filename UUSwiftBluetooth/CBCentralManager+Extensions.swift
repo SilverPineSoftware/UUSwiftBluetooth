@@ -5,6 +5,7 @@
 //  Created by Ryan DeVore on 8/13/21.
 //
 
+
 import UIKit
 import CoreBluetooth
 import UUSwiftCore
@@ -22,6 +23,7 @@ extension CBCentralManager
         return state == .poweredOn
     }
     
+    /*
      // Block based wrapper around CBCentralManager scanForPeripheralsWithServices:options
      public func uuScanForPeripherals(
         _ serviceUUIDS: [CBUUID]?,
@@ -65,7 +67,9 @@ extension CBCentralManager
         
         stopScan()
     }
+    */
     
+    /*
      // Block based wrapper around CBCentralManager connectPeripheral:options with a
      // timeout value.  If a negative timeout is passed there will be no timeout used.
      // The connected block is only invoked upon successfully connection.  The
@@ -191,5 +195,5 @@ extension CBCentralManager
         {
             NSLog("No delegate to notify disconnected")
         }
-    }
+    }*/
 }
