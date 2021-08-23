@@ -376,11 +376,9 @@ public class UUCentralManager
     centralManager.cancelPeripheralConnection(peripheral.underlyingPeripheral)
    }
    
-   private func notifyDisconnect(_ peripheral: CBPeripheral, _ error: Error?)
-   {
-       //let delegate =  uuCentralManagerDelegate
-       
-       let key = peripheral.uuIdentifier
+    private func notifyDisconnect(_ peripheral: CBPeripheral, _ error: Error?)
+    {
+       let key = peripheral.identifier.uuidString
        let disconnectBlock = delegate.disconnectBlocks[key]
        delegate.disconnectBlocks.removeValue(forKey: key)
        delegate.connectBlocks.removeValue(forKey: key)

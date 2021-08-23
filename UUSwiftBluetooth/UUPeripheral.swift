@@ -336,7 +336,7 @@ open class UUPeripheral
         _ timeout: TimeInterval,
         _ completion: @escaping UUDiscoverServicesBlock)
     {
-        //NSLog("Discovering services for \(uuIdentifier) - \(uuName), timeout: \(timeout), service list: \(String(describing: serviceUuidList))")
+        NSLog("Discovering services for \(self.debugName), timeout: \(timeout), service list: \(String(describing: serviceUuidList))")
         
         let timerId = uuServiceDiscoveryWatchdogTimerId()
         
@@ -348,7 +348,7 @@ open class UUPeripheral
             
             let err = NSError.uuOperationCompleteError(errOpt as NSError?)
             
-            NSLog("Service discovery finished for \(peripheral.uuIdentifier) - \(peripheral.uuName), error: \(String(describing: err)), services: \(String(describing: peripheral.services))")
+            NSLog("Service discovery finished for \(self.debugName), error: \(String(describing: err)), services: \(String(describing: peripheral.services))")
             
             self.cancelTimer(timerId)
             completion(peripheral, err)
@@ -357,7 +357,7 @@ open class UUPeripheral
         startTimer(timerId, timeout)
         { peripheral in
             
-            NSLog("Service discovery timeout for \(peripheral.uuIdentifier) - \(peripheral.uuName)")
+            NSLog("Service discovery timeout for \(self.debugName)")
             
             let err = NSError.uuCoreBluetoothError(.timeout)
             self.delegate.peripheral(peripheral, didDiscoverServices: err)
@@ -387,7 +387,7 @@ open class UUPeripheral
         _ timeout: TimeInterval,
         _ completion: @escaping UUDiscoverCharacteristicsBlock)
     {
-        //NSLog("Discovering characteristics for \(uuIdentifier) - \(uuName), timeout: \(timeout), service: \(service), characteristic list: \(String(describing: characteristicUuidList))")
+        NSLog("Discovering characteristics for \(self.debugName), timeout: \(timeout), service: \(service), characteristic list: \(String(describing: characteristicUuidList))")
         
         let timerId = uuCharacteristicDiscoveryWatchdogTimerId()
         
@@ -396,7 +396,7 @@ open class UUPeripheral
         delegate.discoverCharacteristicsBlock =
         { peripheral, service, error in
             
-            NSLog("Characteristic discovery finished for \(peripheral.uuIdentifier) - \(peripheral.uuName), service: \(service), error: \(String(describing: error)), characteristics: \(String(describing: service.characteristics))")
+            NSLog("Characteristic discovery finished for \(self.debugName), service: \(service), error: \(String(describing: error)), characteristics: \(String(describing: service.characteristics))")
             
             self.cancelTimer(timerId)
             completion(peripheral, service, error)
@@ -405,7 +405,7 @@ open class UUPeripheral
         startTimer(timerId, timeout)
         { peripheral in
             
-            NSLog("Characteristic discovery timeout for \(peripheral.uuIdentifier) - \(peripheral.uuName)")
+            NSLog("Characteristic discovery timeout for \(self.debugName)")
             
             let err = NSError.uuCoreBluetoothError(.timeout)
             self.delegate.peripheral(peripheral, didDiscoverCharacteristicsFor: service, error: err)
@@ -432,7 +432,7 @@ open class UUPeripheral
         _ timeout: TimeInterval,
         _ completion: @escaping UUDiscoverIncludedServicesBlock)
     {
-        //NSLog("Discovering included services for \(uuIdentifier) - \(uuName), timeout: \(timeout), service: \(service), service list: \(String(describing: serviceUuidList))")
+        NSLog("Discovering included services for \(self.debugName), timeout: \(timeout), service: \(service), service list: \(String(describing: serviceUuidList))")
         
         let timerId = uuIncludedServicesDiscoveryWatchdogTimerId()
         
@@ -443,7 +443,7 @@ open class UUPeripheral
             
             let err = NSError.uuOperationCompleteError(error as NSError?)
             
-            NSLog("Included services discovery finished for \(peripheral.uuIdentifier) - \(peripheral.uuName), service: \(service), error: \(String(describing: err)), includedServices: \(String(describing: service.includedServices))")
+            NSLog("Included services discovery finished for \(self.debugName), service: \(service), error: \(String(describing: err)), includedServices: \(String(describing: service.includedServices))")
             
             self.cancelTimer(timerId)
             completion(peripheral, service, error)
@@ -452,7 +452,7 @@ open class UUPeripheral
         startTimer(timerId, timeout)
         { peripheral in
             
-            NSLog("Included services discovery timeout for \(peripheral.uuIdentifier) - \(peripheral.uuName)")
+            NSLog("Included services discovery timeout for \(self.debugName)")
             
             let err = NSError.uuCoreBluetoothError(.timeout)
             self.delegate.peripheral(peripheral, didDiscoverIncludedServicesFor: service, error: err)
@@ -487,7 +487,7 @@ open class UUPeripheral
         _ timeout: TimeInterval,
         _ completion: @escaping UUDiscoverDescriptorsBlock)
     {
-        //NSLog("Discovering descriptors for \(uuIdentifier) - \(uuName), timeout: \(timeout), characteristic: \(characteristic)")
+        NSLog("Discovering descriptors for \(self.debugName), timeout: \(timeout), characteristic: \(characteristic)")
         
         let timerId = uuDescriptorDiscoveryWatchdogTimerId()
         
@@ -498,7 +498,7 @@ open class UUPeripheral
             
             let err = NSError.uuOperationCompleteError(error as NSError?)
             
-            NSLog("Descriptor discovery finished for \(peripheral.uuIdentifier) - \(peripheral.uuName), characteristic: \(characteristic), error: \(String(describing: err)), descriptors: \(String(describing: characteristic.descriptors))")
+            NSLog("Descriptor discovery finished for \(self.debugName), characteristic: \(characteristic), error: \(String(describing: err)), descriptors: \(String(describing: characteristic.descriptors))")
             
             self.cancelTimer(timerId)
             completion(peripheral, characteristic, error)
@@ -507,7 +507,7 @@ open class UUPeripheral
         startTimer(timerId, timeout)
         { peripheral in
             
-            NSLog("Descriptor discovery timeout for \(peripheral.uuIdentifier) - \(peripheral.uuName)")
+            NSLog("Descriptor discovery timeout for \(self.debugName)")
             
             let err = NSError.uuCoreBluetoothError(.timeout)
             self.delegate.peripheral(peripheral, didDiscoverDescriptorsFor: characteristic, error: err)
@@ -545,7 +545,7 @@ open class UUPeripheral
         _ notifyHandler: UUUpdateValueForCharacteristicsBlock?,
         _ completion: @escaping UUSetNotifyValueForCharacteristicsBlock)
     {
-        //NSLog("Set Notify State for \(uuIdentifier) - \(uuName), enabled: \(enabled), timeout: \(timeout), characateristic: \(characteristic)")
+        NSLog("Set Notify State for \(self.debugName), enabled: \(enabled), timeout: \(timeout), characateristic: \(characteristic)")
         
         let timerId = uuCharacteristicNotifyStateWatchdogTimerId()
         
@@ -556,7 +556,7 @@ open class UUPeripheral
             
             let err = NSError.uuOperationCompleteError(error as NSError?)
             
-            NSLog("Set Notify State finished for \(peripheral.uuIdentifier) - \(peripheral.uuName), characteristic: \(characteristic), error: \(String(describing: err))")
+            NSLog("Set Notify State finished for \(self.debugName), characteristic: \(characteristic), error: \(String(describing: err))")
             
             self.cancelTimer(timerId)
             completion(peripheral, characteristic, err)
@@ -574,7 +574,7 @@ open class UUPeripheral
         startTimer(timerId, timeout)
         { peripheral in
             
-            NSLog("Set Notify State timeout for \(peripheral.uuIdentifier) - \(peripheral.uuName)")
+            NSLog("Set Notify State timeout for \(self.debugName)")
             
             let err = NSError.uuCoreBluetoothError(.timeout)
             self.delegate.peripheral(peripheral, didUpdateNotificationStateFor: characteristic, error: err)
@@ -609,7 +609,7 @@ open class UUPeripheral
         _ timeout: TimeInterval,
         _ completion: @escaping UUReadValueForCharacteristicsBlock)
     {
-        //NSLog("Read value for \(uuIdentifier) - \(uuName), characteristic: \(characteristic), timeout: \(timeout)")
+        NSLog("Read value for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
         
         let timerId = uuReadCharacteristicValueWatchdogTimerId()
         
@@ -621,7 +621,7 @@ open class UUPeripheral
             
             let err = NSError.uuOperationCompleteError(error as NSError?)
             
-            NSLog("Read value finished for \(peripheral.uuIdentifier) - \(peripheral.uuName), characteristic: \(characteristic), error: \(String(describing: err))")
+            NSLog("Read value finished for \(self.debugName), characteristic: \(characteristic), error: \(String(describing: err))")
             
             self.cancelTimer(timerId)
             self.delegate.removeReadHandler(characteristic)
@@ -632,7 +632,7 @@ open class UUPeripheral
         startTimer(timerId, timeout)
         { peripheral in
             
-            NSLog("Read value timeout for \(peripheral.uuIdentifier) - \(peripheral.uuName)")
+            NSLog("Read value timeout for \(self.debugName)")
             
             let err = NSError.uuCoreBluetoothError(.timeout)
             self.delegate.peripheral(peripheral, didUpdateValueFor: characteristic, error: err)
@@ -667,7 +667,7 @@ open class UUPeripheral
         _ timeout: TimeInterval,
         _ completion: @escaping UUReadValueForDescriptorBlock)
     {
-        //NSLog("Read value for \(uuIdentifier) - \(uuName), descriptor: \(descriptor), timeout: \(timeout)")
+        NSLog("Read value for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
         
         let timerId = uuReadDescriptorValueWatchdogTimerId()
         
@@ -679,7 +679,7 @@ open class UUPeripheral
             
             let err = NSError.uuOperationCompleteError(error as NSError?)
             
-            NSLog("Read value finished for \(peripheral.uuIdentifier) - \(peripheral.uuName), descriptor: \(descriptor), error: \(String(describing: err))")
+            NSLog("Read value finished for \(self.debugName), descriptor: \(descriptor), error: \(String(describing: err))")
             
             self.cancelTimer(timerId)
             self.delegate.removeReadHandler(descriptor)
@@ -690,7 +690,7 @@ open class UUPeripheral
         startTimer(timerId, timeout)
         { peripheral in
             
-            NSLog("Read descriptor timeout for \(peripheral.uuIdentifier) - \(peripheral.uuName)")
+            NSLog("Read descriptor timeout for \(self.debugName)")
             
             let err = NSError.uuCoreBluetoothError(.timeout)
             self.delegate.peripheral(peripheral, didUpdateValueFor: descriptor, error: err)
@@ -718,7 +718,7 @@ open class UUPeripheral
         _ timeout: TimeInterval,
         _ completion: @escaping UUWriteValueForCharacteristicsBlock)
     {
-        //NSLog("Write value \(data.uuToHexString()), for \(uuIdentifier) - \(uuName), characteristic: \(characteristic), timeout: \(timeout)")
+        NSLog("Write value \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
         
         let timerId = uuWriteCharacteristicValueWatchdogTimerId()
         
@@ -730,7 +730,7 @@ open class UUPeripheral
         
             let err = NSError.uuOperationCompleteError(error as NSError?)
             
-            NSLog("Write value finished for \(peripheral.uuIdentifier) - \(peripheral.uuName), characteristic: \(characteristic), error: \(String(describing: err))")
+            NSLog("Write value finished for \(self.debugName), characteristic: \(characteristic), error: \(String(describing: err))")
             
             self.cancelTimer(timerId)
             self.delegate.removeWriteHandler(characteristic)
@@ -741,7 +741,7 @@ open class UUPeripheral
         startTimer(timerId, timeout)
         { peripheral in
             
-            NSLog("Write value timeout for \(peripheral.uuIdentifier) - \(peripheral.uuName)")
+            NSLog("Write value timeout for \(self.debugName)")
             
             let err = NSError.uuCoreBluetoothError(.timeout)
             self.delegate.peripheral(peripheral, didWriteValueFor: characteristic, error: err)
@@ -777,7 +777,7 @@ open class UUPeripheral
         _ characteristic: CBCharacteristic,
         _ completion: @escaping UUWriteValueForCharacteristicsBlock)
     {
-        //NSLog("Write value without response \(data.uuToHexString()), for \(uuIdentifier) - \(uuName), characteristic: \(characteristic)")
+        NSLog("Write value without response \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic)")
         
         if let err = canAttemptOperation
         {
@@ -801,7 +801,7 @@ open class UUPeripheral
         _ timeout: TimeInterval,
         _ completion: @escaping UUWriteValueForDescriptorBlock)
     {
-        //NSLog("Write value \(data.uuToHexString()), for \(uuIdentifier) - \(uuName), descriptor: \(descriptor), timeout: \(timeout)")
+        NSLog("Write value \(data.uuToHexString()), for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
         
         let timerId = uuWriteDescriptorValueWatchdogTimerId()
         
@@ -813,7 +813,7 @@ open class UUPeripheral
         
             let err = NSError.uuOperationCompleteError(error as NSError?)
             
-            NSLog("Write value finished for \(peripheral.uuIdentifier) - \(peripheral.uuName), descriptor: \(descriptor), error: \(String(describing: err))")
+            NSLog("Write value finished for \(self.debugName), descriptor: \(descriptor), error: \(String(describing: err))")
             
             self.cancelTimer(timerId)
             self.delegate.removeWriteHandler(descriptor)
@@ -824,7 +824,7 @@ open class UUPeripheral
         startTimer(timerId, timeout)
         { peripheral in
             
-            NSLog("Write descriptor value timeout for \(peripheral.uuIdentifier) - \(peripheral.uuName)")
+            NSLog("Write descriptor value timeout for \(self.debugName)")
             
             let err = NSError.uuCoreBluetoothError(.timeout)
             self.delegate.peripheral(peripheral, didWriteValueFor: descriptor, error: err)
@@ -851,7 +851,7 @@ open class UUPeripheral
         _ timeout: TimeInterval,
         _ completion: @escaping UUDidReadRssiBlock)
     {
-        //NSLog("Reading RSSI for \(uuIdentifier) - \(uuName), timeout: \(timeout)")
+        NSLog("Reading RSSI for \(self.debugName), timeout: \(timeout)")
         
         let timerId = uuReadRssiWatchdogTimerId()
         
@@ -863,7 +863,7 @@ open class UUPeripheral
             
             let err = NSError.uuOperationCompleteError(error as NSError?)
             
-            NSLog("Read RSSI finished for \(peripheral.uuIdentifier) - \(peripheral.uuName), rssi: \(rssi), error: \(String(describing: err))")
+            NSLog("Read RSSI finished for \(self.debugName), rssi: \(rssi), error: \(String(describing: err))")
             
             self.cancelTimer(timerId)
             completion(peripheral, rssi, error)
@@ -872,7 +872,7 @@ open class UUPeripheral
         startTimer(timerId, timeout)
         { peripheral in
             
-            NSLog("Read RSSI timeout for \(peripheral.uuIdentifier) - \(peripheral.uuName)")
+            NSLog("Read RSSI timeout for \(self.debugName)")
             
             let err = NSError.uuCoreBluetoothError(.timeout)
             self.delegate.peripheral(peripheral, didReadRSSI: NSNumber(127), error: err)
@@ -894,7 +894,7 @@ open class UUPeripheral
     // Convenience wrapper to perform both service and characteristic discovery at
     // one time.  This method is useful when you know both service and characteristic
     // UUID's ahead of time.
-    /*public func uuDiscoverCharactertistics(
+    public func uuDiscoverCharactertistics(
         _ characteristicUuidList: [CBUUID]?,
         _ serviceUuid: CBUUID,
         _ timeout: TimeInterval,
@@ -903,7 +903,7 @@ open class UUPeripheral
         
         let start = Date().timeIntervalSinceReferenceDate
         
-        uuDiscoverServices([serviceUuid], timeout)
+        discoverServices([serviceUuid], timeout)
         { peripheral, error in
          
             if (error != nil)
@@ -921,10 +921,10 @@ open class UUPeripheral
                 let duration = Date().timeIntervalSinceReferenceDate - start
                 let remainingTimeout = timeout - duration
                 
-                self.uuDiscoverCharacteristics(characteristicUuidList, foundService, remainingTimeout, completion)
+                self.discoverCharacteristics(characteristicUuidList, foundService, remainingTimeout, completion)
             }
         }
-    }*/
+    }
     
     
     
@@ -1067,7 +1067,8 @@ open class UUPeripheral
     func startTimer(_ timerId: String, _ timeout: TimeInterval, _ block: @escaping UUCBPeripheralBlock)
     {
         NSLog("Starting timer \(timerId) with timeout: \(timeout)")
-        UUTimer.startWatchdogTimer(timerId, timeout, self, queue: dispatchQueue)
+        
+        UUTimer.startWatchdogTimer(timerId, timeout, underlyingPeripheral, queue: dispatchQueue)
         { info in
             
             if let p = info as? CBPeripheral
@@ -1104,6 +1105,12 @@ open class UUPeripheral
     
     
     
+    
+    
+    private var debugName: String
+    {
+        return "\(identifier) - \(name)"
+    }
     
 }
 

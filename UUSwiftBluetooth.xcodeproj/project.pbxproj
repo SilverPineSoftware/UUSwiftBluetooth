@@ -12,8 +12,6 @@
 		082A882726C756B400954A11 /* UUPeripheralFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A882626C756B400954A11 /* UUPeripheralFilter.swift */; };
 		082A882926C757BD00954A11 /* UUCentralManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A882826C757BD00954A11 /* UUCentralManager.swift */; };
 		082A882B26C75A7C00954A11 /* UUCoreBluetoothErrorCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A882A26C75A7C00954A11 /* UUCoreBluetoothErrorCode.swift */; };
-		082A882D26C75B1F00954A11 /* CBCentralManager+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A882C26C75B1F00954A11 /* CBCentralManager+Extensions.swift */; };
-		082A882F26C75B2E00954A11 /* CBPeripheral+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A882E26C75B2E00954A11 /* CBPeripheral+Extensions.swift */; };
 		082A883126C75BE300954A11 /* CBCharacteristic+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A883026C75BE300954A11 /* CBCharacteristic+Extensions.swift */; };
 		082A883326C75C4C00954A11 /* UUCentralManagerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A883226C75C4C00954A11 /* UUCentralManagerDelegate.swift */; };
 		082A883526C75C5900954A11 /* UUPeripheralDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A883426C75C5900954A11 /* UUPeripheralDelegate.swift */; };
@@ -68,8 +66,6 @@
 		082A882626C756B400954A11 /* UUPeripheralFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUPeripheralFilter.swift; sourceTree = "<group>"; };
 		082A882826C757BD00954A11 /* UUCentralManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUCentralManager.swift; sourceTree = "<group>"; };
 		082A882A26C75A7C00954A11 /* UUCoreBluetoothErrorCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUCoreBluetoothErrorCode.swift; sourceTree = "<group>"; };
-		082A882C26C75B1F00954A11 /* CBCentralManager+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CBCentralManager+Extensions.swift"; sourceTree = "<group>"; };
-		082A882E26C75B2E00954A11 /* CBPeripheral+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CBPeripheral+Extensions.swift"; sourceTree = "<group>"; };
 		082A883026C75BE300954A11 /* CBCharacteristic+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CBCharacteristic+Extensions.swift"; sourceTree = "<group>"; };
 		082A883226C75C4C00954A11 /* UUCentralManagerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUCentralManagerDelegate.swift; sourceTree = "<group>"; };
 		082A883426C75C5900954A11 /* UUPeripheralDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUPeripheralDelegate.swift; sourceTree = "<group>"; };
@@ -202,8 +198,6 @@
 				082A882826C757BD00954A11 /* UUCentralManager.swift */,
 				083F067426D2EE82002780A1 /* UUCentralManagerFactory.swift */,
 				082A882A26C75A7C00954A11 /* UUCoreBluetoothErrorCode.swift */,
-				082A882C26C75B1F00954A11 /* CBCentralManager+Extensions.swift */,
-				082A882E26C75B2E00954A11 /* CBPeripheral+Extensions.swift */,
 				082A883026C75BE300954A11 /* CBCharacteristic+Extensions.swift */,
 				082A883226C75C4C00954A11 /* UUCentralManagerDelegate.swift */,
 				082A883426C75C5900954A11 /* UUPeripheralDelegate.swift */,
@@ -352,9 +346,7 @@
 				082A883326C75C4C00954A11 /* UUCentralManagerDelegate.swift in Sources */,
 				082A882726C756B400954A11 /* UUPeripheralFilter.swift in Sources */,
 				082A882926C757BD00954A11 /* UUCentralManager.swift in Sources */,
-				082A882F26C75B2E00954A11 /* CBPeripheral+Extensions.swift in Sources */,
 				082A882226C753C900954A11 /* UUBluetoothScanner.swift in Sources */,
-				082A882D26C75B1F00954A11 /* CBCentralManager+Extensions.swift in Sources */,
 				083F067526D2EE82002780A1 /* UUCentralManagerFactory.swift in Sources */,
 				083F067726D2F168002780A1 /* DispatchQueue+Extensions.swift in Sources */,
 				082A882526C7542200954A11 /* UUPeripheral.swift in Sources */,
