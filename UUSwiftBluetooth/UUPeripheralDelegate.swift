@@ -9,6 +9,9 @@ import UIKit
 import CoreBluetooth
 import UUSwiftCore
 
+typealias UUCBPeripheralErrorBlock = ((CBPeripheral, Error?)->())
+typealias UUCBPeripheralServiceErrorBlock = ((CBPeripheral, CBService, Error?)->())
+
 class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
 {
     /*private(set) var centralManager: CBCentralManager!
@@ -28,9 +31,9 @@ class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
     var peripheralNameUpdatedBlock: UUPeripheralNameUpdatedBlock? = nil
     var didModifyServicesBlock: UUDidModifyServicesBlock? = nil
     var didReadRssiBlock: UUDidReadRssiBlock? = nil
-    var discoverServicesBlock: UUDiscoverServicesBlock? = nil
+    var discoverServicesBlock: UUCBPeripheralErrorBlock? = nil
     var discoverIncludedServicesBlock: UUDiscoverIncludedServicesBlock? = nil
-    var discoverCharacteristicsBlock: UUDiscoverCharacteristicsBlock? = nil
+    var discoverCharacteristicsBlock: UUCBPeripheralServiceErrorBlock? = nil
     var updateValueForCharacteristicBlocks: [String:UUUpdateValueForCharacteristicsBlock] = [:]
     var readValueForCharacteristicBlocks: [String:UUUpdateValueForCharacteristicsBlock] = [:]
     var writeValueForCharacteristicBlocks: [String:UUWriteValueForCharacteristicsBlock] = [:]

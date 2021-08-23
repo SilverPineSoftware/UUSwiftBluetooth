@@ -111,7 +111,7 @@ class PeripheralViewController: UIViewController
         }
         
         //peripheral
-        peripheral.discoverServices(nil, 30.0)
+        peripheral.discoverServices
         { updatedPeripheral, errOpt in
             
             NSLog("Service discovery complete")
@@ -206,6 +206,21 @@ extension PeripheralViewController: UITableViewDataSource, UITableViewDelegate
         }
         
         return UITableViewCell()
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
+    {
+        if (indexPath.section == 1)
+        {
+            if let service = peripheral?.services?[indexPath.row]
+            {
+                peripheral?.discoverCharacteristics(characteristicUUIDs: nil, service: service)
+                { updatedPeripheral, characteristicDiscoveryError in
+                    
+                    NSLog("Characteristic discovery complete")
+                }
+            }
+        }
     }
 }
 
