@@ -33,7 +33,7 @@ public class UUCentralManager
     private var peripheralsMutex = NSRecursiveLock()
     
     private var scanUuidList: [CBUUID]? = nil
-    private var peripheralClass: AnyClass? = nil
+    private var peripheralFactory: UUPeripheralFactory? = nil
     private var scanOptions: [String:Any]? = nil
     private var scanFilters: [UUPeripheralFilter]? = nil
     private(set) public var isScanning: Bool = false
@@ -126,7 +126,7 @@ public class UUCentralManager
     public func startScan(
         serviceUuids: [CBUUID]?,
         allowDuplicates: Bool,
-        peripheralClass: AnyClass?,
+        peripheralFactory: UUPeripheralFactory?,
         filters: [UUPeripheralFilter]?,
         peripheralFoundCallback: @escaping UUPeripheralBlock,
         willRestoreCallback: @escaping UUWillRestoreStateBlock)
@@ -134,12 +134,7 @@ public class UUCentralManager
         var opts: [String:Any] = [:]
         opts[CBCentralManagerScanOptionAllowDuplicatesKey] = allowDuplicates
         
-        self.peripheralClass = peripheralClass
-        if (self.peripheralClass == nil)
-        {
-            self.peripheralClass = UUPeripheral.self
-        }
-        
+        self.peripheralFactory = peripheralFactory
         scanUuidList = serviceUuids
         scanOptions = opts
         scanFilters = filters
@@ -333,6 +328,17 @@ public class UUCentralManager
 
      */
     
+    private func createPeripheral(_ peripheral: CBPeripheral) -> UUPeripheral
+    {
+        var p = peripheralFactory?.create(dispatchQueue, self, peripheral)
+        
+        if (p == nil)
+        {
+            p = UUPeripheral(dispatchQueue, self, peripheral)
+        }
+        
+        return p!
+    }
     
     private func findPeripheralFromCbPeripheral(_ peripheral: CBPeripheral) -> UUPeripheral
     {
@@ -342,9 +348,7 @@ public class UUCentralManager
         var uuPeripheral = peripherals[peripheral.identifier.uuidString]
         if (uuPeripheral == nil)
         {
-            uuPeripheral = UUPeripheral(dispatchQueue, self, peripheral)
-            
-            //let f = peripheralClass?.self.ini
+            uuPeripheral = createPeripheral(peripheral)
         }
         
         return uuPeripheral!

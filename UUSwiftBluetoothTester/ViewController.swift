@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import CoreBluetooth
 import UUSwiftBluetooth
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource
@@ -94,7 +95,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         else
         {
             let filters = [PeripheralFilter()]
-            scanner.startScan(services: nil, allowDuplicates: false, peripheralClass: nil, filters: filters, callback: self.handleNearbyPeripheralsChanged)
+            scanner.startScan(services: nil, allowDuplicates: false, peripheralFactory: PeripheralFactory(), filters: filters, callback: self.handleNearbyPeripheralsChanged)
             rightNavBarItem.title = "Stop"
         }
     }
@@ -110,7 +111,15 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
 }
 
-class PeripheralFilter: NSObject, UUPeripheralFilter
+class PeripheralFactory: UUPeripheralFactory
+{
+    func create(_ dispatchQueue: DispatchQueue, _ centralManager: UUCentralManager, _ peripheral: CBPeripheral) -> UUPeripheral
+    {
+        return CustomPeripheral(dispatchQueue, centralManager, peripheral)
+    }
+}
+
+class PeripheralFilter: UUPeripheralFilter
 {
     func shouldDiscover(_ peripheral: UUPeripheral) -> Bool
     {

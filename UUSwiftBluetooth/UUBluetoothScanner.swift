@@ -30,12 +30,12 @@ public class UUBluetoothScanner //: NSObject
     public func startScan(
         services: [CBUUID]? = nil,
         allowDuplicates: Bool = false,
-        peripheralClass: AnyClass? = nil,
+        peripheralFactory: UUPeripheralFactory?,
         filters: [UUPeripheralFilter]? = nil,
         callback: @escaping UUPeripheralListBlock)
     {
         self.nearbyPeripheralCallback = callback
-        self.centralManager.startScan(serviceUuids: services, allowDuplicates: allowDuplicates, peripheralClass: peripheralClass, filters: filters, peripheralFoundCallback: handlePeripheralFound, willRestoreCallback: handleWillRestoreState)
+        self.centralManager.startScan(serviceUuids: services, allowDuplicates: allowDuplicates, peripheralFactory: peripheralFactory, filters: filters, peripheralFoundCallback: handlePeripheralFound, willRestoreCallback: handleWillRestoreState)
     }
     
     public var isScanning: Bool
