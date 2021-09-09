@@ -8,7 +8,14 @@
 import UIKit
 import CoreBluetooth
 
-public protocol UUPeripheralFactory
+open class UUPeripheralFactory<T: UUPeripheral>
 {
-    func create(_ dispatchQueue: DispatchQueue, _ centralManager: UUCentralManager, _ peripheral: CBPeripheral) -> UUPeripheral
+    public init()
+    {
+    }
+    
+    open func create(_ dispatchQueue: DispatchQueue, _ centralManager: UUCentralManager, _ peripheral: CBPeripheral) -> T
+    {
+        fatalError("Derived classes must override!")
+    }
 }

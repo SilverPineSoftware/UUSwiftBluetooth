@@ -9,33 +9,27 @@ import UIKit
 import CoreBluetooth
 import UUSwiftCore
 
-public class UUBluetoothScanner //: NSObject
+public class UUBluetoothScanner<T: UUPeripheral>
 {
     private var centralManager: UUCentralManager
-//    private var delegate: UUCentralManagerDelegate
-//    private var centralManager: CBCentralManager
-    private var nearbyPeripherals: [String:UUPeripheral] = [:]
-    private var nearbyPeripheralCallback: UUPeripheralListBlock = { _ in }
+    private var nearbyPeripherals: [String:T] = [:]
+    private var nearbyPeripheralCallback: (([T])->()) = { _ in }
+    private var factory: UUPeripheralFactory<T>? = nil
     
-    public required init(_ centralManager: UUCentralManager)
+    public required init(_ centralManager: UUCentralManager, _ factory: UUPeripheralFactory<T>?)
     {
         self.centralManager = centralManager
+        self.factory = factory
     }
-    
-//    required init(_ centralManager: CBCentralManager)
-//    {
-//        self.centralManager = centralManager
-//    }
     
     public func startScan(
         services: [CBUUID]? = nil,
         allowDuplicates: Bool = false,
-        peripheralFactory: UUPeripheralFactory?,
         filters: [UUPeripheralFilter]? = nil,
-        callback: @escaping UUPeripheralListBlock)
+        callback: @escaping ([T])->())
     {
         self.nearbyPeripheralCallback = callback
-        self.centralManager.startScan(serviceUuids: services, allowDuplicates: allowDuplicates, peripheralFactory: peripheralFactory, filters: filters, peripheralFoundCallback: handlePeripheralFound, willRestoreCallback: handleWillRestoreState)
+        self.centralManager.startScan(serviceUuids: services, allowDuplicates: allowDuplicates, peripheralFactory: factory, filters: filters, peripheralFoundCallback: handlePeripheralFound, willRestoreCallback: handleWillRestoreState)
     }
     
     public var isScanning: Bool
@@ -48,7 +42,7 @@ public class UUBluetoothScanner //: NSObject
         self.centralManager.stopScan()
     }
     
-    private func handlePeripheralFound(peripheral: UUPeripheral)
+    private func handlePeripheralFound(peripheral: T)
     {
         nearbyPeripherals[peripheral.identifier] = peripheral
         

@@ -33,18 +33,15 @@ public class UUCentralManager
     private var peripheralsMutex = NSRecursiveLock()
     
     private var scanUuidList: [CBUUID]? = nil
-    private var peripheralFactory: UUPeripheralFactory? = nil
     private var scanOptions: [String:Any]? = nil
     private var scanFilters: [UUPeripheralFilter]? = nil
     private(set) public var isScanning: Bool = false
     private var isConfiguredForStateRestoration: Bool = false
     
-    private var peripheralFoundBlock: UUPeripheralBlock? = nil
     private var centralStateChangedBlock: UUCentralStateChangedBlock? = nil
     private var rssiPollingBlocks: [String:UUPeripheralBlock] = [:]
     private var willRestoreStateBlock: UUWillRestoreStateBlock? = nil
     private var options: [String:Any]? = nil
-    
     
     public static var shared: UUCentralManager
     {
@@ -123,45 +120,51 @@ public class UUCentralManager
         NSLog("Central is resetting")
     }
     
-    public func startScan(
+    public func startScan<T: UUPeripheral>(
         serviceUuids: [CBUUID]?,
         allowDuplicates: Bool,
-        peripheralFactory: UUPeripheralFactory?,
+        peripheralFactory: UUPeripheralFactory<T>?,
         filters: [UUPeripheralFilter]?,
-        peripheralFoundCallback: @escaping UUPeripheralBlock,
+        peripheralFoundCallback: @escaping ((T)->()),
         willRestoreCallback: @escaping UUWillRestoreStateBlock)
     {
         var opts: [String:Any] = [:]
         opts[CBCentralManagerScanOptionAllowDuplicatesKey] = allowDuplicates
         
-        self.peripheralFactory = peripheralFactory
         scanUuidList = serviceUuids
         scanOptions = opts
         scanFilters = filters
         isScanning = true
         willRestoreStateBlock = willRestoreCallback
-        peripheralFoundBlock = peripheralFoundCallback
-        
-        delegate.peripheralFoundBlock = handlePeripheralFound
+        delegate.peripheralFoundBlock =
+        { peripheral, advertisementData, rssi in
+            
+            //let uuPeripheral: T = self.updatedPeripheralFromScan(peripheral, advertisementData, rssi)
+            var uuPeripheral: T? = peripheralFactory?.create(self.dispatchQueue, self, peripheral)
+            if (uuPeripheral == nil)
+            {
+                uuPeripheral = UUPeripheral(self.dispatchQueue, self, peripheral) as? T
+            }
+            
+            if let p = uuPeripheral
+            {
+                NSLog("Updated peripheral after scan. peripheral: \(String(describing: p.underlyingPeripheral)), rssi: \(p.rssi), advertisement: \(p.advertisementData)")
+                
+                if (self.shouldDiscoverPeripheral(p))
+                {
+                    peripheralFoundCallback(p)
+                }
+            }
+        }
        
         resumeScanning()
     }
+    
+    
 
     private func resumeScanning()
     {
         centralManager.scanForPeripherals(withServices: scanUuidList, options: scanOptions)
-    }
-    
-    private func handlePeripheralFound(_ peripheral: CBPeripheral, _ advertisementData: [String:Any], _ rssi: Int)
-    {
-        let uuPeripheral = updatedPeripheralFromScan(peripheral, advertisementData, rssi)
-        
-        NSLog("Updated peripheral after scan. peripheral: \(String(describing: uuPeripheral.underlyingPeripheral)), rssi: \(uuPeripheral.rssi), advertisement: \(uuPeripheral.advertisementData)")
-        
-        if (shouldDiscoverPeripheral(uuPeripheral))
-        {
-            peripheralFoundBlock?(uuPeripheral)
-        }
     }
     
     private func handleWillRestoreState(_ options: [String:Any])
@@ -190,7 +193,9 @@ public class UUCentralManager
     public func stopScan()
     {
         isScanning = false
-        peripheralFoundBlock = nil
+        //peripheralFoundBlock = nil
+        //handlePeripheralFound = nil
+        delegate.peripheralFoundBlock = nil
         centralManager.stopScan()
     }
     
@@ -328,19 +333,20 @@ public class UUCentralManager
 
      */
     
-    private func createPeripheral(_ peripheral: CBPeripheral) -> UUPeripheral
+    /*
+    private func createPeripheral<T: UUPeripheral>(_ peripheral: CBPeripheral) -> T
     {
-        var p = peripheralFactory?.create(dispatchQueue, self, peripheral)
+        var p: T? = nil//peripheralFactory?.create(dispatchQueue, self, peripheral)
         
         if (p == nil)
         {
-            p = UUPeripheral(dispatchQueue, self, peripheral)
+            //p = UUPeripheral(dispatchQueue, self, peripheral)
         }
         
         return p!
     }
     
-    private func findPeripheralFromCbPeripheral(_ peripheral: CBPeripheral) -> UUPeripheral
+    private func findPeripheralFromCbPeripheral<T: UUPeripheral>(_ peripheral: CBPeripheral) -> T
     {
         defer { peripheralsMutex.unlock() }
         peripheralsMutex.lock()
@@ -351,27 +357,27 @@ public class UUCentralManager
             uuPeripheral = createPeripheral(peripheral)
         }
         
-        return uuPeripheral!
+        return uuPeripheral as! T
     }
     
-    private func updatedPeripheralFromCbPeripheral(_ peripheral: CBPeripheral) -> UUPeripheral
+    private func updatedPeripheralFromCbPeripheral<T: UUPeripheral>(_ peripheral: CBPeripheral) -> T
     {
         let uuPeripheral = findPeripheralFromCbPeripheral(peripheral)
         uuPeripheral.underlyingPeripheral = peripheral
         updatePeripheral(uuPeripheral)
-        return uuPeripheral
+        return uuPeripheral as! T
     }
     
-    private func updatedPeripheralFromScan(
+    private func updatedPeripheralFromScan<T: UUPeripheral>(
         _ peripheral: CBPeripheral,
         _ advertisementData: [String:Any],
-        _ rssi: Int) -> UUPeripheral
+        _ rssi: Int) -> T
     {
-        let uuPeripheral = findPeripheralFromCbPeripheral(peripheral)
+        let uuPeripheral: T = findPeripheralFromCbPeripheral(peripheral)
         uuPeripheral.updateFromScan(peripheral, advertisementData, rssi)
         updatePeripheral(uuPeripheral)
         return uuPeripheral
-    }
+    }*/
 
     /*
     - (nonnull UUPeripheral*) updatedPeripheralFromRssiRead:(nonnull CBPeripheral*)peripheral

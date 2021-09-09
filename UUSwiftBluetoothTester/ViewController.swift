@@ -17,7 +17,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     private var tableData: [UUPeripheral] = []
     
-    private var scanner = UUBluetoothScanner(UUCentralManager.shared)
+    private var scanner = UUBluetoothScanner(UUCentralManager.shared, CustomPeripheralFactory())
     
     override func viewDidLoad()
     {
@@ -62,7 +62,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
     
     
-    private func handleNearbyPeripheralsChanged(_ list: [UUPeripheral])
+    private func handleNearbyPeripheralsChanged(_ list: [CustomPeripheral])
     {
         self.tableData.removeAll()
         self.tableData.append(contentsOf: list)
@@ -95,7 +95,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         else
         {
             let filters = [PeripheralFilter()]
-            scanner.startScan(services: nil, allowDuplicates: false, peripheralFactory: PeripheralFactory(), filters: filters, callback: self.handleNearbyPeripheralsChanged)
+            scanner.startScan(services: nil, allowDuplicates: false, filters: filters, callback: self.handleNearbyPeripheralsChanged)
             rightNavBarItem.title = "Stop"
         }
     }
@@ -111,9 +111,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
 }
 
-class PeripheralFactory: UUPeripheralFactory
+class CustomPeripheralFactory: UUPeripheralFactory<CustomPeripheral>
 {
-    func create(_ dispatchQueue: DispatchQueue, _ centralManager: UUCentralManager, _ peripheral: CBPeripheral) -> UUPeripheral
+    public override init()
+    {
+        super.init()
+    }
+    
+    override func create(_ dispatchQueue: DispatchQueue, _ centralManager: UUCentralManager, _ peripheral: CBPeripheral) -> CustomPeripheral
     {
         return CustomPeripheral(dispatchQueue, centralManager, peripheral)
     }
