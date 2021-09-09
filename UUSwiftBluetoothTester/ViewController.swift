@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SwiftUI
 import CoreBluetooth
 import UUSwiftBluetooth
 
@@ -54,13 +55,16 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         cell.update(peripheral: rowData)
         return cell
     }
-    
+   
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {
         let rowData = tableData[indexPath.row]
-        performSegue(withIdentifier: "showPeripheralDetail", sender: rowData)
+        
+        let viewModel = PeripheralViewModel(rowData)
+        let view = PeripheralView(viewModel: viewModel)
+        let host = UIHostingController(rootView: view)
+        navigationController?.pushViewController(host, animated: true)
     }
-    
     
     private func handleNearbyPeripheralsChanged(_ list: [CustomPeripheral])
     {
@@ -99,16 +103,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             rightNavBarItem.title = "Stop"
         }
     }
-    
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?)
-    {
-        if let dest = segue.destination as? PeripheralViewController,
-           let peripheral = sender as? UUPeripheral
-        {
-            dest.peripheral = peripheral
-        }
-    }
-    
 }
 
 class CustomPeripheralFactory: UUPeripheralFactory<CustomPeripheral>

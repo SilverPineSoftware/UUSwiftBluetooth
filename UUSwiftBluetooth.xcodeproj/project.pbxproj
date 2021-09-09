@@ -34,6 +34,10 @@
 		08A2093626C70E3D008F3534 /* UUSwiftBluetooth.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		08A7AAD526E8105900E7254A /* UUPeripheralFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AAD426E8105900E7254A /* UUPeripheralFactory.swift */; };
 		08A7AAD726E9404E00E7254A /* CustomPeripheral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AAD626E9404E00E7254A /* CustomPeripheral.swift */; };
+		08A7AAD926EA794B00E7254A /* PeripheralView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AAD826EA794B00E7254A /* PeripheralView.swift */; };
+		08A7AADB26EA962B00E7254A /* ServiceRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AADA26EA962B00E7254A /* ServiceRowView.swift */; };
+		08A7AADD26EA988600E7254A /* LabelValueRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AADC26EA988600E7254A /* LabelValueRowView.swift */; };
+		08A7AADF26EA9A1800E7254A /* SectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AADE26EA9A1800E7254A /* SectionHeaderView.swift */; };
 		C5C67CC226C6098F004DF50D /* UUSwiftBluetooth.h in Headers */ = {isa = PBXBuildFile; fileRef = C5C67CC026C6098F004DF50D /* UUSwiftBluetooth.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C5C67CD026C60A0E004DF50D /* UUSwiftCore in Frameworks */ = {isa = PBXBuildFile; productRef = C5C67CCF26C60A0E004DF50D /* UUSwiftCore */; };
 /* End PBXBuildFile section */
@@ -99,6 +103,10 @@
 		08A2093226C70B5D008F3534 /* PeripheralTableRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralTableRow.swift; sourceTree = "<group>"; };
 		08A7AAD426E8105900E7254A /* UUPeripheralFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUPeripheralFactory.swift; sourceTree = "<group>"; };
 		08A7AAD626E9404E00E7254A /* CustomPeripheral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPeripheral.swift; sourceTree = "<group>"; };
+		08A7AAD826EA794B00E7254A /* PeripheralView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralView.swift; sourceTree = "<group>"; };
+		08A7AADA26EA962B00E7254A /* ServiceRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceRowView.swift; sourceTree = "<group>"; };
+		08A7AADC26EA988600E7254A /* LabelValueRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelValueRowView.swift; sourceTree = "<group>"; };
+		08A7AADE26EA9A1800E7254A /* SectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeaderView.swift; sourceTree = "<group>"; };
 		C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = UUSwiftBluetooth.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C5C67CC026C6098F004DF50D /* UUSwiftBluetooth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UUSwiftBluetooth.h; sourceTree = "<group>"; };
 		C5C67CC126C6098F004DF50D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -157,6 +165,10 @@
 				083F066726CF4FEE002780A1 /* PeripheralViewController.swift */,
 				083F066926CF512B002780A1 /* SettingsViewController.swift */,
 				08A7AAD626E9404E00E7254A /* CustomPeripheral.swift */,
+				08A7AAD826EA794B00E7254A /* PeripheralView.swift */,
+				08A7AADA26EA962B00E7254A /* ServiceRowView.swift */,
+				08A7AADC26EA988600E7254A /* LabelValueRowView.swift */,
+				08A7AADE26EA9A1800E7254A /* SectionHeaderView.swift */,
 			);
 			path = UUSwiftBluetoothTester;
 			sourceTree = "<group>";
@@ -334,12 +346,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				08A7AADF26EA9A1800E7254A /* SectionHeaderView.swift in Sources */,
 				083F066826CF4FEE002780A1 /* PeripheralViewController.swift in Sources */,
 				08A2092526C7092B008F3534 /* ViewController.swift in Sources */,
 				08A2092126C7092B008F3534 /* AppDelegate.swift in Sources */,
 				08A2092326C7092B008F3534 /* SceneDelegate.swift in Sources */,
 				08A2093326C70B5D008F3534 /* PeripheralTableRow.swift in Sources */,
+				08A7AADB26EA962B00E7254A /* ServiceRowView.swift in Sources */,
 				083F066A26CF512B002780A1 /* SettingsViewController.swift in Sources */,
+				08A7AAD926EA794B00E7254A /* PeripheralView.swift in Sources */,
+				08A7AADD26EA988600E7254A /* LabelValueRowView.swift in Sources */,
 				08A7AAD726E9404E00E7254A /* CustomPeripheral.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
