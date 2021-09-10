@@ -61,7 +61,17 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let rowData = tableData[indexPath.row]
         
         let viewModel = PeripheralViewModel(rowData)
+        viewModel.serviceTapHandler = handleServiceTapped
+        
         let view = PeripheralView(viewModel: viewModel)
+        let host = UIHostingController(rootView: view)
+        navigationController?.pushViewController(host, animated: true)
+    }
+    
+    private func handleServiceTapped(_ peripheral: UUPeripheral, _ service: CBService)
+    {
+        let viewModel = ServiceViewModel(peripheral, service)
+        let view = ServiceView(viewModel: viewModel)
         let host = UIHostingController(rootView: view)
         navigationController?.pushViewController(host, animated: true)
     }

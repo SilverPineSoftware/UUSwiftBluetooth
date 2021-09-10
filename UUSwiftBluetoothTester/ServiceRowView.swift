@@ -12,15 +12,20 @@ import UUSwiftBluetooth
 class ServiceRowViewModel: ObservableObject
 {
     @Published var service: CBService
+    var tapHandler: ((CBService)->())?
+    @Published var showDivider: Bool
     
-    init(_ service: CBService)
+    required init(_ service: CBService, tapHandler: ((CBService)->())? = nil, showDivider: Bool = true)
     {
         self.service = service
+        self.tapHandler = tapHandler
+        self.showDivider = showDivider
     }
     
     func onTap()
     {
         NSLog("Tapped on service: \(service.uuid.uuidString)")
+        tapHandler?(service)
     }
     
 }
@@ -37,9 +42,12 @@ struct ServiceRowView: View
             LabelValueRowView(label: "Name:", value: viewModel.service.uuid.uuCommonName)
             LabelValueRowView(label: "IsPrimary:", value: "\(viewModel.service.isPrimary ? "Yes" : "No")")
             
-            Rectangle()
-                .fill(Color.black)
-                .frame(width: nil, height: 1, alignment: .leading)
+            if (viewModel.showDivider)
+            {
+                Rectangle()
+                    .fill(Color.black)
+                    .frame(width: nil, height: 1, alignment: .leading)
+            }
         }
         .onTapGesture(perform: viewModel.onTap)
     }

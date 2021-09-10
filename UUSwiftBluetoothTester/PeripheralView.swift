@@ -13,6 +13,8 @@ class PeripheralViewModel: ObservableObject
 {
     @Published var peripheral: UUPeripheral
     
+    var serviceTapHandler: ((UUPeripheral, CBService)->()) = { _,_ in }
+    
     init(_ peripheral: UUPeripheral)
     {
         self.peripheral = peripheral
@@ -53,7 +55,11 @@ class PeripheralViewModel: ObservableObject
                 self.peripheral = updatedPeripheral
             }
         }
-        
+    }
+    
+    func onServiceTapped(_ service: CBService)
+    {
+        serviceTapHandler(peripheral, service)
     }
 }
 
@@ -101,7 +107,10 @@ struct PeripheralView: View
                     ForEach(services, id: \.uuid)
                     { service in
                         
-                        ServiceRowView(viewModel: ServiceRowViewModel(service))
+                        ServiceRowView(viewModel: ServiceRowViewModel(service)
+                        { service in
+                            viewModel.onServiceTapped(service)
+                        })
                     }
                 }
             }

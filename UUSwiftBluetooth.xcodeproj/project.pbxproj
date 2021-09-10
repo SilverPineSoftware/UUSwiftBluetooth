@@ -38,6 +38,8 @@
 		08A7AADB26EA962B00E7254A /* ServiceRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AADA26EA962B00E7254A /* ServiceRowView.swift */; };
 		08A7AADD26EA988600E7254A /* LabelValueRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AADC26EA988600E7254A /* LabelValueRowView.swift */; };
 		08A7AADF26EA9A1800E7254A /* SectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AADE26EA9A1800E7254A /* SectionHeaderView.swift */; };
+		08A7AAE126EA9B9300E7254A /* ServiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AAE026EA9B9300E7254A /* ServiceView.swift */; };
+		08A7AAE326EAA48A00E7254A /* CharacteristicRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AAE226EAA48A00E7254A /* CharacteristicRowView.swift */; };
 		C5C67CC226C6098F004DF50D /* UUSwiftBluetooth.h in Headers */ = {isa = PBXBuildFile; fileRef = C5C67CC026C6098F004DF50D /* UUSwiftBluetooth.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C5C67CD026C60A0E004DF50D /* UUSwiftCore in Frameworks */ = {isa = PBXBuildFile; productRef = C5C67CCF26C60A0E004DF50D /* UUSwiftCore */; };
 /* End PBXBuildFile section */
@@ -107,6 +109,8 @@
 		08A7AADA26EA962B00E7254A /* ServiceRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceRowView.swift; sourceTree = "<group>"; };
 		08A7AADC26EA988600E7254A /* LabelValueRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelValueRowView.swift; sourceTree = "<group>"; };
 		08A7AADE26EA9A1800E7254A /* SectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeaderView.swift; sourceTree = "<group>"; };
+		08A7AAE026EA9B9300E7254A /* ServiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceView.swift; sourceTree = "<group>"; };
+		08A7AAE226EAA48A00E7254A /* CharacteristicRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacteristicRowView.swift; sourceTree = "<group>"; };
 		C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = UUSwiftBluetooth.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C5C67CC026C6098F004DF50D /* UUSwiftBluetooth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UUSwiftBluetooth.h; sourceTree = "<group>"; };
 		C5C67CC126C6098F004DF50D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -169,6 +173,8 @@
 				08A7AADA26EA962B00E7254A /* ServiceRowView.swift */,
 				08A7AADC26EA988600E7254A /* LabelValueRowView.swift */,
 				08A7AADE26EA9A1800E7254A /* SectionHeaderView.swift */,
+				08A7AAE026EA9B9300E7254A /* ServiceView.swift */,
+				08A7AAE226EAA48A00E7254A /* CharacteristicRowView.swift */,
 			);
 			path = UUSwiftBluetoothTester;
 			sourceTree = "<group>";
@@ -350,7 +356,9 @@
 				083F066826CF4FEE002780A1 /* PeripheralViewController.swift in Sources */,
 				08A2092526C7092B008F3534 /* ViewController.swift in Sources */,
 				08A2092126C7092B008F3534 /* AppDelegate.swift in Sources */,
+				08A7AAE126EA9B9300E7254A /* ServiceView.swift in Sources */,
 				08A2092326C7092B008F3534 /* SceneDelegate.swift in Sources */,
+				08A7AAE326EAA48A00E7254A /* CharacteristicRowView.swift in Sources */,
 				08A2093326C70B5D008F3534 /* PeripheralTableRow.swift in Sources */,
 				08A7AADB26EA962B00E7254A /* ServiceRowView.swift in Sources */,
 				083F066A26CF512B002780A1 /* SettingsViewController.swift in Sources */,
