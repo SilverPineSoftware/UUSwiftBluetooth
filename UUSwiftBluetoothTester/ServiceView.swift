@@ -116,7 +116,7 @@ struct ServiceView: View
                     ForEach(characteristics.indices, id: \.self)
                     { i in
                         
-                        CharacteristicRowView(viewModel: CharacteristicRowViewModel(characteristics[i], showDivider: (i < (characteristics.count-1))))
+                        CharacteristicRowView(viewModel: CharacteristicRowViewModel(viewModel.peripheral, characteristics[i], showDivider: (i < (characteristics.count-1))))
                     }
                 }
                 
