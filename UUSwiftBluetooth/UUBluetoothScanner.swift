@@ -16,10 +16,10 @@ public class UUBluetoothScanner<T: UUPeripheral>
     private var nearbyPeripheralCallback: (([T])->()) = { _ in }
     private var factory: UUPeripheralFactory<T>? = nil
     
-    public required init(_ centralManager: UUCentralManager, _ factory: UUPeripheralFactory<T>?)
+    public required init(centralManager: UUCentralManager = UUCentralManager.shared, peripheralFactory: UUPeripheralFactory<T>? = nil)
     {
         self.centralManager = centralManager
-        self.factory = factory
+        self.factory = peripheralFactory
     }
     
     public func startScan(
