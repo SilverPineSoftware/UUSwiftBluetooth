@@ -20,6 +20,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     private var scanner = UUBluetoothScanner(peripheralFactory:  CustomPeripheralFactory())
     
+    private var lastTableUpdate: TimeInterval = 0
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
@@ -78,12 +80,19 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     private func handleNearbyPeripheralsChanged(_ list: [CustomPeripheral])
     {
-        self.tableData.removeAll()
-        self.tableData.append(contentsOf: list)
-        
-        DispatchQueue.main.async
+        let now = Date().timeIntervalSinceReferenceDate
+        let diff = now - lastTableUpdate
+        if (diff > 1.0)
         {
-            self.tableView.reloadData()
+            lastTableUpdate = now
+            
+            self.tableData.removeAll()
+            self.tableData.append(contentsOf: list)
+            
+            DispatchQueue.main.async
+            {
+                self.tableView.reloadData()
+            }
         }
     }
     
@@ -109,7 +118,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         else
         {
             let filters = [PeripheralFilter()]
-            scanner.startScan(services: nil, allowDuplicates: false, filters: filters, callback: self.handleNearbyPeripheralsChanged)
+            scanner.startScan(services: nil, allowDuplicates: true, filters: filters, callback: self.handleNearbyPeripheralsChanged)
             rightNavBarItem.title = "Stop"
         }
     }
