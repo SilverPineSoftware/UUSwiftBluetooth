@@ -14,6 +14,8 @@ public typealias UUPeripheralErrorBlock = ((UUPeripheral, Error?)->())
 public typealias UUPeripheralCharacteristicErrorBlock = ((UUPeripheral, CBCharacteristic, Error?)->())
 public typealias UUPeripheralDescriptorErrorBlock = ((UUPeripheral, CBDescriptor, Error?)->())
 public typealias UUPeripheralIntegerErrorBlock = ((UUPeripheral, Int, Error?)->())
+public typealias UUDiscoverServicesCompletionBlock = (([CBService]?, Error?)->())
+public typealias UUDiscoverCharacteristicsCompletionBlock = (([CBCharacteristic]?, Error?)->())
 
 // UUPeripheral is a convenience class that wraps a CBPeripheral and it's
 // advertisement data into one object.
@@ -27,13 +29,8 @@ open class UUPeripheral
         public static let operationTimeout: TimeInterval = 60.0
     }
     
-    
-    
-    private var centralManager: UUCentralManager!
-    private var dispatchQueue: DispatchQueue!
-    
-    
-    
+    private let centralManager: UUCentralManager
+    private let dispatchQueue: DispatchQueue
     private let delegate = UUPeripheralDelegate()
     
     // Reference to the underlying CBPeripheral
@@ -44,9 +41,6 @@ open class UUPeripheral
             underlyingPeripheral.delegate = delegate
         }
     }
-    
-    
-    
     
     // The most recent advertisement data
     var advertisementData: [String: Any] = [:]
@@ -67,12 +61,7 @@ open class UUPeripheral
     {
         self.dispatchQueue = dispatchQueue
         self.centralManager = centralManager
-        //centralManager = UUCentralManager.shared.centralManager
-        //dispatchQueue = DispatchQueue.uuBluetooth
-
-        underlyingPeripheral = peripheral
-        
-        //delegate = UUPeripheralDelegate()//centralManager, peripheral, dispatchQueue)
+        self.underlyingPeripheral = peripheral
         peripheral.delegate = delegate
     }
     
@@ -120,7 +109,7 @@ open class UUPeripheral
     // it may change in the future.
     public var isConnectable: Bool
     {
-        return advertisementData.uuSafeGetBool(CBAdvertisementDataIsConnectable) ?? false
+        return advertisementData.uuGetBool(CBAdvertisementDataIsConnectable) ?? false
     }
     
     // Returns value of CBAdvertisementDataManufacturerDataKey from advertisement data.
@@ -173,13 +162,13 @@ open class UUPeripheral
     // from the phone
     public func connect(
        timeout: TimeInterval = Defaults.connectTimeout,
-       connected: @escaping UUPeripheralBlock,
-       disconnected: @escaping UUPeripheralErrorBlock)
+       connected: @escaping ()->(),
+       disconnected: @escaping (Error?)->())
     {
         guard centralManager.isPoweredOn else
         {
             let err = NSError.uuCoreBluetoothError(.centralNotReady)
-            disconnected(self, err)
+            disconnected(err)
             return
         }
         
@@ -191,7 +180,7 @@ open class UUPeripheral
             //NSLog("Connected to \(peripheral.uuIdentifier) - \(peripheral.uuName)")
             
             self.cancelTimer(timerId)
-            connected(self)
+            connected()
         };
         
         let disconnectedBlock: UUCBPeripheralErrorBlock =
@@ -199,8 +188,9 @@ open class UUPeripheral
             
             //NSLog("Disconnected from \(peripheral.uuIdentifier) - \(peripheral.uuName), error: \(String(describing: error))")
             
-            self.cancelTimer(timerId)
-            disconnected(self, error)
+            self.cancelAllTimers()
+            
+            disconnected(error)
         }
         
         centralManager.registerConnectionBlocks(self, connectedBlock, disconnectedBlock)
@@ -220,7 +210,7 @@ open class UUPeripheral
              
             let err = NSError.uuCoreBluetoothError(.timeout)
             self.cancelTimer(timerId)
-            disconnected(self, err)
+            disconnected(err)
         }
         
         centralManager.connect(self, nil)
@@ -229,7 +219,7 @@ open class UUPeripheral
     // Wrapper around CBCentralManager cancelPeripheralConnection.  After calling this
     // method, the disconnected block passed in at connect time will be invoked.
     public func disconnect(timeout: TimeInterval = Defaults.disconnectTimeout)
-   {
+    {
         guard centralManager.isPoweredOn else
         {
             NSLog("Central is not powered on, cannot cancel a connection!")
@@ -240,6 +230,7 @@ open class UUPeripheral
         
         let timerId = TimerId.disconnect
         
+        NSLog("Starting disconnect timeout")
         startTimer(timerId, timeout)
         {
             NSLog("Disconnect timeout for \(self.debugName)")
@@ -252,15 +243,17 @@ open class UUPeripheral
             self.centralManager.cancelPeripheralConnection(self)
         }
         
-         centralManager.cancelPeripheralConnection(self)
-   }
+        
+        NSLog("Cancelling peripheral connection for \(self.debugName)")
+        centralManager.cancelPeripheralConnection(self)
+    }
    
     // Block based wrapper around CBPeripheral discoverServices, with an optional
     // timeout value.  A negative timeout value will disable the timeout.
     public func discoverServices(
         _ serviceUUIDs: [CBUUID]? = nil,
         timeout: TimeInterval = Defaults.operationTimeout,
-        completion: @escaping UUPeripheralErrorBlock)
+        completion: @escaping UUDiscoverServicesCompletionBlock)
     {
         NSLog("Discovering services for \(self.debugName), timeout: \(timeout), service list: \(String(describing: serviceUUIDs))")
         
@@ -269,7 +262,7 @@ open class UUPeripheral
         delegate.discoverServicesBlock =
         { peripheral, errOpt in
             
-            self.finishOperation(timerId, peripheral, errOpt, completion)
+            self.finishDiscoverServices(timerId, errOpt, completion)
         }
         
         if let err = canAttemptOperation
@@ -301,7 +294,7 @@ open class UUPeripheral
         _ characteristicUUIDs: [CBUUID]?,
         for service: CBService,
         timeout: TimeInterval = Defaults.operationTimeout,
-        completion: @escaping UUPeripheralErrorBlock)
+        completion: @escaping UUDiscoverCharacteristicsCompletionBlock)
     {
         NSLog("Discovering characteristics for \(self.debugName), timeout: \(timeout), service: \(service), characteristic list: \(String(describing: characteristicUUIDs))")
         
@@ -310,7 +303,7 @@ open class UUPeripheral
         delegate.discoverCharacteristicsBlock =
         { peripheral, service, error in
             
-            self.finishOperation(timerId, peripheral, error, completion)
+            self.finishDiscoverCharacteristics(timerId, error, service, completion)
         }
         
         if let err = canAttemptOperation
@@ -717,37 +710,38 @@ open class UUPeripheral
     // Convenience wrapper to perform both service and characteristic discovery at
     // one time.  This method is useful when you know both service and characteristic
     // UUID's ahead of time.
-    /*public func uuDiscoverCharactertistics(
-        _ characteristicUuidList: [CBUUID]?,
-        _ serviceUuid: CBUUID,
-        _ timeout: TimeInterval,
-        _ completion: @escaping UUDiscoverCharacteristicsForServiceUuidBlock)
+    public func discover(
+        characteristics: [CBUUID]?,
+        for serviceUuid: CBUUID,
+        timeout: TimeInterval,
+        completion: @escaping UUDiscoverCharacteristicsCompletionBlock)
     {
-        
         let start = Date().timeIntervalSinceReferenceDate
         
-        discoverServices(serviceUuidList: [serviceUuid], timeout: timeout)
-        { peripheral, error in
-         
-            if (error != nil)
+        //discoverServices([serviceUuid], timeout: timeout)
+        discoverServices(nil, timeout: timeout)
+        { discoveredServices, err in
+            
+            if let error = err
             {
-                completion(peripheral, nil, error);
+                completion(nil, error)
+                return
             }
-            else
+            
+            guard let foundService = discoveredServices?.filter({ $0.uuid.uuidString == serviceUuid.uuidString }).first else
             {
-                guard let foundService = peripheral.services?.filter({ $0.uuid.uuidString == serviceUuid.uuidString }).first else
-                {
-                    completion(peripheral, nil, nil)
-                    return
-                }
-                
-                let duration = Date().timeIntervalSinceReferenceDate - start
-                let remainingTimeout = timeout - duration
-                
-                self.discoverCharacteristics(characteristicUuidList, foundService, remainingTimeout, completion)
+                // QUESTION: Should this emit a 'service not found error'
+                completion(nil, err)
+                return
             }
+            
+            let duration = Date().timeIntervalSinceReferenceDate - start
+            let remainingTimeout = timeout - duration
+            
+            //self.discoverCharacteristics(characteristics, for: foundService, timeout: remainingTimeout, completion: completion)
+            self.discoverCharacteristics(nil, for: foundService, timeout: remainingTimeout, completion: completion)
         }
-    }*/
+    }
     
     
     
@@ -785,6 +779,25 @@ open class UUPeripheral
     {
         let err = prepareToFinishOperation(timerBucket, error)
         completion(self, characteristic, err)
+    }
+    
+    private func finishDiscoverServices(
+        _ timerBucket: TimerId,
+        _ error: Error?,
+        _ completion: @escaping UUDiscoverServicesCompletionBlock)
+    {
+        let err = prepareToFinishOperation(timerBucket, error)
+        completion(self.services, err)
+    }
+    
+    private func finishDiscoverCharacteristics(
+        _ timerBucket: TimerId,
+        _ error: Error?,
+        _ service: CBService,
+        _ completion: @escaping UUDiscoverCharacteristicsCompletionBlock)
+    {
+        let err = prepareToFinishOperation(timerBucket, error)
+        completion(service.characteristics, err)
     }
     
     
@@ -843,11 +856,16 @@ open class UUPeripheral
 
     private func cancelAllTimers()
     {
+        NSLog("Cancelling all timers")
+        
         let list = UUTimer.listActiveTimers()
         for t in list
         {
+            NSLog("Active timer: \(t.timerId)")
+            
             if (t.timerId.starts(with: identifier))
             {
+                NSLog("Cancelling Peripheral Timer: \(t.timerId)")
                 t.cancel()
             }
         }
