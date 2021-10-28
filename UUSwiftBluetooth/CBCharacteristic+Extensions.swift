@@ -32,3 +32,11 @@ public extension CBCharacteristic
         return UUIsCBCharacteristicPropertySet(properties, .writeWithoutResponse)
     }
 }
+
+public extension Array where Element: CBCharacteristic
+{
+    func uuFind(_ characteristic: CBUUID) -> CBCharacteristic?
+    {
+        return self.filter({ $0.uuid == characteristic }).first
+    }
+}
