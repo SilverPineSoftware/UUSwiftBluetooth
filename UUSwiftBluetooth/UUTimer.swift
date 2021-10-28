@@ -105,8 +105,7 @@ public class UUTimer: NSObject
         defer { uuActiveTimersMutex.unlock() }
         uuActiveTimersMutex.lock()
         
-        //return uuActiveTimers.values.
-        return []
+        return uuActiveTimers.values.compactMap({ $0 })
     }
     
     
@@ -116,19 +115,19 @@ public class UUTimer: NSObject
     {
         if let src = dispatchSource
         {
-            NSLog("Starting timer \(timerId), interval: \(interval), repeat: \(shouldRepeat), dispatchSource: \(String(describing: dispatchSource)), userInfo: \(String(describing: userInfo))")
+            //NSLog("Starting timer \(timerId), interval: \(interval), repeat: \(shouldRepeat), dispatchSource: \(String(describing: dispatchSource)), userInfo: \(String(describing: userInfo))")
             UUTimer.addTimer(self)
             src.resume()
         }
         else
         {
-            NSLog("Cannot start timer \(timerId) because dispatch source is nil")
+            //NSLog("Cannot start timer \(timerId) because dispatch source is nil")
         }
     }
     
     public func cancel()
     {
-        NSLog("Cancelling timer \(timerId), dispatchSource: \(String(describing: dispatchSource)), userInfo: \(String(describing: userInfo))")
+        //NSLog("Cancelling timer \(timerId), dispatchSource: \(String(describing: dispatchSource)), userInfo: \(String(describing: userInfo))")
         
         if let src = dispatchSource
         {
