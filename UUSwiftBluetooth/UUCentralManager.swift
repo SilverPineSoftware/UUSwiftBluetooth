@@ -422,7 +422,7 @@ public class UUCentralManager
         var p = factory?.create(self.dispatchQueue, self, cbPeripheral)
         if (p == nil)
         {
-            p = UUPeripheral(self.dispatchQueue, self, cbPeripheral) as? T
+            p = UUPeripheral(dispatchQueue: self.dispatchQueue, centralManager: self, peripheral: cbPeripheral) as? T
         }
         
         return p

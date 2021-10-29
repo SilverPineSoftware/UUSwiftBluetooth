@@ -57,12 +57,14 @@ open class UUPeripheral
     // Timestamp of when the RSSI was last updated
     private(set) public var lastRssiUpdateTime: Date = Date()
     
-    public required init(_ dispatchQueue: DispatchQueue, _ centralManager: UUCentralManager, _ peripheral: CBPeripheral)
+    public required init(
+        dispatchQueue: DispatchQueue,
+        centralManager: UUCentralManager,
+        peripheral: CBPeripheral)
     {
         self.dispatchQueue = dispatchQueue
         self.centralManager = centralManager
         self.underlyingPeripheral = peripheral
-        peripheral.delegate = delegate
     }
     
     // Passthrough properties to read values directly from CBPeripheral
