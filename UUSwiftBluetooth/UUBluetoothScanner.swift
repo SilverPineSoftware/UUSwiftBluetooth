@@ -11,10 +11,10 @@ import UUSwiftCore
 
 public class UUBluetoothScanner<T: UUPeripheral>
 {
-    private var centralManager: UUCentralManager
+    private let centralManager: UUCentralManager
     private var nearbyPeripherals: [String:T] = [:]
     private var nearbyPeripheralCallback: (([T])->()) = { _ in }
-    private var factory: UUPeripheralFactory<T>? = nil
+    private let factory: UUPeripheralFactory<T>?
     
     public required init(centralManager: UUCentralManager = UUCentralManager.shared, peripheralFactory: UUPeripheralFactory<T>? = nil)
     {
