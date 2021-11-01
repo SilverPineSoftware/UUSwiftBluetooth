@@ -17,7 +17,6 @@
 		082A883526C75C5900954A11 /* UUPeripheralDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A883426C75C5900954A11 /* UUPeripheralDelegate.swift */; };
 		082A883726C760C200954A11 /* Error+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A883626C760C200954A11 /* Error+Extensions.swift */; };
 		082A88B526CC8A0200954A11 /* CBUUID+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A88B426CC8A0200954A11 /* CBUUID+Extensions.swift */; };
-		082A88B726CC9A3800954A11 /* UUTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A88B626CC9A3800954A11 /* UUTimer.swift */; };
 		083F066826CF4FEE002780A1 /* PeripheralViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 083F066726CF4FEE002780A1 /* PeripheralViewController.swift */; };
 		083F066A26CF512B002780A1 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 083F066926CF512B002780A1 /* SettingsViewController.swift */; };
 		083F067326D2E8E1002780A1 /* UUBluetoothAdvertisement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 083F067226D2E8E1002780A1 /* UUBluetoothAdvertisement.swift */; };
@@ -79,7 +78,6 @@
 		082A883426C75C5900954A11 /* UUPeripheralDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUPeripheralDelegate.swift; sourceTree = "<group>"; };
 		082A883626C760C200954A11 /* Error+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Error+Extensions.swift"; sourceTree = "<group>"; };
 		082A88B426CC8A0200954A11 /* CBUUID+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CBUUID+Extensions.swift"; sourceTree = "<group>"; };
-		082A88B626CC9A3800954A11 /* UUTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUTimer.swift; sourceTree = "<group>"; };
 		083F066726CF4FEE002780A1 /* PeripheralViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralViewController.swift; sourceTree = "<group>"; };
 		083F066926CF512B002780A1 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		083F067226D2E8E1002780A1 /* UUBluetoothAdvertisement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUBluetoothAdvertisement.swift; sourceTree = "<group>"; };
@@ -227,7 +225,6 @@
 				082A883226C75C4C00954A11 /* UUCentralManagerDelegate.swift */,
 				082A883626C760C200954A11 /* Error+Extensions.swift */,
 				082A88B426CC8A0200954A11 /* CBUUID+Extensions.swift */,
-				082A88B626CC9A3800954A11 /* UUTimer.swift */,
 				083F067626D2F168002780A1 /* DispatchQueue+Extensions.swift */,
 			);
 			path = UUSwiftBluetooth;
@@ -381,7 +378,6 @@
 				083F067526D2EE82002780A1 /* UUCentralManagerFactory.swift in Sources */,
 				083F067726D2F168002780A1 /* DispatchQueue+Extensions.swift in Sources */,
 				082A882526C7542200954A11 /* UUPeripheral.swift in Sources */,
-				082A88B726CC9A3800954A11 /* UUTimer.swift in Sources */,
 				083F067326D2E8E1002780A1 /* UUBluetoothAdvertisement.swift in Sources */,
 				082A883526C75C5900954A11 /* UUPeripheralDelegate.swift in Sources */,
 				082A883726C760C200954A11 /* Error+Extensions.swift in Sources */,
