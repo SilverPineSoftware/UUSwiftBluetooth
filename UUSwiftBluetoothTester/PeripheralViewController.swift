@@ -75,17 +75,15 @@ class PeripheralViewController: UIViewController
     private func onConnect()
     {
         peripheral?.connect(connected:
-        { connectedPeripheral in
+        {
             
             NSLog("Connected!")
             self.refreshHeaderButtons()
-            
         }, disconnected:
-        { disconnectedPeripheral, disconnectError in
+        { disconnectError in
             
             NSLog("Disconnected!")
             self.refreshHeaderButtons()
-            
         })
     }
     

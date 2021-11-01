@@ -23,19 +23,18 @@ class ServiceViewModel: ObservableObject
     func onConnect()
     {
         peripheral.connect(connected:
-        { connectedPeripheral in
-            
+        {
             DispatchQueue.main.async
             {
-                self.peripheral = connectedPeripheral
+                self.objectWillChange.send()
             }
             
         }, disconnected:
-        { disconnectedPeripheral, disconnectError in
+        { disconnectError in
             
             DispatchQueue.main.async
             {
-                self.peripheral = disconnectedPeripheral
+                self.objectWillChange.send()
             }
         })
     }
@@ -43,16 +42,11 @@ class ServiceViewModel: ObservableObject
     func onDiscoverCharacteristics()
     {
         peripheral.discoverCharacteristics(nil, for: service)
-        { updatedPeripheral, errOpt in
+        { characteristics, errOpt in
             
             DispatchQueue.main.async
             {
-                self.peripheral = updatedPeripheral
-                
-                if let updatedService = updatedPeripheral.services?.filter({ $0.uuid.uuidString == self.service.uuid.uuidString }).first
-                {
-                    self.service = updatedService
-                }
+                self.objectWillChange.send()
             }
         }
     }
@@ -64,12 +58,7 @@ class ServiceViewModel: ObservableObject
             
             DispatchQueue.main.async
             {
-                self.peripheral = updatedPeripheral
-                
-                if let updatedService = updatedPeripheral.services?.filter({ $0.uuid.uuidString == self.service.uuid.uuidString }).first
-                {
-                    self.service = updatedService
-                }
+                self.objectWillChange.send()
             }
         }
     }

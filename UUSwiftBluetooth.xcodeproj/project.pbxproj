@@ -39,6 +39,7 @@
 		08A7AADF26EA9A1800E7254A /* SectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AADE26EA9A1800E7254A /* SectionHeaderView.swift */; };
 		08A7AAE126EA9B9300E7254A /* ServiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AAE026EA9B9300E7254A /* ServiceView.swift */; };
 		08A7AAE326EAA48A00E7254A /* CharacteristicRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AAE226EAA48A00E7254A /* CharacteristicRowView.swift */; };
+		08F43E3E2730427B003DBB49 /* UUPeripheralOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08F43E3D2730427B003DBB49 /* UUPeripheralOperation.swift */; };
 		C5C67CC226C6098F004DF50D /* UUSwiftBluetooth.h in Headers */ = {isa = PBXBuildFile; fileRef = C5C67CC026C6098F004DF50D /* UUSwiftBluetooth.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C5C67CD026C60A0E004DF50D /* UUSwiftCore in Frameworks */ = {isa = PBXBuildFile; productRef = C5C67CCF26C60A0E004DF50D /* UUSwiftCore */; };
 /* End PBXBuildFile section */
@@ -109,6 +110,7 @@
 		08A7AADE26EA9A1800E7254A /* SectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeaderView.swift; sourceTree = "<group>"; };
 		08A7AAE026EA9B9300E7254A /* ServiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceView.swift; sourceTree = "<group>"; };
 		08A7AAE226EAA48A00E7254A /* CharacteristicRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacteristicRowView.swift; sourceTree = "<group>"; };
+		08F43E3D2730427B003DBB49 /* UUPeripheralOperation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UUPeripheralOperation.swift; sourceTree = "<group>"; };
 		C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = UUSwiftBluetooth.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C5C67CC026C6098F004DF50D /* UUSwiftBluetooth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UUSwiftBluetooth.h; sourceTree = "<group>"; };
 		C5C67CC126C6098F004DF50D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -215,6 +217,7 @@
 				C5C67CC026C6098F004DF50D /* UUSwiftBluetooth.h */,
 				C5C67CC126C6098F004DF50D /* Info.plist */,
 				082A882426C7542200954A11 /* UUPeripheral.swift */,
+				08F43E3D2730427B003DBB49 /* UUPeripheralOperation.swift */,
 				082A883426C75C5900954A11 /* UUPeripheralDelegate.swift */,
 				082A882626C756B400954A11 /* UUPeripheralFilter.swift */,
 				08A7AAD426E8105900E7254A /* UUPeripheralFactory.swift */,
@@ -372,6 +375,7 @@
 				082A882B26C75A7C00954A11 /* UUCoreBluetoothErrorCode.swift in Sources */,
 				082A88B526CC8A0200954A11 /* CBUUID+Extensions.swift in Sources */,
 				082A883326C75C4C00954A11 /* UUCentralManagerDelegate.swift in Sources */,
+				08F43E3E2730427B003DBB49 /* UUPeripheralOperation.swift in Sources */,
 				082A882726C756B400954A11 /* UUPeripheralFilter.swift in Sources */,
 				082A882926C757BD00954A11 /* UUCentralManager.swift in Sources */,
 				082A882226C753C900954A11 /* UUBluetoothScanner.swift in Sources */,

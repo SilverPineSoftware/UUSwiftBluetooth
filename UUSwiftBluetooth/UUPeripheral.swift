@@ -32,6 +32,7 @@ open class UUPeripheral
     private let centralManager: UUCentralManager
     private let dispatchQueue: DispatchQueue
     private let delegate = UUPeripheralDelegate()
+    private let timerPool: UUTimerPool
     
     // Reference to the underlying CBPeripheral
     public var underlyingPeripheral: CBPeripheral!
@@ -65,6 +66,7 @@ open class UUPeripheral
         self.dispatchQueue = dispatchQueue
         self.centralManager = centralManager
         self.underlyingPeripheral = peripheral
+        self.timerPool = UUTimerPool.getPool("UUPeripheral_\(peripheral.identifier)", queue: centralManager.dispatchQueue)
     }
     
     // Passthrough properties to read values directly from CBPeripheral
@@ -720,8 +722,7 @@ open class UUPeripheral
     {
         let start = Date().timeIntervalSinceReferenceDate
         
-        //discoverServices([serviceUuid], timeout: timeout)
-        discoverServices(nil, timeout: timeout)
+        discoverServices([serviceUuid], timeout: timeout)
         { discoveredServices, err in
             
             if let error = err
@@ -740,8 +741,7 @@ open class UUPeripheral
             let duration = Date().timeIntervalSinceReferenceDate - start
             let remainingTimeout = timeout - duration
             
-            //self.discoverCharacteristics(characteristics, for: foundService, timeout: remainingTimeout, completion: completion)
-            self.discoverCharacteristics(nil, for: foundService, timeout: remainingTimeout, completion: completion)
+            self.discoverCharacteristics(characteristics, for: foundService, timeout: remainingTimeout, completion: completion)
         }
     }
     
@@ -834,6 +834,7 @@ open class UUPeripheral
     
     // MARK:- Timers
     
+    
     private enum TimerId: String
     {
         case connect
@@ -859,18 +860,7 @@ open class UUPeripheral
     private func cancelAllTimers()
     {
         NSLog("Cancelling all timers")
-        
-        let list = UUTimer.listActiveTimers()
-        for t in list
-        {
-            NSLog("Active timer: \(t.timerId)")
-            
-            if (t.timerId.starts(with: identifier))
-            {
-                NSLog("Cancelling Peripheral Timer: \(t.timerId)")
-                t.cancel()
-            }
-        }
+        timerPool.cancelAllTimers()
     }
     
     private func startTimer(_ timerBucket: TimerId, _ timeout: TimeInterval, _ block: @escaping ()->())
@@ -878,9 +868,8 @@ open class UUPeripheral
         let timerId = formatTimerId(timerBucket)
         NSLog("Starting bucket timer \(timerId) with timeout: \(timeout)")
         
-        UUTimer.startWatchdogTimer(timerId, timeout, nil, queue: dispatchQueue)
+        timerPool.start(identifier: timerId, timeout: timeout, userInfo: nil)
         { _ in
-            
             block()
         }
     }
@@ -888,7 +877,7 @@ open class UUPeripheral
     private func cancelTimer(_ timerBucket: TimerId)
     {
         let timerId = formatTimerId(timerBucket)
-        UUTimer.cancelWatchdogTimer(timerId)
+        timerPool.cancel(by: timerId)
     }
     
     
@@ -906,13 +895,6 @@ open class UUPeripheral
         
         return nil
     }
-    
-    
-    
-    
-    
-    
-    
     
     
     

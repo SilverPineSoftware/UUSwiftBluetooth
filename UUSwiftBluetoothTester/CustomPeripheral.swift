@@ -11,8 +11,8 @@ import UUSwiftBluetooth
 
 class CustomPeripheral: UUPeripheral
 {
-    required init(_ dispatchQueue: DispatchQueue, _ centralManager: UUCentralManager, _ peripheral: CBPeripheral)
+    required init(dispatchQueue: DispatchQueue, centralManager: UUCentralManager, peripheral: CBPeripheral)
     {
-        super.init(dispatchQueue, centralManager, peripheral)
+        super.init(dispatchQueue: dispatchQueue, centralManager: centralManager, peripheral: peripheral)
     }
 }

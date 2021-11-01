@@ -23,19 +23,18 @@ class PeripheralViewModel: ObservableObject
     func onConnect()
     {
         peripheral.connect(connected:
-        { connectedPeripheral in
-            
+        {
             DispatchQueue.main.async
             {
-                self.peripheral = connectedPeripheral
+                self.objectWillChange.send()
             }
             
         }, disconnected:
-        { disconnectedPeripheral, disconnectError in
+        { disconnectError in
             
             DispatchQueue.main.async
             {
-                self.peripheral = disconnectedPeripheral
+                self.objectWillChange.send()
             }
         })
     }
@@ -48,11 +47,11 @@ class PeripheralViewModel: ObservableObject
     func onDiscoverServices()
     {
         peripheral.discoverServices
-        { updatedPeripheral, errOpt in
+        { services, errOpt in
             
             DispatchQueue.main.async
             {
-                self.peripheral = updatedPeripheral
+                self.objectWillChange.send()
             }
         }
     }

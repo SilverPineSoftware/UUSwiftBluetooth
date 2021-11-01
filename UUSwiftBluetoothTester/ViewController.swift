@@ -133,7 +133,7 @@ class CustomPeripheralFactory: UUPeripheralFactory<CustomPeripheral>
     
     override func create(_ dispatchQueue: DispatchQueue, _ centralManager: UUCentralManager, _ peripheral: CBPeripheral) -> CustomPeripheral
     {
-        return CustomPeripheral(dispatchQueue, centralManager, peripheral)
+        return CustomPeripheral(dispatchQueue: dispatchQueue, centralManager: centralManager, peripheral: peripheral)
     }
 }
 
