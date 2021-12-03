@@ -22,7 +22,7 @@ public extension CBUUID
         }
         else
         {
-            return name;
+            return name
         }
     }
 }
