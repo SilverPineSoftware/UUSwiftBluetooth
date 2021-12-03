@@ -18,6 +18,14 @@ open class UUPeripheralOperation<T: UUPeripheral>
     
     private var servicesNeedingCharacteristicDiscovery: [CBService] = []
     
+    public var connectTimeout: TimeInterval = UUPeripheral.Defaults.connectTimeout
+    public var disconnectTimeout: TimeInterval = UUPeripheral.Defaults.disconnectTimeout
+    public var serviceDiscoveryTimeout: TimeInterval = UUPeripheral.Defaults.operationTimeout
+    public var characteristicDiscoveryTimeout: TimeInterval = UUPeripheral.Defaults.operationTimeout
+    public var readTimeout: TimeInterval = UUPeripheral.Defaults.operationTimeout
+    public var writeTimeout: TimeInterval = UUPeripheral.Defaults.operationTimeout
+    
+    
     public init(_ peripheral: T)
     {
         self.peripheral = peripheral
@@ -48,7 +56,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
         requireDiscoveredCharacteristic(for: toCharacteristic)
         { char in
             
-            self.peripheral.writeValue(data, for: char)
+            self.peripheral.writeValue(data, for: char, timeout: self.writeTimeout)
             { p, char, error in
                 
                 if let err = error
@@ -71,7 +79,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
             { p, char, error in
                 
                 if let err = error
-                {
+                 {
                     self.end(with: err)
                     return
                 }
@@ -81,12 +89,12 @@ open class UUPeripheralOperation<T: UUPeripheral>
         }
     }
     
-    public func read(data: Data, fromCharacteristic: CBUUID, completion: @escaping (Data?)->())
+    public func read(from characteristic: CBUUID, completion: @escaping (Data?)->())
     {
-        requireDiscoveredCharacteristic(for: fromCharacteristic)
+        requireDiscoveredCharacteristic(for: characteristic)
         { char in
             
-            self.peripheral.readValue(for: char, completion:
+            self.peripheral.readValue(for: char, timeout: self.readTimeout, completion:
             { p, char, error in
                 
                 if let err = error
@@ -98,26 +106,6 @@ open class UUPeripheralOperation<T: UUPeripheral>
                 completion(char.value)
             })
         }
-    }
-    
-    open var connectTimeout: TimeInterval
-    {
-        return UUPeripheral.Defaults.connectTimeout
-    }
-    
-    open var disconnectTimeout: TimeInterval
-    {
-        return UUPeripheral.Defaults.disconnectTimeout
-    }
-    
-    open var serviceDiscoveryTimeout: TimeInterval
-    {
-        return UUPeripheral.Defaults.operationTimeout
-    }
-    
-    open var characteristicDiscoveryTimeout: TimeInterval
-    {
-        return UUPeripheral.Defaults.operationTimeout
     }
     
     open var servicesToDiscover: [CBUUID]?
