@@ -17,7 +17,6 @@
 		082A883526C75C5900954A11 /* UUPeripheralDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A883426C75C5900954A11 /* UUPeripheralDelegate.swift */; };
 		082A883726C760C200954A11 /* Error+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A883626C760C200954A11 /* Error+Extensions.swift */; };
 		082A88B526CC8A0200954A11 /* CBUUID+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A88B426CC8A0200954A11 /* CBUUID+Extensions.swift */; };
-		083F066826CF4FEE002780A1 /* PeripheralViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 083F066726CF4FEE002780A1 /* PeripheralViewController.swift */; };
 		083F066A26CF512B002780A1 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 083F066926CF512B002780A1 /* SettingsViewController.swift */; };
 		083F067326D2E8E1002780A1 /* UUBluetoothAdvertisement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 083F067226D2E8E1002780A1 /* UUBluetoothAdvertisement.swift */; };
 		083F067526D2EE82002780A1 /* UUCentralManagerFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 083F067426D2EE82002780A1 /* UUCentralManagerFactory.swift */; };
@@ -79,7 +78,6 @@
 		082A883426C75C5900954A11 /* UUPeripheralDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUPeripheralDelegate.swift; sourceTree = "<group>"; };
 		082A883626C760C200954A11 /* Error+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Error+Extensions.swift"; sourceTree = "<group>"; };
 		082A88B426CC8A0200954A11 /* CBUUID+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CBUUID+Extensions.swift"; sourceTree = "<group>"; };
-		083F066726CF4FEE002780A1 /* PeripheralViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralViewController.swift; sourceTree = "<group>"; };
 		083F066926CF512B002780A1 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		083F067226D2E8E1002780A1 /* UUBluetoothAdvertisement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUBluetoothAdvertisement.swift; sourceTree = "<group>"; };
 		083F067426D2EE82002780A1 /* UUCentralManagerFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUCentralManagerFactory.swift; sourceTree = "<group>"; };
@@ -166,7 +164,6 @@
 				08A2092B26C7092E008F3534 /* LaunchScreen.storyboard */,
 				08A2092E26C7092E008F3534 /* Info.plist */,
 				08A2093226C70B5D008F3534 /* PeripheralTableRow.swift */,
-				083F066726CF4FEE002780A1 /* PeripheralViewController.swift */,
 				083F066926CF512B002780A1 /* SettingsViewController.swift */,
 				08A7AAD626E9404E00E7254A /* CustomPeripheral.swift */,
 				08A7AAD826EA794B00E7254A /* PeripheralView.swift */,
@@ -353,7 +350,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				08A7AADF26EA9A1800E7254A /* SectionHeaderView.swift in Sources */,
-				083F066826CF4FEE002780A1 /* PeripheralViewController.swift in Sources */,
 				08A2092526C7092B008F3534 /* ViewController.swift in Sources */,
 				08A2092126C7092B008F3534 /* AppDelegate.swift in Sources */,
 				08A7AAE126EA9B9300E7254A /* ServiceView.swift in Sources */,
