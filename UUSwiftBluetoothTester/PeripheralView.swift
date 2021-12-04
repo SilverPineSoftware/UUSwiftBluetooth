@@ -49,6 +49,13 @@ class PeripheralViewModel: ObservableObject
         peripheral.discoverServices
         { services, errOpt in
             
+            NSLog("Service discovery complete, found \(services?.count ?? 0) services")
+            
+            services?.forEach(
+            { service in
+                NSLog("Found Service: \(service.uuid) - \(service.uuid.uuCommonName)")
+            })
+            
             DispatchQueue.main.async
             {
                 self.objectWillChange.send()

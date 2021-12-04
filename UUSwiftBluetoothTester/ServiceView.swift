@@ -44,6 +44,15 @@ class ServiceViewModel: ObservableObject
         peripheral.discoverCharacteristics(nil, for: service)
         { characteristics, errOpt in
             
+            NSLog("Characteristic discovery complete, found \(characteristics?.count ?? 0) characteristics")
+            
+            characteristics?.forEach(
+            { characteristic in
+                NSLog("Found Characteristic: \(characteristic.uuid) - \(characteristic.uuid.uuCommonName)")
+            })
+            
+            NSLog("Characteristic discovery complete")
+            
             DispatchQueue.main.async
             {
                 self.objectWillChange.send()
