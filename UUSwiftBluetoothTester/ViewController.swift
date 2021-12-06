@@ -61,13 +61,65 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {
         let rowData = tableData[indexPath.row]
+        showPeripheralOptions(rowData)
+    }
+    
+    private var readInfoOperation: ReadDeviceInfoOperation? = nil
+    
+    private func showPeripheralOptions(_ peripheral: UUPeripheral)
+    {
+        let alert = UIAlertController(title: "\(peripheral.friendlyName)", message: "Choose an action", preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Read Info", style: .default, handler:
+        { action in
+            
+            self.readInfoOperation = ReadDeviceInfoOperation(peripheral)
+            self.readInfoOperation?.start()
+            { error in
+                
+                if let e = error
+                {
+                    self.showAlert("Read Device Info", "Error: \(e)")
+                }
+                else
+                {
+                    self.showAlert("Read Device Info", "SystemId: \(self.readInfoOperation?.systemId ?? "")\nMfg: \(self.readInfoOperation?.manufacturerName ?? "")")
+                }
+                
+                self.readInfoOperation = nil
+            }
+        }))
         
-        let viewModel = PeripheralViewModel(rowData)
-        viewModel.serviceTapHandler = handleServiceTapped
+        alert.addAction(UIAlertAction(title: "View Services", style: .default, handler:
+        { action in
+            
+            let viewModel = PeripheralViewModel(peripheral)
+            viewModel.serviceTapHandler = self.handleServiceTapped
+            
+            let view = PeripheralView(viewModel: viewModel)
+            let host = UIHostingController(rootView: view)
+            self.navigationController?.pushViewController(host, animated: true)
+        }))
         
-        let view = PeripheralView(viewModel: viewModel)
-        let host = UIHostingController(rootView: view)
-        navigationController?.pushViewController(host, animated: true)
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler:
+        { action in
+            alert.dismiss(animated: true, completion: nil)
+        }))
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
+    private func showAlert(_ title: String, _ message: String)
+    {
+        DispatchQueue.main.async
+        {
+            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler:
+            { action in
+                alert.dismiss(animated: true, completion: nil)
+            }))
+            
+            self.present(alert, animated: true, completion: nil)
+        }
     }
     
     private func handleServiceTapped(_ peripheral: UUPeripheral, _ service: CBService)
@@ -149,4 +201,3 @@ class PeripheralFilter: UUPeripheralFilter
         return true
     }
 }
-

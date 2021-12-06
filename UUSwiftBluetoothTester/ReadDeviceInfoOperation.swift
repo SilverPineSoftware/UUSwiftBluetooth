@@ -1,0 +1,62 @@
+//
+//  ReadDeviceInfoOperation.swift
+//  UUSwiftBluetoothTester
+//
+//  Created by Ryan DeVore on 12/6/21.
+//
+
+import UIKit
+import CoreBluetooth
+import UUSwiftBluetooth
+
+class ReadDeviceInfoOperation: UUPeripheralOperation<UUPeripheral>
+{
+    var manufacturerName: String = ""
+    var systemId: String = ""
+    
+    override var servicesToDiscover: [CBUUID]?
+    {
+        return [ UUBluetoothConstants.Services.deviceInformation ]
+    }
+    
+    override func characteristicsToDiscover(for service: CBUUID) -> [CBUUID]?
+    {
+        guard service == UUBluetoothConstants.Services.deviceInformation else
+        {
+            return nil
+        }
+        
+        return [ UUBluetoothConstants.Characteristics.manufacturerNameString, UUBluetoothConstants.Characteristics.systemID ]
+    }
+    
+    override func execute(_ completion: @escaping (Error?) -> ())
+    {
+        readSystemId
+        { systemIdResult in
+            self.systemId = systemIdResult
+            
+            self.readManufacturerName
+            { manufacturerNameResult in
+                self.manufacturerName = manufacturerNameResult
+                
+                completion(nil)
+            }
+        }
+    }
+
+    private func readSystemId(_ completion: @escaping (String)->())
+    {
+        readUtf8(UUBluetoothConstants.Characteristics.systemID)
+        { result in
+            completion(result ?? "")
+        }
+    }
+    
+    private func readManufacturerName(_ completion: @escaping (String)->())
+    {
+        readUtf8(UUBluetoothConstants.Characteristics.manufacturerNameString)
+        { result in
+            completion(result ?? "")
+        }
+    }
+}
