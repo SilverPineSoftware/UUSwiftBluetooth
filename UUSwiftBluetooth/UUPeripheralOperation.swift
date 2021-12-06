@@ -61,6 +61,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
                 
                 if let err = error
                 {
+                    NSLog("write failed, ending operation with error: \(err)")
                     self.end(with: err)
                     return
                 }
@@ -80,6 +81,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
                 
                 if let err = error
                  {
+                    NSLog("WWOR failed, ending operation with error: \(err)")
                     self.end(with: err)
                     return
                 }
@@ -99,12 +101,109 @@ open class UUPeripheralOperation<T: UUPeripheral>
                 
                 if let err = error
                 {
+                    NSLog("read failed, ending operation with error: \(err)")
                     self.end(with: err)
                     return
                 }
                 
                 completion(char.value)
             })
+        }
+    }
+    
+    public func readUtf8(_ characteristic: CBUUID, _ completion: @escaping (String?)->())
+    {
+        read(from: characteristic)
+        { data in
+         
+            var result: String? = nil
+            
+            if let data = data
+            {
+                result = String(data: data, encoding: .utf8)
+            }
+            
+            completion(result)
+        }
+    }
+    
+    public func readUInt8(_ characteristic: CBUUID, _ completion: @escaping (UInt8?)->())
+    {
+        read(from: characteristic)
+        { data in
+         
+            let result = data?.uuUInt8(at: 0)
+            completion(result)
+        }
+    }
+    
+    public func readUInt16(_ characteristic: CBUUID, _ completion: @escaping (UInt16?)->())
+    {
+        read(from: characteristic)
+        { data in
+         
+            let result = data?.uuUInt16(at: 0)
+            completion(result)
+        }
+    }
+    
+    public func readUInt32(_ characteristic: CBUUID, _ completion: @escaping (UInt32?)->())
+    {
+        read(from: characteristic)
+        { data in
+         
+            let result = data?.uuUInt32(at: 0)
+            completion(result)
+        }
+    }
+    
+    public func readUInt64(_ characteristic: CBUUID, _ completion: @escaping (UInt64?)->())
+    {
+        read(from: characteristic)
+        { data in
+         
+            let result = data?.uuUInt64(at: 0)
+            completion(result)
+        }
+    }
+    
+    public func readInt8(_ characteristic: CBUUID, _ completion: @escaping (Int8?)->())
+    {
+        read(from: characteristic)
+        { data in
+         
+            let result = data?.uuInt8(at: 0)
+            completion(result)
+        }
+    }
+    
+    public func readInt16(_ characteristic: CBUUID, _ completion: @escaping (Int16?)->())
+    {
+        read(from: characteristic)
+        { data in
+         
+            let result = data?.uuInt16(at: 0)
+            completion(result)
+        }
+    }
+    
+    public func readInt32(_ characteristic: CBUUID, _ completion: @escaping (Int32?)->())
+    {
+        read(from: characteristic)
+        { data in
+         
+            let result = data?.uuInt32(at: 0)
+            completion(result)
+        }
+    }
+    
+    public func readInt32(_ characteristic: CBUUID, _ completion: @escaping (Int64?)->())
+    {
+        read(from: characteristic)
+        { data in
+         
+            let result = data?.uuInt64(at: 0)
+            completion(result)
         }
     }
     
@@ -132,7 +231,8 @@ open class UUPeripheralOperation<T: UUPeripheral>
     {
         guard let discovered = findDiscoveredService(for: uuid) else
         {
-            let err = NSError(domain: "", code: -1, userInfo: nil)
+            let err = NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Required service \(uuid.uuidString) not found"])
+            NSLog("Required Service not found, ending operation with error: \(err)")
             self.end(with: err)
             return
         }
@@ -144,7 +244,8 @@ open class UUPeripheralOperation<T: UUPeripheral>
     {
         guard let discovered = findDiscoveredCharacteristic(for: uuid) else
         {
-            let err = NSError(domain: "", code: -1, userInfo: nil)
+            let err = NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Required characteristic \(uuid.uuidString) not found"])
+            NSLog("Required Characteristic not found, ending operation with error: \(err)")
             self.end(with: err)
             return
         }
@@ -161,6 +262,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
             
             if let err = error
             {
+                NSLog("Service Discovery Failed, ending operation with error: \(err)")
                 self.end(with: err)
                 return
             }
@@ -172,6 +274,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
             guard let services = services else
             {
                 let err = NSError(domain: "Err", code: -1, userInfo: [NSLocalizedDescriptionKey: "No services were discovered"])
+                NSLog("Service Discovery Failed to discover any services, ending operation with error: \(err)")
                 self.end(with: err)
                 return
             }
@@ -203,6 +306,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
             
             if let err = error
             {
+                NSLog("Characteristic Discovery Failed, ending operation with error: \(err)")
                 self.end(with: err)
                 return
             }
