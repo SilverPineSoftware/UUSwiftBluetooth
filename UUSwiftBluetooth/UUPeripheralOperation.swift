@@ -111,7 +111,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
         }
     }
     
-    public func readUtf8(_ characteristic: CBUUID, _ completion: @escaping (String?)->())
+    public func readString(from characteristic: CBUUID, encoding: String.Encoding, completion: @escaping (String?)->())
     {
         read(from: characteristic)
         { data in
@@ -120,14 +120,19 @@ open class UUPeripheralOperation<T: UUPeripheral>
             
             if let data = data
             {
-                result = String(data: data, encoding: .utf8)
+                result = String(data: data, encoding: encoding)
             }
             
             completion(result)
         }
     }
     
-    public func readUInt8(_ characteristic: CBUUID, _ completion: @escaping (UInt8?)->())
+    public func readUtf8(from characteristic: CBUUID, completion: @escaping (String?)->())
+    {
+        readString(from: characteristic, encoding: .utf8, completion: completion)
+    }
+    
+    public func readUInt8(from characteristic: CBUUID,  completion: @escaping (UInt8?)->())
     {
         read(from: characteristic)
         { data in
@@ -137,7 +142,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
         }
     }
     
-    public func readUInt16(_ characteristic: CBUUID, _ completion: @escaping (UInt16?)->())
+    public func readUInt16(from characteristic: CBUUID, completion: @escaping (UInt16?)->())
     {
         read(from: characteristic)
         { data in
@@ -147,7 +152,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
         }
     }
     
-    public func readUInt32(_ characteristic: CBUUID, _ completion: @escaping (UInt32?)->())
+    public func readUInt32(from characteristic: CBUUID, completion: @escaping (UInt32?)->())
     {
         read(from: characteristic)
         { data in
@@ -157,7 +162,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
         }
     }
     
-    public func readUInt64(_ characteristic: CBUUID, _ completion: @escaping (UInt64?)->())
+    public func readUInt64(from characteristic: CBUUID, completion: @escaping (UInt64?)->())
     {
         read(from: characteristic)
         { data in
@@ -167,7 +172,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
         }
     }
     
-    public func readInt8(_ characteristic: CBUUID, _ completion: @escaping (Int8?)->())
+    public func readInt8(from characteristic: CBUUID, completion: @escaping (Int8?)->())
     {
         read(from: characteristic)
         { data in
@@ -177,7 +182,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
         }
     }
     
-    public func readInt16(_ characteristic: CBUUID, _ completion: @escaping (Int16?)->())
+    public func readInt16(from characteristic: CBUUID, completion: @escaping (Int16?)->())
     {
         read(from: characteristic)
         { data in
@@ -187,7 +192,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
         }
     }
     
-    public func readInt32(_ characteristic: CBUUID, _ completion: @escaping (Int32?)->())
+    public func readInt32(from characteristic: CBUUID, completion: @escaping (Int32?)->())
     {
         read(from: characteristic)
         { data in
@@ -197,7 +202,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
         }
     }
     
-    public func readInt32(_ characteristic: CBUUID, _ completion: @escaping (Int64?)->())
+    public func readInt32(from characteristic: CBUUID, completion: @escaping (Int64?)->())
     {
         read(from: characteristic)
         { data in
@@ -205,6 +210,26 @@ open class UUPeripheralOperation<T: UUPeripheral>
             let result = data?.uuInt64(at: 0)
             completion(result)
         }
+    }
+    
+    public func write(string: String, with encoding: String.Encoding, to characteristic: CBUUID, completion: @escaping ()->())
+    {
+        var data = Data()
+        data.uuAppend(string, encoding: encoding)
+        
+        write(data: data, toCharacteristic: characteristic, completion: completion)
+    }
+    
+    public func writeUtf8(string: String, to characteristic: CBUUID, completion: @escaping ()->())
+    {
+        write(string: string, with: .utf8, to: characteristic, completion: completion)
+    }
+    
+    public func write<T: FixedWidthInteger>(integer: T, to characteristic: CBUUID, completion: @escaping ()->())
+    {
+        var data = Data()
+        data.uuAppend(integer)
+        write(data: data, toCharacteristic: characteristic, completion: completion)
     }
     
     open var servicesToDiscover: [CBUUID]?
