@@ -170,6 +170,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         else
         {
             let filters = [PeripheralFilter()]
+            self.tableData.removeAll()
+            self.tableView.reloadData()
             scanner.startScan(services: nil, allowDuplicates: true, filters: filters, callback: self.handleNearbyPeripheralsChanged)
             rightNavBarItem.title = "Stop"
         }
