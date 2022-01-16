@@ -24,9 +24,9 @@ open class UUPeripheral
 {
     public class Defaults
     {
-        public static let connectTimeout: TimeInterval = 60.0
-        public static let disconnectTimeout: TimeInterval = 10.0
-        public static let operationTimeout: TimeInterval = 60.0
+        public static var connectTimeout: TimeInterval = 10.0
+        public static var disconnectTimeout: TimeInterval = 10.0
+        public static var operationTimeout: TimeInterval = 10.0
     }
     
     private let centralManager: UUCentralManager
