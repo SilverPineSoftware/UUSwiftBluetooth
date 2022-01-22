@@ -232,6 +232,54 @@ open class UUPeripheralOperation<T: UUPeripheral>
         write(data: data, toCharacteristic: characteristic, completion: completion)
     }
     
+    public func startListeningForDataChanges(from characteristic: CBUUID, dataChanged: @escaping (Data?)->(), completion: @escaping ()->())
+    {
+        requireDiscoveredCharacteristic(for: characteristic)
+        { char in
+            self.peripheral.setNotifyValue(true, for: char, timeout: self.readTimeout)
+            { p, char, err in
+                
+                if let e = err
+                {
+                    self.end(with: e)
+                    return
+                }
+                
+                dataChanged(char.value)
+                
+            } completion:
+            { p, char, err in
+                
+                if let e = err
+                {
+                    self.end(with: e)
+                    return
+                }
+                
+                completion()
+            }
+        }
+    }
+    
+    public func stopListeningForDataChanges(from characteristic: CBUUID, completion: @escaping ()->())
+    {
+        requireDiscoveredCharacteristic(for: characteristic)
+        { char in
+            
+            self.peripheral.setNotifyValue(false, for: char, timeout: self.readTimeout, notifyHandler: nil)
+            { p, char, err in
+                
+                if let e = err
+                {
+                    self.end(with: e)
+                    return
+                }
+                
+                completion()
+            }
+        }
+    }
+    
     open var servicesToDiscover: [CBUUID]?
     {
         return nil
