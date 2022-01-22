@@ -192,7 +192,7 @@ open class UUPeripheral
             
             //NSLog("Disconnected from \(peripheral.uuIdentifier) - \(peripheral.uuName), error: \(String(describing: error))")
             
-            self.cancelAllTimers()
+            self.cleanupAfterDisconnect()
             
             disconnected(error)
         }
@@ -857,10 +857,13 @@ open class UUPeripheral
         return "\(identifier)__\(bucket.rawValue)"
     }
 
-    private func cancelAllTimers()
+    private func cleanupAfterDisconnect()
     {
         NSLog("Cancelling all timers")
         timerPool.cancelAllTimers()
+        
+        NSLog("Clearing all delegate callbacks")
+        delegate.clearBlocks()
     }
     
     private func startTimer(_ timerBucket: TimerId, _ timeout: TimeInterval, _ block: @escaping ()->())
@@ -901,6 +904,12 @@ open class UUPeripheral
     private var debugName: String
     {
         return "\(identifier) - \(name)"
+    }
+    
+    
+    public func logBlocks()
+    {
+        delegate.logBlocks()
     }
     
 }
