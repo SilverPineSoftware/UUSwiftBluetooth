@@ -33,24 +33,64 @@ class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
     var writeValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
     var setNotifyValueForCharacteristicBlock: UUCBPeripheralCharacteristicErrorBlock? = nil
     var discoverDescriptorsBlock: UUCBPeripheralCharacteristicErrorBlock? = nil
+    
+    func clearBlocks()
+    {
+        peripheralNameUpdatedBlock = nil
+        didModifyServicesBlock = nil
+        didReadRssiBlock = nil
+        discoverServicesBlock = nil
+        discoverIncludedServicesBlock = nil
+        discoverCharacteristicsBlock = nil
+        updateValueForCharacteristicBlocks.removeAll()
+        readValueForCharacteristicBlocks.removeAll()
+        writeValueForCharacteristicBlocks.removeAll()
+        updateValueForDescriptorBlocks.removeAll()
+        readValueForDescriptorBlocks.removeAll()
+        writeValueForDescriptorBlocks.removeAll()
+        setNotifyValueForCharacteristicBlock = nil
+        discoverDescriptorsBlock = nil
+    }
+    
+    public func logBlocks()
+    {
+        NSLog("peripheralNameUpdatedBlock: \(String(describing: peripheralNameUpdatedBlock))")
+        NSLog("didModifyServicesBlock: \(String(describing: didModifyServicesBlock))")
+        NSLog("didReadRssiBlock: \(String(describing: didReadRssiBlock))")
+        NSLog("discoverServicesBlock: \(String(describing: discoverServicesBlock))")
+        NSLog("discoverIncludedServicesBlock: \(String(describing: discoverIncludedServicesBlock))")
+        NSLog("discoverCharacteristicsBlock: \(String(describing: discoverCharacteristicsBlock))")
+        NSLog("updateValueForCharacteristicBlocks: \(String(describing: updateValueForCharacteristicBlocks))")
+        NSLog("readValueForCharacteristicBlocks: \(String(describing: readValueForCharacteristicBlocks))")
+        NSLog("writeValueForCharacteristicBlocks: \(String(describing: writeValueForCharacteristicBlocks))")
+        NSLog("updateValueForDescriptorBlocks: \(String(describing: updateValueForDescriptorBlocks))")
+        NSLog("readValueForDescriptorBlocks: \(String(describing: readValueForDescriptorBlocks))")
+        NSLog("writeValueForDescriptorBlocks: \(String(describing: writeValueForDescriptorBlocks))")
+        NSLog("setNotifyValueForCharacteristicBlock: \(String(describing: setNotifyValueForCharacteristicBlock))")
+        NSLog("discoverDescriptorsBlock: \(String(describing: discoverDescriptorsBlock))")
+    }
 
     func registerUpdateHandler(_ handler: UUCBPeripheralCharacteristicErrorBlock?, _ characteristic: CBCharacteristic)
     {
+        NSLog("Adding Update Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
         updateValueForCharacteristicBlocks[characteristic.uuid.uuidString] = handler
     }
 
     func removeUpdateHandlerForCharacteristic(_ characteristic: CBCharacteristic)
     {
+        NSLog("Removing Update Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
         updateValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuid.uuidString)
     }
 
     func registerReadHandler(_ handler: UUCBPeripheralCharacteristicErrorBlock?, _ characteristic: CBCharacteristic)
     {
+        NSLog("Adding Read Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
         readValueForCharacteristicBlocks[characteristic.uuid.uuidString] = handler
     }
 
     func removeReadHandler(_ characteristic: CBCharacteristic)
     {
+        NSLog("Removing Read Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
         readValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuid.uuidString)
     }
 
@@ -137,11 +177,13 @@ class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
         let key = characteristic.uuid.uuidString
         if let updateBlock = updateValueForCharacteristicBlocks[key]
         {
+            NSLog("Invoking Update Block for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
             updateBlock(peripheral, characteristic, error)
         }
         
         if let readBlock = readValueForCharacteristicBlocks[key]
         {
+            NSLog("Invoking Read Block for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
             readBlock(peripheral, characteristic, error)
         }
     }
