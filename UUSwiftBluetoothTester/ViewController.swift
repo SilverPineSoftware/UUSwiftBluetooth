@@ -170,9 +170,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         else
         {
             let filters = [PeripheralFilter()]
+            let outOfRangeFilters = [OutOfRangePeripheralFilter()]
             self.tableData.removeAll()
             self.tableView.reloadData()
-            scanner.startScan(services: nil, allowDuplicates: true, filters: filters, callback: self.handleNearbyPeripheralsChanged)
+            scanner.startScan(services: nil, allowDuplicates: true, filters: filters, outOfRangeFilters: outOfRangeFilters, callback: self.handleNearbyPeripheralsChanged)
             rightNavBarItem.title = "Stop"
         }
     }
@@ -201,5 +202,20 @@ class PeripheralFilter: UUPeripheralFilter
         }
         
         return true
+    }
+}
+
+class OutOfRangePeripheralFilter: UUOutOfRangePeripheralFilter
+{
+    func checkPeripheralRange(_ peripheral: UUPeripheral) -> UUOutOfRangePeripheralFilterResult
+    {
+        if (peripheral.timeSinceLastUpdate > 0.5)
+        {
+            return .outOfRange
+        }
+        else
+        {
+            return .inRange
+        }
     }
 }

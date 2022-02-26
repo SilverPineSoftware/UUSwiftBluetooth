@@ -58,6 +58,11 @@ open class UUPeripheral
     // Timestamp of when the RSSI was last updated
     private(set) public var lastRssiUpdateTime: Date = Date()
     
+    public var timeSinceLastUpdate: TimeInterval
+    {
+        return Date.timeIntervalSinceReferenceDate - lastRssiUpdateTime.timeIntervalSinceReferenceDate
+    }
+    
     public required init(
         dispatchQueue: DispatchQueue,
         centralManager: UUCentralManager,
