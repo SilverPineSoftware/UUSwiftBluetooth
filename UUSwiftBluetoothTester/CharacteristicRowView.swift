@@ -94,6 +94,7 @@ class CharacteristicRowViewModel: ObservableObject
             {
                 self.peripheral = updatedPeripheral
                 self.characteristic = updatedCharacteristic
+                self.editText = self.dataAsText
             }
             
         } completion:
@@ -103,6 +104,7 @@ class CharacteristicRowViewModel: ObservableObject
             {
                 self.peripheral = updatedPeripheral
                 self.characteristic = updatedCharacteristic
+                self.editText = self.dataAsText
             }
         }
     }
