@@ -100,6 +100,16 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             self.navigationController?.pushViewController(host, animated: true)
         }))
         
+        alert.addAction(UIAlertAction(title: "Start L2Cap Client", style: .default, handler:
+        { action in
+            
+            let vc = L2CapClientController()
+            vc.peripheral = peripheral
+            self.navigationController?.pushViewController(vc, animated: true)
+            
+            
+        }))
+        
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler:
         { action in
             alert.dismiss(animated: true, completion: nil)
@@ -157,7 +167,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     @IBAction func onLeftNavBarButtonTapped(_ sender: Any)
     {
-        performSegue(withIdentifier: "showSettings", sender: nil)
+        self.navigationController?.pushViewController(L2CapServerController(), animated: true)
+        
+        
+//        performSegue(withIdentifier: "showSettings", sender: nil)
     }
     
     private func toggleScanning()

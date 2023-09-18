@@ -157,7 +157,7 @@ open class UUPeripheral
             self.lastRssiUpdateTime = Date()
         }
     }
-
+    
     
     // Block based wrapper around CBCentralManager connectPeripheral:options with a
     // timeout value.  If a negative timeout is passed there will be no timeout used.
@@ -170,9 +170,9 @@ open class UUPeripheral
     // is disconnected from the phone side, or if the remote device disconnects
     // from the phone
     public func connect(
-       timeout: TimeInterval = Defaults.connectTimeout,
-       connected: @escaping ()->(),
-       disconnected: @escaping (Error?)->())
+        timeout: TimeInterval = Defaults.connectTimeout,
+        connected: @escaping ()->(),
+        disconnected: @escaping (Error?)->())
     {
         guard centralManager.isPoweredOn else
         {
@@ -208,15 +208,15 @@ open class UUPeripheral
         {
             
             NSLog("Connect timeout for \(self.debugName)")
-             
+            
             self.centralManager.removeConnectionBlocks(self)
-             
-             // Issue the disconnect but disconnect any delegate's.  In the case of
-             // CBCentralManager being off or reset when this happens, immediately
-             // calling the disconnected block ensures there is not an infinite
-             // timeout situation.
+            
+            // Issue the disconnect but disconnect any delegate's.  In the case of
+            // CBCentralManager being off or reset when this happens, immediately
+            // calling the disconnected block ensures there is not an infinite
+            // timeout situation.
             self.centralManager.cancelPeripheralConnection(self)
-             
+            
             let err = NSError.uuCoreBluetoothError(.timeout)
             self.cancelTimer(timerId)
             disconnected(err)
@@ -224,7 +224,7 @@ open class UUPeripheral
         
         centralManager.connect(self, nil)
     }
-
+    
     // Wrapper around CBCentralManager cancelPeripheralConnection.  After calling this
     // method, the disconnected block passed in at connect time will be invoked.
     public func disconnect(timeout: TimeInterval = Defaults.disconnectTimeout)
@@ -256,7 +256,7 @@ open class UUPeripheral
         NSLog("Cancelling peripheral connection for \(self.debugName)")
         centralManager.cancelPeripheralConnection(self)
     }
-   
+    
     // Block based wrapper around CBPeripheral discoverServices, with an optional
     // timeout value.  A negative timeout value will disable the timeout.
     public func discoverServices(
@@ -285,7 +285,7 @@ open class UUPeripheral
             let err = NSError.uuCoreBluetoothError(.timeout)
             self.endServiceDiscovery(err)
         }
-
+        
         underlyingPeripheral.discoverServices(serviceUUIDs)
     }
     
@@ -474,7 +474,7 @@ open class UUPeripheral
             self.delegate.peripheral(self.underlyingPeripheral, didUpdateNotificationStateFor: characteristic, error: error)
         }
     }
-
+    
     // Block based wrapper around CBPeripheral readValue:forCharacteristic, with an
     // optional timeout value.  A negative timeout value will disable the timeout.
     public func readValue(
@@ -487,14 +487,14 @@ open class UUPeripheral
         let timerId = TimerId.readCharacteristic
         
         delegate.registerReadHandler(
-        { peripheral, characteristic, error in
-            
-            let err = self.prepareToFinishOperation(timerId, error)
-            
-            self.delegate.removeReadHandler(characteristic)
-            completion(self, characteristic, err)
-            
-        }, characteristic)
+            { peripheral, characteristic, error in
+                
+                let err = self.prepareToFinishOperation(timerId, error)
+                
+                self.delegate.removeReadHandler(characteristic)
+                completion(self, characteristic, err)
+                
+            }, characteristic)
         
         startTimer(timerId, timeout)
         {
@@ -531,13 +531,13 @@ open class UUPeripheral
         let timerId = TimerId.readDescriptor
         
         delegate.registerReadHandler(
-        { peripheral, descriptor, error in
-            
-            let err = self.prepareToFinishOperation(timerId, error)
-            self.delegate.removeReadHandler(descriptor)
-            completion(self, descriptor, err)
-            
-        }, descriptor)
+            { peripheral, descriptor, error in
+                
+                let err = self.prepareToFinishOperation(timerId, error)
+                self.delegate.removeReadHandler(descriptor)
+                completion(self, descriptor, err)
+                
+            }, descriptor)
         
         if let err = canAttemptOperation
         {
@@ -576,13 +576,13 @@ open class UUPeripheral
         let timerId = TimerId.writeCharacteristic
         
         delegate.registerWriteHandler(
-        { peripheral, characteristic, error in
-        
-            let err = self.prepareToFinishOperation(timerId, error)
-            self.delegate.removeWriteHandler(characteristic)
-            completion(self, characteristic, err)
-            
-        }, characteristic)
+            { peripheral, characteristic, error in
+                
+                let err = self.prepareToFinishOperation(timerId, error)
+                self.delegate.removeWriteHandler(characteristic)
+                completion(self, characteristic, err)
+                
+            }, characteristic)
         
         if let err = canAttemptOperation
         {
@@ -606,7 +606,7 @@ open class UUPeripheral
             self.delegate.peripheral(self.underlyingPeripheral, didWriteValueFor: characteristic, error: error)
         }
     }
-
+    
     // Block based wrapper around CBPeripheral writeValue:forCharacteristic:type with type
     // CBCharacteristicWriteWithoutResponse.  Block callback is invoked after sending.
     // Per CoreBluetooth documentation, there is no garauntee of delivery.
@@ -644,14 +644,14 @@ open class UUPeripheral
         let timerId = TimerId.writeDescriptor
         
         delegate.registerWriteHandler(
-        { peripheral, descriptor, error in
-        
-            let err = self.prepareToFinishOperation(timerId, error)
-            
-            self.delegate.removeWriteHandler(descriptor)
-            completion(self, descriptor, err)
-            
-        }, descriptor)
+            { peripheral, descriptor, error in
+                
+                let err = self.prepareToFinishOperation(timerId, error)
+                
+                self.delegate.removeWriteHandler(descriptor)
+                completion(self, descriptor, err)
+                
+            }, descriptor)
         
         if let err = canAttemptOperation
         {
@@ -811,32 +811,6 @@ open class UUPeripheral
     
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     // MARK:- Timers
     
     
@@ -856,12 +830,12 @@ open class UUPeripheral
         case readRssi
         case pollRssi
     }
-
+    
     private func formatTimerId(_ bucket: TimerId) -> String
     {
         return "\(identifier)__\(bucket.rawValue)"
     }
-
+    
     private func cleanupAfterDisconnect()
     {
         NSLog("Cancelling all timers")
@@ -917,5 +891,227 @@ open class UUPeripheral
         delegate.logBlocks()
     }
     
+    
+    
+    //MARK: L2Cap
+    
+    //not sure if this needs to be public
+    private var l2CapChannel:CBL2CAPChannel? = nil
+    private var l2CapBytesReceivedCallback:((Data?) -> Void)? = nil
+    private var l2CapBytesSentCallback:((Int) -> Void)? = nil
+    
+    public func openL2CapChannel(psm:UInt16,
+                                 bytesSentCallback:((Int) -> Void)? = nil,
+                                 bytesReceivedCallback:((Data?) -> Void)? = nil,
+                                 completion: @escaping ((CBL2CAPChannel?, Error?) -> Void))
+    {
+        self.l2CapBytesReceivedCallback = bytesReceivedCallback
+        self.l2CapBytesSentCallback = bytesSentCallback
+        
+        self.delegate.didConnectL2ChannelBlock =
+        { peripheral, channel, error in
+            
+            if (peripheral == self.underlyingPeripheral)
+            {
+                self.l2CapChannel = channel
+                self.delegate.didConnectL2ChannelBlock = nil
+                
+                if let c = channel
+                {
+                    self.setupStreamDelegates(channel: c)
+                }
+                
+                completion(channel, error)
+            }
+        }
+        
+        self.underlyingPeripheral.openL2CAPChannel(psm)
+    }
+    
+    public func closeL2CapChannel()
+    {
+        self.l2CapChannel?.inputStream.close()
+        self.l2CapChannel?.outputStream.close()
+        
+        self.l2CapChannel?.inputStream.remove(from: RunLoop.main, forMode: .default)
+        self.l2CapChannel?.outputStream.remove(from: RunLoop.main, forMode: .default)
+        
+        self.l2CapChannel?.inputStream.delegate = nil
+        self.l2CapChannel?.outputStream.delegate = nil
+        
+        self.l2CapChannel = nil
+    }
+    
+    private func setupStreamDelegates(channel:CBL2CAPChannel)
+    {
+        self.delegate.streamOpenedBlock = self.streamOpened(_:)
+        self.delegate.streamEndEncounteredBlock = self.streamEndEncountered(_:)
+        self.delegate.streamHasBytesAvailableBlock = self.streamHasBytesAvailable(_:)
+        self.delegate.streamHasSpaceAvailableBlock = self.streamHasSpaceAvailable(_:)
+        self.delegate.streamErrorOccurredBlock = self.streamErrorOccurred(_:)
+        
+        self.logBlocks()
+        
+        self.l2CapChannel?.inputStream.delegate = self.delegate
+        self.l2CapChannel?.outputStream.delegate = self.delegate
+        
+        self.l2CapChannel?.inputStream.schedule(in: RunLoop.main, forMode: .default)
+        self.l2CapChannel?.outputStream.schedule(in: RunLoop.main, forMode: .default)
+        
+        self.l2CapChannel?.inputStream.open()
+        self.l2CapChannel?.outputStream.open()
+    }
+    
+    private func createStreamError(code:Int, info:String) -> Error
+    {
+        NSError(domain: "UUSwiftBluetooth", code: code, userInfo: ["info": info])
+    }
+    
+    private var bytesToSend:Data? = nil
+    
+    public func sendData(_ data:Data, _ completion: @escaping ((Error?) -> Void) )
+    {
+        //Not sure if I can use this queue?
+        dispatchQueue.sync
+        {
+            if (self.bytesToSend == nil)
+            {
+                self.bytesToSend = Data()
+            }
+            
+            self.bytesToSend?.append(data)
+        }
+        
+        self.internalSend()
+    }
+    
+    private func internalSend()
+    {
+        guard let outputStream = self.l2CapChannel?.outputStream else
+        {
+            NSLog("Cannot perform internal send data, no output stream")
+            return
+        }
+        
+        
+        guard let data = self.bytesToSend, !data.isEmpty else
+        {
+            NSLog("Data is nil or empty.")
+            return
+        }
+        
+        guard outputStream.hasSpaceAvailable else
+        {
+            NSLog("No space available! (try again later?)")
+            return
+        }
+
+
+        let numberOfBytesSent = writeData(data, to: outputStream)
+        
+        self.l2CapBytesSentCallback?(numberOfBytesSent)
+        
+        dispatchQueue.sync
+        {
+            if (numberOfBytesSent < (self.bytesToSend?.count ?? 0))
+            {
+                self.bytesToSend = bytesToSend?.advanced(by: numberOfBytesSent)
+            }
+            else
+            {
+                self.bytesToSend?.removeAll()
+            }
+        }
+        
+    }
+                    
+               
+    private func writeData(_ data:Data, to stream:OutputStream) -> Int
+    {
+        return data.withUnsafeBytes({ (unsafeRawBufferPointer:UnsafeRawBufferPointer) -> Int in
+            
+            let pointer = unsafeRawBufferPointer.bindMemory(to: UInt8.self)
+            
+            if let baseAddress = pointer.baseAddress
+            {
+                return stream.write(baseAddress, maxLength: data.count)
+            }
+            else
+            {
+                return 0
+            }
+            
+            
+        })
+    }
+                    
+    
+    private func readAvailableData(_ stream:InputStream)
+    {
+        let bufferLength = 1024 //just guessing
+        
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferLength)
+        
+        defer
+        {
+            buffer.deallocate()
+        }
+        
+        let rawBytesRead = stream.read(buffer, maxLength: bufferLength)
+        
+        var data = Data()
+        
+        data.append(buffer, count: rawBytesRead)
+        
+        DispatchQueue.main.async
+        {
+            self.l2CapBytesReceivedCallback?(data)
+        }
+        
+        if (stream.hasBytesAvailable)
+        {
+            //Keep Reading if there is more data!
+            self.readAvailableData(stream)
+        }
+    }
+    
+    //Stream Callbacks
+    private func streamOpened(_ stream:Stream)
+    { //ready to proceed
+        NSLog("Stream Opened: \(stream.debugDescription)")
+    }
+   
+    private func streamEndEncountered(_ stream:Stream)
+    {
+        NSLog("Stream End Encountered: \(stream.debugDescription)")
+
+    }
+    
+    
+    private func streamHasBytesAvailable(_ stream:Stream)
+    { //ready to read
+        NSLog("Stream HasBytesAvailable: \(stream.debugDescription)")
+        
+        if let inputStream = stream as? InputStream
+        {
+            self.readAvailableData(inputStream)
+        }
+    }
+    
+    private func streamHasSpaceAvailable(_ stream:Stream)
+    { //ready to send
+        NSLog("Stream Has Space Available: \(stream.debugDescription)")
+    }
+
+    
+    private func streamErrorOccurred(_ stream:Stream)
+    {
+        NSLog("Stream Error Occurred: \(stream.debugDescription)")
+    }
+    
+    
 }
 
+
+
+    

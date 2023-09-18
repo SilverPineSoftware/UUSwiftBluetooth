@@ -17,6 +17,13 @@ typealias UUCBPeripheralDescriptorErrorBlock = ((CBPeripheral, CBDescriptor, Err
 typealias UUCBPeripheralIntErrorBlock = ((CBPeripheral, Int, Error?)->())
 typealias UUCBPeripheralServiceListBlock = ((CBPeripheral, [CBService])->())
 
+typealias UUCBL2CapChannelConnectedBlock = ((CBPeripheral, CBL2CAPChannel?, Error?)->())
+typealias UUStreamOpenedBlock = ((Stream)->())
+typealias UUStreamEndEncounteredBlock = ((Stream)->())
+typealias UUStreamHasBytesAvailableBlock = ((Stream)->())
+typealias UUStreamHasSpaceAvailableBlock = ((Stream)->())
+typealias UUStreamErrorOccurredBlock = ((Stream)->())
+
 class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
 {
     var peripheralNameUpdatedBlock: UUCBPeripheralBlock? = nil
@@ -34,6 +41,13 @@ class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
     var setNotifyValueForCharacteristicBlock: UUCBPeripheralCharacteristicErrorBlock? = nil
     var discoverDescriptorsBlock: UUCBPeripheralCharacteristicErrorBlock? = nil
     
+    var didConnectL2ChannelBlock: UUCBL2CapChannelConnectedBlock? = nil
+    var streamOpenedBlock: UUStreamOpenedBlock? = nil
+    var streamEndEncounteredBlock: UUStreamEndEncounteredBlock? =  nil
+    var streamHasBytesAvailableBlock: UUStreamHasBytesAvailableBlock? = nil
+    var streamHasSpaceAvailableBlock: UUStreamHasSpaceAvailableBlock? = nil
+    var streamErrorOccurredBlock: UUStreamErrorOccurredBlock? = nil
+    
     func clearBlocks()
     {
         peripheralNameUpdatedBlock = nil
@@ -50,6 +64,13 @@ class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
         writeValueForDescriptorBlocks.removeAll()
         setNotifyValueForCharacteristicBlock = nil
         discoverDescriptorsBlock = nil
+        
+        didConnectL2ChannelBlock = nil
+        streamOpenedBlock = nil
+        streamEndEncounteredBlock = nil
+        streamHasBytesAvailableBlock = nil
+        streamHasSpaceAvailableBlock = nil
+        streamErrorOccurredBlock = nil
     }
     
     public func logBlocks()
@@ -68,6 +89,14 @@ class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
         NSLog("writeValueForDescriptorBlocks: \(String(describing: writeValueForDescriptorBlocks))")
         NSLog("setNotifyValueForCharacteristicBlock: \(String(describing: setNotifyValueForCharacteristicBlock))")
         NSLog("discoverDescriptorsBlock: \(String(describing: discoverDescriptorsBlock))")
+        
+        NSLog("didConnectL2ChannelBlock: \(String(describing: didConnectL2ChannelBlock))")
+        NSLog("streamOpenedBlock: \(String(describing: streamOpenedBlock))")
+        NSLog("streamEndEncounteredBlock: \(String(describing: streamEndEncounteredBlock))")
+        NSLog("streamHasBytesAvailableBlock: \(String(describing: streamHasBytesAvailableBlock))")
+        NSLog("streamHasSpaceAvailableBlock: \(String(describing: streamHasSpaceAvailableBlock))")
+        NSLog("streamErrorOccurredBlock: \(String(describing: streamErrorOccurredBlock))")
+
     }
 
     func registerUpdateHandler(_ handler: UUCBPeripheralCharacteristicErrorBlock?, _ characteristic: CBCharacteristic)
@@ -229,6 +258,41 @@ class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
         if let writeBlock = writeValueForDescriptorBlocks[descriptor.uuid.uuidString]
         {
             writeBlock(peripheral, descriptor, error)
+        }
+    }
+}
+
+
+extension UUPeripheralDelegate:StreamDelegate
+{
+    //Not stream delegate protocol but since it's l2Cap specific, I'll put it here
+    func peripheral(_ peripheral: CBPeripheral, didOpen channel: CBL2CAPChannel?, error: Error?)
+    {
+        didConnectL2ChannelBlock?(peripheral, channel, error)
+    }
+    
+    
+    func stream(_ aStream: Stream, handle eventCode: Stream.Event)
+    {
+        switch eventCode
+        {
+        case Stream.Event.openCompleted:
+            self.streamOpenedBlock?(aStream)
+            
+        case Stream.Event.endEncountered:
+            self.streamEndEncounteredBlock?(aStream)
+            
+        case Stream.Event.hasBytesAvailable:
+            self.streamHasBytesAvailableBlock?(aStream)
+            
+        case Stream.Event.hasSpaceAvailable:
+            self.streamHasSpaceAvailableBlock?(aStream)
+            
+        case Stream.Event.errorOccurred:
+            self.streamErrorOccurredBlock?(aStream)
+            
+        default:
+               NSLog("Unhandled Stream event code: \(eventCode)")
         }
     }
 }

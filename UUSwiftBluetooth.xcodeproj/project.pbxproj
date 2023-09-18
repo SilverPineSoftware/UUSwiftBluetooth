@@ -42,6 +42,8 @@
 		08ECB0A5275E728100502735 /* ReadDeviceInfoOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08ECB0A4275E728100502735 /* ReadDeviceInfoOperation.swift */; };
 		08ECB0A7275E744A00502735 /* UUBluetoothConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08ECB0A6275E744A00502735 /* UUBluetoothConstants.swift */; };
 		08F43E3E2730427B003DBB49 /* UUPeripheralOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08F43E3D2730427B003DBB49 /* UUPeripheralOperation.swift */; };
+		0D5C78A32AB38666007C03D8 /* L2CapClientController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D5C78A22AB38666007C03D8 /* L2CapClientController.swift */; };
+		0D5C78A52AB518A8007C03D8 /* L2CapServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D5C78A42AB518A8007C03D8 /* L2CapServerController.swift */; };
 		C5C67CC226C6098F004DF50D /* UUSwiftBluetooth.h in Headers */ = {isa = PBXBuildFile; fileRef = C5C67CC026C6098F004DF50D /* UUSwiftBluetooth.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C5C67CD026C60A0E004DF50D /* UUSwiftCore in Frameworks */ = {isa = PBXBuildFile; productRef = C5C67CCF26C60A0E004DF50D /* UUSwiftCore */; };
 /* End PBXBuildFile section */
@@ -115,6 +117,8 @@
 		08ECB0A4275E728100502735 /* ReadDeviceInfoOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadDeviceInfoOperation.swift; sourceTree = "<group>"; };
 		08ECB0A6275E744A00502735 /* UUBluetoothConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUBluetoothConstants.swift; sourceTree = "<group>"; };
 		08F43E3D2730427B003DBB49 /* UUPeripheralOperation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UUPeripheralOperation.swift; sourceTree = "<group>"; };
+		0D5C78A22AB38666007C03D8 /* L2CapClientController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L2CapClientController.swift; sourceTree = "<group>"; };
+		0D5C78A42AB518A8007C03D8 /* L2CapServerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L2CapServerController.swift; sourceTree = "<group>"; };
 		C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = UUSwiftBluetooth.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C5C67CC026C6098F004DF50D /* UUSwiftBluetooth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UUSwiftBluetooth.h; sourceTree = "<group>"; };
 		C5C67CC126C6098F004DF50D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -179,6 +183,8 @@
 				08A7AAE026EA9B9300E7254A /* ServiceView.swift */,
 				08A7AAE226EAA48A00E7254A /* CharacteristicRowView.swift */,
 				08ECB0A4275E728100502735 /* ReadDeviceInfoOperation.swift */,
+				0D5C78A22AB38666007C03D8 /* L2CapClientController.swift */,
+				0D5C78A42AB518A8007C03D8 /* L2CapServerController.swift */,
 			);
 			path = UUSwiftBluetoothTester;
 			sourceTree = "<group>";
@@ -363,11 +369,13 @@
 				08A2092126C7092B008F3534 /* AppDelegate.swift in Sources */,
 				08A7AAE126EA9B9300E7254A /* ServiceView.swift in Sources */,
 				08A2092326C7092B008F3534 /* SceneDelegate.swift in Sources */,
+				0D5C78A32AB38666007C03D8 /* L2CapClientController.swift in Sources */,
 				08A7AAE326EAA48A00E7254A /* CharacteristicRowView.swift in Sources */,
 				08A2093326C70B5D008F3534 /* PeripheralTableRow.swift in Sources */,
 				08A7AADB26EA962B00E7254A /* ServiceRowView.swift in Sources */,
 				083F066A26CF512B002780A1 /* SettingsViewController.swift in Sources */,
 				08ECB0A5275E728100502735 /* ReadDeviceInfoOperation.swift in Sources */,
+				0D5C78A52AB518A8007C03D8 /* L2CapServerController.swift in Sources */,
 				08A7AAD926EA794B00E7254A /* PeripheralView.swift in Sources */,
 				08A7AADD26EA988600E7254A /* LabelValueRowView.swift in Sources */,
 				08A7AAD726E9404E00E7254A /* CustomPeripheral.swift in Sources */,
