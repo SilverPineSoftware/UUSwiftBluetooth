@@ -962,11 +962,6 @@ open class UUPeripheral
         self.l2CapChannel?.outputStream.open()
     }
     
-    private func createStreamError(code:Int, info:String) -> Error
-    {
-        NSError(domain: "UUSwiftBluetooth", code: code, userInfo: ["info": info])
-    }
-    
     private var bytesToSend:Data? = nil
     
     public func sendData(_ data:Data, _ completion: @escaping ((Error?) -> Void) )
@@ -987,35 +982,24 @@ open class UUPeripheral
     
     private func internalSend()
     {
-        guard let outputStream = self.l2CapChannel?.outputStream else
+        guard let stream = self.l2CapChannel?.outputStream else
         {
             NSLog("Cannot perform internal send data, no output stream")
             return
         }
         
+        let numberOfBytesSent = stream.writeData(self.bytesToSend)
         
-        guard let data = self.bytesToSend, !data.isEmpty else
+        if let bytesSent = numberOfBytesSent
         {
-            NSLog("Data is nil or empty.")
-            return
+            self.l2CapBytesSentCallback?(bytesSent)
         }
-        
-        guard outputStream.hasSpaceAvailable else
-        {
-            NSLog("No space available! (try again later?)")
-            return
-        }
-
-
-        let numberOfBytesSent = writeData(data, to: outputStream)
-        
-        self.l2CapBytesSentCallback?(numberOfBytesSent)
         
         dispatchQueue.sync
         {
-            if (numberOfBytesSent < (self.bytesToSend?.count ?? 0))
+            if let bytesSent = numberOfBytesSent, (bytesSent < (self.bytesToSend?.count ?? 0))
             {
-                self.bytesToSend = bytesToSend?.advanced(by: numberOfBytesSent)
+                self.bytesToSend = bytesToSend?.advanced(by: bytesSent)
             }
             else
             {
@@ -1025,50 +1009,54 @@ open class UUPeripheral
         
     }
                     
-               
-    private func writeData(_ data:Data, to stream:OutputStream) -> Int
-    {
-        return data.withUnsafeBytes({ (unsafeRawBufferPointer:UnsafeRawBufferPointer) -> Int in
-            
-            let pointer = unsafeRawBufferPointer.bindMemory(to: UInt8.self)
-            
-            if let baseAddress = pointer.baseAddress
-            {
-                return stream.write(baseAddress, maxLength: data.count)
-            }
-            else
-            {
-                return 0
-            }
-            
-            
-        })
-    }
+    //maybe make read and write extensions on Stream?!?!
+//    private func writeData(_ data:Data, to stream:OutputStream) -> Int
+//    {
+//        return data.withUnsafeBytes({ (unsafeRawBufferPointer:UnsafeRawBufferPointer) -> Int in
+//
+//            let pointer = unsafeRawBufferPointer.bindMemory(to: UInt8.self)
+//
+//            if let baseAddress = pointer.baseAddress
+//            {
+//                return stream.write(baseAddress, maxLength: data.count)
+//            }
+//            else
+//            {
+//                return 0
+//            }
+//        })
+//    }
                     
     
-    private func readAvailableData(_ stream:InputStream)
+    private func readAvailableData(_ stream:Stream)
     {
-        let bufferLength = 1024 //just guessing
+//        let bufferLength = 1024 //just guessing
+//
+//        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferLength)
+//
+//        defer
+//        {
+//            buffer.deallocate()
+//        }
+//
+//        let rawBytesRead = stream.read(buffer, maxLength: bufferLength)
+//
+//        var data = Data()
+//
+//        data.append(buffer, count: rawBytesRead)
         
-        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferLength)
         
-        defer
+        let readReturn = stream.readData(1024)
+        
+        if let data = readReturn.dataRead
         {
-            buffer.deallocate()
-        }
+            DispatchQueue.main.async
+            {
+                self.l2CapBytesReceivedCallback?(data)
+            }
+        }        
         
-        let rawBytesRead = stream.read(buffer, maxLength: bufferLength)
-        
-        var data = Data()
-        
-        data.append(buffer, count: rawBytesRead)
-        
-        DispatchQueue.main.async
-        {
-            self.l2CapBytesReceivedCallback?(data)
-        }
-        
-        if (stream.hasBytesAvailable)
+        if (readReturn.hasBytesAvailable)
         {
             //Keep Reading if there is more data!
             self.readAvailableData(stream)
@@ -1092,10 +1080,12 @@ open class UUPeripheral
     { //ready to read
         NSLog("Stream HasBytesAvailable: \(stream.debugDescription)")
         
-        if let inputStream = stream as? InputStream
-        {
-            self.readAvailableData(inputStream)
-        }
+        self.readAvailableData(stream)
+        
+//        if let inputStream = stream as? InputStream
+//        {
+//            self.readAvailableData(inputStream)
+//        }
     }
     
     private func streamHasSpaceAvailable(_ stream:Stream)
@@ -1112,6 +1102,74 @@ open class UUPeripheral
     
 }
 
+public extension Stream
+{
+    /**
+     Writes data to an output stream and returns number of bytes written
+     */
+    func writeData(_ data:Data?) -> Int?
+    {
+        guard let outputStream = self as? OutputStream else
+        {
+            NSLog("Trying to write data to a stream that isn't an OutputStream, bailing!")
+            return nil
+        }
+                
+        guard let d = data, !d.isEmpty else
+        {
+            NSLog("Data is nil or empty, cannot write!")
+            return nil
+        }
+        
+        guard outputStream.hasSpaceAvailable else
+        {
+            NSLog("No space available! (try again later?)")
+            return nil
+        }
 
+        
+        return d.withUnsafeBytes({ (unsafeRawBufferPointer:UnsafeRawBufferPointer) -> Int in
+            
+            let pointer = unsafeRawBufferPointer.bindMemory(to: UInt8.self)
+            
+            if let baseAddress = pointer.baseAddress
+            {
+                return outputStream.write(baseAddress, maxLength: d.count)
+            }
+            else
+            {
+                return 0
+            }
+        })
+    }
+    
+    /**
+     Reads available data from input stream and retuns data and flag
+     indicating if there is more data to read
+     */
+    func readData(_ bufferLength:Int) -> (dataRead:Data?, hasBytesAvailable:Bool)
+    {
+        guard let inputStream = self as? InputStream else
+        {
+            NSLog("Trying to read data from a stream that isn't an InputStream, bailing!")
+            return (nil, false)
+        }
+        
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferLength)
+        
+        defer
+        {
+            buffer.deallocate()
+        }
+        
+        let rawBytesRead = inputStream.read(buffer, maxLength: bufferLength)
+        
+        var data = Data()
+        
+        data.append(buffer, count: rawBytesRead)
+        
+        return (data, inputStream.hasBytesAvailable)
+    }
+}
 
     

@@ -13,9 +13,18 @@ class L2CapServerController:L2CapController
 {
     var manager: CBPeripheralManager? = nil
 
+//    private var service: CBMutableService? = nil
+//    private var characteristic: CBMutableCharacteristic? = nil
+//    private var subscribedCentrals = [CBCharacteristic:[CBCentral]]()
+//
+    
+    private let cbUUID:CBUUID = CBUUID(string: "E3AAE22C-8E52-47E3-9E03-629C62C542B9")
+
+    
     private var psm:CBL2CAPPSM? = nil
 
-    private let uuid:CBUUID = CBUUID(string: "E3AAE22C-8E52-47E3-9E03-629C62C542B9")
+
+    private var l2CapChannel:CBL2CAPChannel? = nil
 
     
     override func viewDidLoad()
@@ -69,7 +78,7 @@ class L2CapServerController:L2CapController
             self.manager?.stopAdvertising()
         }
         
-        let uuidlist = [uuid]
+        let uuidlist = [cbUUID]
 
         var name:String = "L2CapServer-"
         if let num = psm
@@ -154,23 +163,44 @@ extension L2CapServerController: CBPeripheralManagerDelegate
     func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didSubscribeTo characteristic: CBCharacteristic)
     {
         self.addOutputLine("Did subscribe to characteristic (\(characteristic.uuid.uuidString))")
+        
+        //Not sure if I really need this but it was in the example
+//        var centrals = self.subscribedCentrals[characteristic] ?? [CBCentral]()
+//        centrals.append(central)
+//        self.subscribedCentrals[characteristic] = centrals
     }
 
     func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didUnsubscribeFrom characteristic: CBCharacteristic)
     {
         self.addOutputLine("Did unsubscribe to characteristic (\(characteristic.uuid.uuidString))")
+        
+//        if var current = self.subscribedCentrals[characteristic]
+//        {
+//            current.removeAll(where: { $0 == central })
+//            self.subscribedCentrals[characteristic] = current
+//        }
     }
 
     func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveRead request: CBATTRequest)
     {
         self.addOutputLine("Did receive read request. (\(request.characteristic.uuid.uuidString))")
-
+        
+        //Do the read and then call
+        //peripheral.respond(to: <#T##CBATTRequest#>, withResult: <#T##CBATTError.Code#>)
+        
+        peripheral.respond(to: request, withResult: .success)
     }
+    
+     
 
     func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest])
     {
-        var requestUUIDList:String = requests.map({ $0.characteristic.uuid.uuidString }).joined(separator: ", ")
+        let requestUUIDList:String = requests.map({ $0.characteristic.uuid.uuidString }).joined(separator: ", ")
         self.addOutputLine("Did receive write requests. (\(requestUUIDList))")
+        
+        //Do the read and then call
+        //peripheral.respond(to: <#T##CBATTRequest#>, withResult: <#T##CBATTError.Code#>)
+
     }
 
     func peripheralManagerIsReady(toUpdateSubscribers peripheral: CBPeripheralManager)
@@ -193,6 +223,18 @@ extension L2CapServerController: CBPeripheralManagerDelegate
 
     func peripheralManager(_ peripheral: CBPeripheralManager, didOpen channel: CBL2CAPChannel?, error: Error?)
     {
+        self.l2CapChannel = channel
+        self.l2CapChannel?.inputStream.delegate = self
+        self.l2CapChannel?.outputStream.delegate = self
+        
+        self.l2CapChannel?.inputStream.schedule(in: RunLoop.main, forMode: .default)
+        self.l2CapChannel?.outputStream.schedule(in: RunLoop.main, forMode: .default)
+        
+        //Since it was just opened, I shouln't need to call open, right?
+//        self.l2CapChannel?.inputStream.open()
+//        self.l2CapChannel?.outputStream.open()
+//        
+        //save this channel for future use... set it on the peripheral
         if let c = channel
         {
             self.addOutputLine("Did open L2CAPChannel with psm \(c.psm). Error: \(errorDescription(error))")
@@ -200,6 +242,63 @@ extension L2CapServerController: CBPeripheralManagerDelegate
         else
         {
             self.addOutputLine("Did open L2CAPChannel but returned channel is nil! Error: \(errorDescription(error))")
+        }
+    }
+    
+}
+
+extension L2CapServerController:StreamDelegate
+{
+    func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
+        
+        func stream(_ aStream: Stream, handle eventCode: Stream.Event)
+        {
+            switch eventCode
+            {
+            case Stream.Event.openCompleted:
+                self.addOutputLine("Stream Open Completed")
+                
+            case Stream.Event.endEncountered:
+                self.addOutputLine("Stream end encountered")
+                
+            case Stream.Event.hasBytesAvailable:
+                self.addOutputLine("Stream has bytes available")
+                self.readAvailableData(aStream)
+                
+            case Stream.Event.hasSpaceAvailable:
+                self.addOutputLine("Stream has space available")
+                
+            case Stream.Event.errorOccurred:
+                self.addOutputLine("Stream error occurred!")
+                
+            default:
+                   NSLog("Unhandled Stream event code: \(eventCode)")
+            }
+        }
+    }
+    
+    
+    func readAvailableData(_ stream:Stream)
+    {
+        let readReturn = stream.readData(1024)
+        
+        DispatchQueue.main.async
+        {
+            if let data = readReturn.dataRead
+            {
+                self.addOutputLine("Recieved \(data.count) bytes. Raw Bytes:\n\(data.uuToHexString())\n")
+            }
+            else
+            {
+                self.addOutputLine("Received nil bytes!")
+            }
+        }
+        
+        
+        if (readReturn.hasBytesAvailable)
+        {
+            //Keep Reading if there is more data!
+            self.readAvailableData(stream)
         }
     }
 }

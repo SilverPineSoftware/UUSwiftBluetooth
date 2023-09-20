@@ -28,7 +28,7 @@ class L2CapClientController:L2CapController
         self.title = "L2Cap Client"
         
         self.configureLeftButton("Connect", connect)
-        self.configureMiddleButton("Open L2Cap", startChannel)
+//        self.configureMiddleButton("Open L2Cap", startChannel)
         self.configureRightButton("Ping", ping)
         
         
@@ -42,6 +42,7 @@ class L2CapClientController:L2CapController
         self.peripheral.connect(timeout: UUPeripheral.Defaults.connectTimeout)
         {
             self.addOutputLine("Connected")
+            self.startChannel()
             
         } disconnected:
         { error in
@@ -49,19 +50,6 @@ class L2CapClientController:L2CapController
             self.addOutputLine("Disconnected. Error: \(self.errorDescription(error))")
         }
 
-    }
-    
-    func ping()
-    {
-        let tx = "4747474747"
-        self.addOutputLine("TX: \(tx)")
-        
-        let data = Data(tx.uuToHexData() ?? NSData())
-        self.peripheral.sendData(data)
-        { error in
-            
-            
-        }
     }
     
     
@@ -106,6 +94,23 @@ class L2CapClientController:L2CapController
         }
 
     }
+    
+    func ping()
+    {
+        let tx = "4747474747"
+        self.addOutputLine("TX: \(tx)")
+        
+        let data = Data(tx.uuToHexData() ?? NSData())
+        self.peripheral.sendData(data)
+        { error in
+            
+            self.addOutputLine("Data sent! Error: \(self.errorDescription(error))")
+        }
+    }
+    
+    
+    
+   
 }
 
 
