@@ -53,17 +53,12 @@ class L2CapClientController:L2CapController
     }
     
     
-    
     func startChannel()
     {
         self.addOutputLine("Opening L2CapChannel with psm \(self.psm)...")
         
-        self.peripheral.openL2CapChannel(psm: self.psm)
-        { numberOfBytesSent in
-            
-            self.addOutputLine("\(numberOfBytesSent) Bytes Sent!")
-            
-        } bytesReceivedCallback:
+        let streamDelegate = UUStreamDelegate()
+        streamDelegate.bytesReceivedCallback =
         { bytesReceived in
             
             if let rec = bytesReceived
@@ -75,8 +70,19 @@ class L2CapClientController:L2CapController
                 self.addOutputLine("Received nil bytes!")
             }
             
-        } completion:
+        }
+        
+        streamDelegate.bytesSentCallback =
+        { numberOfBytesSent in
+            
+            self.addOutputLine("\(numberOfBytesSent) Bytes Sent!")
+            
+        }
+        
+        self.peripheral.openL2CapChannel(psm: self.psm, delegate: streamDelegate)
         { channel, error in
+            
+            channel?.openStreams()
             
             if let err = error
             {
@@ -92,7 +98,6 @@ class L2CapClientController:L2CapController
             }
             
         }
-
     }
     
     func ping()
@@ -101,17 +106,14 @@ class L2CapClientController:L2CapController
         self.addOutputLine("TX: \(tx)")
         
         let data = Data(tx.uuToHexData() ?? NSData())
-        self.peripheral.sendData(data)
+        
+        self.peripheral.l2CapChannel?.sendData(data)
         { error in
-            
             self.addOutputLine("Data sent! Error: \(self.errorDescription(error))")
         }
     }
-    
-    
-    
-   
 }
+
 
 
 
@@ -313,3 +315,4 @@ class L2CapController:UIViewController, UITableViewDelegate, UITableViewDataSour
         }
     }
 }
+

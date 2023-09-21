@@ -12,20 +12,11 @@ import UUSwiftBluetooth
 class L2CapServerController:L2CapController
 {
     var manager: CBPeripheralManager? = nil
-
-//    private var service: CBMutableService? = nil
-//    private var characteristic: CBMutableCharacteristic? = nil
-//    private var subscribedCentrals = [CBCharacteristic:[CBCentral]]()
-//
-    
     private let cbUUID:CBUUID = CBUUID(string: "E3AAE22C-8E52-47E3-9E03-629C62C542B9")
-
-    
     private var psm:CBL2CAPPSM? = nil
-
-
-    private var l2CapChannel:CBL2CAPChannel? = nil
-
+    
+    private var channel:UUL2CapChannel? = nil
+    private var streamDelegate:UUStreamDelegate = UUStreamDelegate()
     
     override func viewDidLoad()
     {
@@ -36,9 +27,32 @@ class L2CapServerController:L2CapController
         self.configureLeftButton("Listen", listen)
         self.configureRightButton("Stop", stop)
         
-        
         self.initialOutputline = "Tap Listen to Begin"
         self.clearOutput()
+        
+        
+        self.streamDelegate.bytesReceivedCallback =
+        { bytesReceived in
+            
+            if let rec = bytesReceived
+            {
+                self.addOutputLine("Recieved \(rec.count) bytes. Raw Bytes:\n\(rec.uuToHexString())\n")
+            }
+            else
+            {
+                self.addOutputLine("Received nil bytes!")
+            }
+            
+            self.echoBack(bytesReceived)
+            
+        }
+        
+        self.streamDelegate.bytesSentCallback =
+        { numberOfBytesSent in
+            
+            self.addOutputLine("\(numberOfBytesSent) Bytes Sent!")
+            
+        }
     }
     
     func listen()
@@ -48,9 +62,9 @@ class L2CapServerController:L2CapController
     
     func stop()
     {
-        
         self.manager?.stopAdvertising()
         self.manager?.removeAllServices()
+        self.channel?.closeStreams()
         stopL2CAPChannel()
         
         if (manager?.isAdvertising == false)
@@ -67,6 +81,23 @@ class L2CapServerController:L2CapController
                     self.addOutputLine("Peripheral is not advertising", "stop()")
                 }
             }
+        }
+    }
+    
+    func echoBack(_ receivedBytes:Data?)
+    {
+        
+        let tx = String("\(receivedBytes?.uuToHexString() ?? "nil")".reversed())
+        
+        self.addOutputLine("Echoing back...")
+        self.addOutputLine("TX: \(tx)")
+        
+        let data = Data(tx.uuToHexData() ?? NSData())
+        
+        self.channel?.sendData(data)
+        { error in
+            self.addOutputLine("Data sent! Error: \(self.errorDescription(error))")
+
         }
     }
         
@@ -145,69 +176,6 @@ extension L2CapServerController: CBPeripheralManagerDelegate
         self.addOutputLine(line)
     }
 
-    func peripheralManager(_ peripheral: CBPeripheralManager, willRestoreState dict: [String : Any])
-    {
-        self.addOutputLine("Will restore state.")
-    }
-    
-    func peripheralManagerDidStartAdvertising(_ peripheral: CBPeripheralManager, error: Error?)
-    {
-        self.addOutputLine("Did start Advertising. Error: \(errorDescription(error))")
-    }
-    
-    func peripheralManager(_ peripheral: CBPeripheralManager, didAdd service: CBService, error: Error?)
-    {
-        self.addOutputLine("Did add service (\(service.uuid.uuidString)). Error: \(errorDescription(error))")
-    }
-    
-    func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didSubscribeTo characteristic: CBCharacteristic)
-    {
-        self.addOutputLine("Did subscribe to characteristic (\(characteristic.uuid.uuidString))")
-        
-        //Not sure if I really need this but it was in the example
-//        var centrals = self.subscribedCentrals[characteristic] ?? [CBCentral]()
-//        centrals.append(central)
-//        self.subscribedCentrals[characteristic] = centrals
-    }
-
-    func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didUnsubscribeFrom characteristic: CBCharacteristic)
-    {
-        self.addOutputLine("Did unsubscribe to characteristic (\(characteristic.uuid.uuidString))")
-        
-//        if var current = self.subscribedCentrals[characteristic]
-//        {
-//            current.removeAll(where: { $0 == central })
-//            self.subscribedCentrals[characteristic] = current
-//        }
-    }
-
-    func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveRead request: CBATTRequest)
-    {
-        self.addOutputLine("Did receive read request. (\(request.characteristic.uuid.uuidString))")
-        
-        //Do the read and then call
-        //peripheral.respond(to: <#T##CBATTRequest#>, withResult: <#T##CBATTError.Code#>)
-        
-        peripheral.respond(to: request, withResult: .success)
-    }
-    
-     
-
-    func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest])
-    {
-        let requestUUIDList:String = requests.map({ $0.characteristic.uuid.uuidString }).joined(separator: ", ")
-        self.addOutputLine("Did receive write requests. (\(requestUUIDList))")
-        
-        //Do the read and then call
-        //peripheral.respond(to: <#T##CBATTRequest#>, withResult: <#T##CBATTError.Code#>)
-
-    }
-
-    func peripheralManagerIsReady(toUpdateSubscribers peripheral: CBPeripheralManager)
-    {
-        self.addOutputLine("Manager is ready to update subscribers.")
-    }
-
     func peripheralManager(_ peripheral: CBPeripheralManager, didPublishL2CAPChannel PSM: CBL2CAPPSM, error: Error?)
     {
         self.psm = PSM
@@ -219,90 +187,20 @@ extension L2CapServerController: CBPeripheralManagerDelegate
     func peripheralManager(_ peripheral: CBPeripheralManager, didUnpublishL2CAPChannel PSM: CBL2CAPPSM, error: Error?)
     {
         self.addOutputLine("Did unpublish L2CAPChannel with psm \(PSM). Error: \(errorDescription(error))")
+        self.channel = nil
     }
 
     func peripheralManager(_ peripheral: CBPeripheralManager, didOpen channel: CBL2CAPChannel?, error: Error?)
     {
-        self.l2CapChannel = channel
-        self.l2CapChannel?.inputStream.delegate = self
-        self.l2CapChannel?.outputStream.delegate = self
-        
-        self.l2CapChannel?.inputStream.schedule(in: RunLoop.main, forMode: .default)
-        self.l2CapChannel?.outputStream.schedule(in: RunLoop.main, forMode: .default)
-        
-        //Since it was just opened, I shouln't need to call open, right?
-//        self.l2CapChannel?.inputStream.open()
-//        self.l2CapChannel?.outputStream.open()
-//        
-        //save this channel for future use... set it on the peripheral
         if let c = channel
         {
             self.addOutputLine("Did open L2CAPChannel with psm \(c.psm). Error: \(errorDescription(error))")
+            self.channel = UUL2CapChannel(c, delegate: self.streamDelegate)
+            self.channel?.openStreams()
         }
         else
         {
             self.addOutputLine("Did open L2CAPChannel but returned channel is nil! Error: \(errorDescription(error))")
         }
     }
-    
 }
-
-extension L2CapServerController:StreamDelegate
-{
-    func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
-        
-        func stream(_ aStream: Stream, handle eventCode: Stream.Event)
-        {
-            switch eventCode
-            {
-            case Stream.Event.openCompleted:
-                self.addOutputLine("Stream Open Completed")
-                
-            case Stream.Event.endEncountered:
-                self.addOutputLine("Stream end encountered")
-                
-            case Stream.Event.hasBytesAvailable:
-                self.addOutputLine("Stream has bytes available")
-                self.readAvailableData(aStream)
-                
-            case Stream.Event.hasSpaceAvailable:
-                self.addOutputLine("Stream has space available")
-                
-            case Stream.Event.errorOccurred:
-                self.addOutputLine("Stream error occurred!")
-                
-            default:
-                   NSLog("Unhandled Stream event code: \(eventCode)")
-            }
-        }
-    }
-    
-    
-    func readAvailableData(_ stream:Stream)
-    {
-        let readReturn = stream.readData(1024)
-        
-        DispatchQueue.main.async
-        {
-            if let data = readReturn.dataRead
-            {
-                self.addOutputLine("Recieved \(data.count) bytes. Raw Bytes:\n\(data.uuToHexString())\n")
-            }
-            else
-            {
-                self.addOutputLine("Received nil bytes!")
-            }
-        }
-        
-        
-        if (readReturn.hasBytesAvailable)
-        {
-            //Keep Reading if there is more data!
-            self.readAvailableData(stream)
-        }
-    }
-}
-
-
-
-

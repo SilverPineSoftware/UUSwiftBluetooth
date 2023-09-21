@@ -894,282 +894,35 @@ open class UUPeripheral
     
     
     //MARK: L2Cap
+    public var l2CapChannel:UUL2CapChannel? = nil
     
-    //not sure if this needs to be public
-    private var l2CapChannel:CBL2CAPChannel? = nil
-    private var l2CapBytesReceivedCallback:((Data?) -> Void)? = nil
-    private var l2CapBytesSentCallback:((Int) -> Void)? = nil
-    
-    public func openL2CapChannel(psm:UInt16,
-                                 bytesSentCallback:((Int) -> Void)? = nil,
-                                 bytesReceivedCallback:((Data?) -> Void)? = nil,
-                                 completion: @escaping ((CBL2CAPChannel?, Error?) -> Void))
+    /**
+     Opens and returns a channel. Does NOT open the channel streams!
+     */
+    public func openL2CapChannel(psm:UInt16, delegate:UUStreamDelegate? = nil, completion: @escaping ((UUL2CapChannel?, Error?) -> Void))
     {
-        self.l2CapBytesReceivedCallback = bytesReceivedCallback
-        self.l2CapBytesSentCallback = bytesSentCallback
         
-        self.delegate.didConnectL2ChannelBlock =
+        self.delegate.didOpenL2ChannelBlock =
         { peripheral, channel, error in
             
             if (peripheral == self.underlyingPeripheral)
             {
-                self.l2CapChannel = channel
-                self.delegate.didConnectL2ChannelBlock = nil
-                
                 if let c = channel
                 {
-                    self.setupStreamDelegates(channel: c)
+                    self.l2CapChannel = UUL2CapChannel(c, delegate: delegate)
+                }
+                else
+                {
+                    self.l2CapChannel = nil
                 }
                 
-                completion(channel, error)
+                self.delegate.didOpenL2ChannelBlock = nil
+                
+                completion(self.l2CapChannel, error)
             }
         }
         
         self.underlyingPeripheral.openL2CAPChannel(psm)
     }
     
-    public func closeL2CapChannel()
-    {
-        self.l2CapChannel?.inputStream.close()
-        self.l2CapChannel?.outputStream.close()
-        
-        self.l2CapChannel?.inputStream.remove(from: RunLoop.main, forMode: .default)
-        self.l2CapChannel?.outputStream.remove(from: RunLoop.main, forMode: .default)
-        
-        self.l2CapChannel?.inputStream.delegate = nil
-        self.l2CapChannel?.outputStream.delegate = nil
-        
-        self.l2CapChannel = nil
-    }
-    
-    private func setupStreamDelegates(channel:CBL2CAPChannel)
-    {
-        self.delegate.streamOpenedBlock = self.streamOpened(_:)
-        self.delegate.streamEndEncounteredBlock = self.streamEndEncountered(_:)
-        self.delegate.streamHasBytesAvailableBlock = self.streamHasBytesAvailable(_:)
-        self.delegate.streamHasSpaceAvailableBlock = self.streamHasSpaceAvailable(_:)
-        self.delegate.streamErrorOccurredBlock = self.streamErrorOccurred(_:)
-        
-        self.logBlocks()
-        
-        self.l2CapChannel?.inputStream.delegate = self.delegate
-        self.l2CapChannel?.outputStream.delegate = self.delegate
-        
-        self.l2CapChannel?.inputStream.schedule(in: RunLoop.main, forMode: .default)
-        self.l2CapChannel?.outputStream.schedule(in: RunLoop.main, forMode: .default)
-        
-        self.l2CapChannel?.inputStream.open()
-        self.l2CapChannel?.outputStream.open()
-    }
-    
-    private var bytesToSend:Data? = nil
-    
-    public func sendData(_ data:Data, _ completion: @escaping ((Error?) -> Void) )
-    {
-        //Not sure if I can use this queue?
-        dispatchQueue.sync
-        {
-            if (self.bytesToSend == nil)
-            {
-                self.bytesToSend = Data()
-            }
-            
-            self.bytesToSend?.append(data)
-        }
-        
-        self.internalSend()
-    }
-    
-    private func internalSend()
-    {
-        guard let stream = self.l2CapChannel?.outputStream else
-        {
-            NSLog("Cannot perform internal send data, no output stream")
-            return
-        }
-        
-        let numberOfBytesSent = stream.writeData(self.bytesToSend)
-        
-        if let bytesSent = numberOfBytesSent
-        {
-            self.l2CapBytesSentCallback?(bytesSent)
-        }
-        
-        dispatchQueue.sync
-        {
-            if let bytesSent = numberOfBytesSent, (bytesSent < (self.bytesToSend?.count ?? 0))
-            {
-                self.bytesToSend = bytesToSend?.advanced(by: bytesSent)
-            }
-            else
-            {
-                self.bytesToSend?.removeAll()
-            }
-        }
-        
-    }
-                    
-    //maybe make read and write extensions on Stream?!?!
-//    private func writeData(_ data:Data, to stream:OutputStream) -> Int
-//    {
-//        return data.withUnsafeBytes({ (unsafeRawBufferPointer:UnsafeRawBufferPointer) -> Int in
-//
-//            let pointer = unsafeRawBufferPointer.bindMemory(to: UInt8.self)
-//
-//            if let baseAddress = pointer.baseAddress
-//            {
-//                return stream.write(baseAddress, maxLength: data.count)
-//            }
-//            else
-//            {
-//                return 0
-//            }
-//        })
-//    }
-                    
-    
-    private func readAvailableData(_ stream:Stream)
-    {
-//        let bufferLength = 1024 //just guessing
-//
-//        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferLength)
-//
-//        defer
-//        {
-//            buffer.deallocate()
-//        }
-//
-//        let rawBytesRead = stream.read(buffer, maxLength: bufferLength)
-//
-//        var data = Data()
-//
-//        data.append(buffer, count: rawBytesRead)
-        
-        
-        let readReturn = stream.readData(1024)
-        
-        if let data = readReturn.dataRead
-        {
-            DispatchQueue.main.async
-            {
-                self.l2CapBytesReceivedCallback?(data)
-            }
-        }        
-        
-        if (readReturn.hasBytesAvailable)
-        {
-            //Keep Reading if there is more data!
-            self.readAvailableData(stream)
-        }
-    }
-    
-    //Stream Callbacks
-    private func streamOpened(_ stream:Stream)
-    { //ready to proceed
-        NSLog("Stream Opened: \(stream.debugDescription)")
-    }
-   
-    private func streamEndEncountered(_ stream:Stream)
-    {
-        NSLog("Stream End Encountered: \(stream.debugDescription)")
-
-    }
-    
-    
-    private func streamHasBytesAvailable(_ stream:Stream)
-    { //ready to read
-        NSLog("Stream HasBytesAvailable: \(stream.debugDescription)")
-        
-        self.readAvailableData(stream)
-        
-//        if let inputStream = stream as? InputStream
-//        {
-//            self.readAvailableData(inputStream)
-//        }
-    }
-    
-    private func streamHasSpaceAvailable(_ stream:Stream)
-    { //ready to send
-        NSLog("Stream Has Space Available: \(stream.debugDescription)")
-    }
-
-    
-    private func streamErrorOccurred(_ stream:Stream)
-    {
-        NSLog("Stream Error Occurred: \(stream.debugDescription)")
-    }
-    
-    
 }
-
-public extension Stream
-{
-    /**
-     Writes data to an output stream and returns number of bytes written
-     */
-    func writeData(_ data:Data?) -> Int?
-    {
-        guard let outputStream = self as? OutputStream else
-        {
-            NSLog("Trying to write data to a stream that isn't an OutputStream, bailing!")
-            return nil
-        }
-                
-        guard let d = data, !d.isEmpty else
-        {
-            NSLog("Data is nil or empty, cannot write!")
-            return nil
-        }
-        
-        guard outputStream.hasSpaceAvailable else
-        {
-            NSLog("No space available! (try again later?)")
-            return nil
-        }
-
-        
-        return d.withUnsafeBytes({ (unsafeRawBufferPointer:UnsafeRawBufferPointer) -> Int in
-            
-            let pointer = unsafeRawBufferPointer.bindMemory(to: UInt8.self)
-            
-            if let baseAddress = pointer.baseAddress
-            {
-                return outputStream.write(baseAddress, maxLength: d.count)
-            }
-            else
-            {
-                return 0
-            }
-        })
-    }
-    
-    /**
-     Reads available data from input stream and retuns data and flag
-     indicating if there is more data to read
-     */
-    func readData(_ bufferLength:Int) -> (dataRead:Data?, hasBytesAvailable:Bool)
-    {
-        guard let inputStream = self as? InputStream else
-        {
-            NSLog("Trying to read data from a stream that isn't an InputStream, bailing!")
-            return (nil, false)
-        }
-        
-        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferLength)
-        
-        defer
-        {
-            buffer.deallocate()
-        }
-        
-        let rawBytesRead = inputStream.read(buffer, maxLength: bufferLength)
-        
-        var data = Data()
-        
-        data.append(buffer, count: rawBytesRead)
-        
-        return (data, inputStream.hasBytesAvailable)
-    }
-}
-
-    
