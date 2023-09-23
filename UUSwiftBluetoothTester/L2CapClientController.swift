@@ -20,6 +20,7 @@ class L2CapClientController:L2CapController
     }
     
     private var psm:UInt16 = 0
+    private var channel:UUL2CapChannel? = nil
     
     override func viewDidLoad()
     {
@@ -57,38 +58,16 @@ class L2CapClientController:L2CapController
     {
         self.addOutputLine("Opening L2CapChannel with psm \(self.psm)...")
         
-        let streamDelegate = UUStreamDelegate()
-        streamDelegate.bytesReceivedCallback =
-        { bytesReceived in
-            
-            if let rec = bytesReceived
-            {
-                self.addOutputLine("Recieved \(rec.count) bytes. Raw Bytes:\n\(rec.uuToHexString())\n")
-            }
-            else
-            {
-                self.addOutputLine("Received nil bytes!")
-            }
-            
-        }
+        self.channel = UUL2CapChannel(peripheral)
         
-        streamDelegate.bytesSentCallback =
-        { numberOfBytesSent in
-            
-            self.addOutputLine("\(numberOfBytesSent) Bytes Sent!")
-            
-        }
-        
-        self.peripheral.openL2CapChannel(psm: self.psm, delegate: streamDelegate)
-        { channel, error in
-            
-            channel?.openStreams()
-            
+        self.channel?.open(psm: self.psm, timeout: 10.0, completion:
+        { error in
+                        
             if let err = error
             {
                 self.addOutputLine("Error: \(err)")
             }
-            else if let _ = channel
+            else if let _ = self.channel
             {
                 self.addOutputLine("L2Cap Channel Connected!")
             }
@@ -97,7 +76,8 @@ class L2CapClientController:L2CapController
                 self.addOutputLine("L2Cap Channel connect attempt returned no error but no channel was created!")
             }
             
-        }
+        })
+        
     }
     
     func ping()
@@ -107,10 +87,35 @@ class L2CapClientController:L2CapController
         
         let data = Data(tx.uuToHexData() ?? NSData())
         
-        self.peripheral.l2CapChannel?.sendData(data)
-        { error in
-            self.addOutputLine("Data sent! Error: \(self.errorDescription(error))")
-        }
+        self.channel?.sendMessage(data, 10.0,
+        { progressBytesSent in
+            
+            if (data.count > 0)
+            {
+                self.addOutputLine("Data Send Progress: \((progressBytesSent/UInt32(data.count))*100)%")
+            }
+        },
+        { totalBytesSent, dataReceived, error in
+            
+            if let total = totalBytesSent
+            {
+                self.addOutputLine("\(total) Total Bytes Sent!")
+            }
+            else
+            {
+                self.addOutputLine("Total Bytes Sent is nil!")
+            }
+            
+            
+            if let rec = dataReceived
+            {
+                self.addOutputLine("Recieved \(rec.count) bytes. Raw Bytes:\n\(rec.uuToHexString())\n")
+            }
+            else
+            {
+                self.addOutputLine("Received nil bytes!")
+            }
+        })
     }
 }
 
@@ -315,4 +320,3 @@ class L2CapController:UIViewController, UITableViewDelegate, UITableViewDataSour
         }
     }
 }
-

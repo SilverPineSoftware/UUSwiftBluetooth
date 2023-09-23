@@ -18,11 +18,6 @@ typealias UUCBPeripheralIntErrorBlock = ((CBPeripheral, Int, Error?)->())
 typealias UUCBPeripheralServiceListBlock = ((CBPeripheral, [CBService])->())
 
 typealias UUCBL2CapChannelOpenedBlock = ((CBPeripheral, CBL2CAPChannel?, Error?)->())
-typealias UUStreamOpenedBlock = ((Stream)->())
-typealias UUStreamEndEncounteredBlock = ((Stream)->())
-typealias UUStreamHasBytesAvailableBlock = ((Stream)->())
-typealias UUStreamHasSpaceAvailableBlock = ((Stream)->())
-typealias UUStreamErrorOccurredBlock = ((Stream)->())
 
 class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
 {

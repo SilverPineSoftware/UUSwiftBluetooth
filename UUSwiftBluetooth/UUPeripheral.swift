@@ -891,38 +891,8 @@ open class UUPeripheral
         delegate.logBlocks()
     }
     
-    
-    
-    //MARK: L2Cap
-    public var l2CapChannel:UUL2CapChannel? = nil
-    
-    /**
-     Opens and returns a channel. Does NOT open the channel streams!
-     */
-    public func openL2CapChannel(psm:UInt16, delegate:UUStreamDelegate? = nil, completion: @escaping ((UUL2CapChannel?, Error?) -> Void))
+    internal func setDidOpenL2ChannelCallback(callback:((CBPeripheral, CBL2CAPChannel?, Error?) -> Void)?)
     {
-        
-        self.delegate.didOpenL2ChannelBlock =
-        { peripheral, channel, error in
-            
-            if (peripheral == self.underlyingPeripheral)
-            {
-                if let c = channel
-                {
-                    self.l2CapChannel = UUL2CapChannel(c, delegate: delegate)
-                }
-                else
-                {
-                    self.l2CapChannel = nil
-                }
-                
-                self.delegate.didOpenL2ChannelBlock = nil
-                
-                completion(self.l2CapChannel, error)
-            }
-        }
-        
-        self.underlyingPeripheral.openL2CAPChannel(psm)
-    }
-    
+        self.delegate.didOpenL2ChannelBlock = callback
+    }    
 }
