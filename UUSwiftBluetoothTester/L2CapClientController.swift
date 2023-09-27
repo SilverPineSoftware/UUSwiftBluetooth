@@ -60,7 +60,8 @@ class L2CapClientController:L2CapController
         
         self.channel = UUL2CapChannel(peripheral)
         
-        self.channel?.open(psm: self.psm, timeout: 10.0, completion:
+//        self.channel?.open(psm: self.psm, timeout: 10.0, completion:
+        self.channel?.open(timeout: 10.0, completion:
         { error in
                         
             if let err = error

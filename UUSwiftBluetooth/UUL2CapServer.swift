@@ -12,11 +12,7 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
 {
     public var uuid:CBUUID
     
-    private var manager: CBPeripheralManager? = nil
-    private var psm:CBL2CAPPSM? = nil
-    private var channel:CBL2CAPChannel? = nil
-    private(set) public var dispatchQueue = DispatchQueue(label: "UUL2CapServerQueue", qos: .userInitiated, attributes: [], autoreleaseFrequency: .inherit, target: nil)
-
+  
     public var didReceiveDataCallback:((Data?) -> Void)? = nil
     
     public var isRunning:Bool
@@ -43,13 +39,13 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         super.init()
     }
     
-    
-    
-    
-    
-    private var didPeripheralPowerOnBlock:((Error?) -> Void)? = nil
-    private var didPublishChannelBlock:((Error?) -> Void)? = nil
-    private var didStartAdvertisingBlock:((Error?) -> Void)? = nil
+    class L2CapConstants
+    {
+        public static  let UU_L2CAP_SERVICE_UUID = CBUUID(string: "0EF98E22-A048-4B8E-892E-1FDBD97191D5")
+        public static let UU_L2CAP_PSM_CHARACTERISTIC_UUID = CBUUID(string: "6E53FA48-4063-45B6-9665-0BA0F4F93596")
+        public static let UU_L2CAP_CHANNEL_ENCRYPTED_CHARACTERISTIC_UUID = CBUUID(string: "CE67C620-6302-4456-B97C-89337D2AD7C2")
+    }
+        
     
     public func start(secure:Bool, completion: @escaping (CBL2CAPPSM?, Error?) -> Void)
     {
@@ -88,6 +84,46 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         
     }
     
+    public func stop()
+    {
+        self.closeChannelStreams()
+        self.channel = nil
+        
+        if let manager = self.manager,
+           let psm = self.psm
+        {
+            self.didUnpublishChannelBlock =
+            { error in
+                
+                self.unpublishService()
+                self.manager = nil
+            }
+            
+            manager.unpublishL2CAPChannel(psm)
+        }
+    }
+ 
+    
+    private var manager: CBPeripheralManager? = nil
+    private var psm:CBL2CAPPSM? = nil
+    private var channel:CBL2CAPChannel? = nil
+    private var service:CBMutableService? = nil
+    private var psmCharacteristic:CBMutableCharacteristic? = nil
+    private var encryptedCharacteristic:CBMutableCharacteristic? = nil
+
+    
+    
+    private(set) public var dispatchQueue = DispatchQueue(label: "UUL2CapServerQueue", qos: .userInitiated, attributes: [], autoreleaseFrequency: .inherit, target: nil)
+
+    
+    
+    private var didPeripheralPowerOnBlock:((Error?) -> Void)? = nil
+    private var didPublishChannelBlock:((Error?) -> Void)? = nil
+    private var didPublishServiceBlock:((Error?) -> Void)? = nil
+    private var didStartAdvertisingBlock:((Error?) -> Void)? = nil
+
+    
+    
     private func cancelStart(_ timerId:TimerId)
     {
         self.cancelTimer(timerId)
@@ -97,9 +133,11 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         self.stop()
     }
     
+        
+    
     private func publishChannel(timerId:TimerId, secure:Bool, completion: @escaping (CBL2CAPPSM?, Error?) -> Void)
     {
-        guard let manager = manager else
+        guard let manager = self.manager else
         {
             self.cancelStart(timerId)
             let err = NSError.uuCoreBluetoothError(.centralNotReady, userInfo: ["l2capserver":"manager is nil!"])
@@ -119,16 +157,61 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
             }
             else
             {
-                self.startAdvertising(timerId: timerId, completion: completion)
+                self.publishService(timerId: timerId, secure: secure,  completion: completion)
             }
         }
         
         manager.publishL2CAPChannel(withEncryption: secure)
     }
     
+    private func publishService(timerId:TimerId, secure:Bool, completion: @escaping (CBL2CAPPSM?, Error?) -> Void)
+    {
+        guard let manager = self.manager, let psm = self.psm else
+        {
+            self.cancelStart(timerId)
+            let err = NSError.uuCoreBluetoothError(.centralNotReady, userInfo: ["l2capserver":"manager is nil!"])
+            completion(nil, err)
+            return
+        }
+    
+        
+        self.didPublishServiceBlock =
+        { error in
+            
+            self.didPublishServiceBlock = nil
+            
+            if let err = error
+            {
+                NSLog("Publish Service Error! \(err)")
+                self.cancelStart(timerId)
+                completion(nil, err)
+            }
+            else
+            {
+                self.startAdvertising(timerId: timerId, completion: completion)
+            }
+        }
+        
+        
+        self.service = CBMutableService(type: L2CapConstants.UU_L2CAP_SERVICE_UUID, primary: true)
+        
+        var psmCopy = psm
+        let psmData = Data(bytes: &psmCopy, count: MemoryLayout<UInt16>.size)
+        self.psmCharacteristic = CBMutableCharacteristic(type: L2CapConstants.UU_L2CAP_PSM_CHARACTERISTIC_UUID, properties: [.read], value: psmData, permissions: [.readable])
+        
+        var secureCopy = secure
+        let secureData = Data(bytes: &secureCopy, count: MemoryLayout<UInt8>.size)
+        self.encryptedCharacteristic = CBMutableCharacteristic(type: L2CapConstants.UU_L2CAP_CHANNEL_ENCRYPTED_CHARACTERISTIC_UUID, properties: [.read], value: secureData, permissions: [.readable])
+        
+        self.service?.characteristics = [self.psmCharacteristic!, self.encryptedCharacteristic!]
+        
+        manager.add(self.service!)
+    }
+    
+    
     private func startAdvertising(timerId:TimerId, completion: @escaping (CBL2CAPPSM?, Error?) -> Void)
     {
-        guard let manager = manager else
+        guard let manager = self.manager else
         {
             self.cancelStart(timerId)
             let err = NSError.uuCoreBluetoothError(.centralNotReady, userInfo: ["l2capserver":"manager is nil!"])
@@ -162,26 +245,18 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         manager.startAdvertising(advertisingData)
     }
     
-    private var didUnpublishChannelBlock:((Error?) -> Void)? = nil
-    
-    public func stop()
+    private func unpublishService()
     {
-        self.closeChannelStreams()
-        self.channel = nil
-        
-        if let manager = self.manager,
-           let psm = self.psm
-        {
-            self.didUnpublishChannelBlock =
-            { error in
-                
-                self.manager = nil
-            }
-            
-            manager.unpublishL2CAPChannel(psm)
-        }
+        self.manager?.stopAdvertising()
+        self.manager?.removeAllServices()
+        self.psmCharacteristic = nil
+        self.encryptedCharacteristic = nil
+        self.service = nil
     }
     
+    private var didUnpublishChannelBlock:((Error?) -> Void)? = nil
+    
+   
     //MARK: Streams
     private func openChannelStreams()
     {
@@ -250,15 +325,23 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
             error = NSError.uuCoreBluetoothError(.centralNotReady, userInfo: ["peripheral_state":"\(peripheral.state)"])
         }
         
-        if let powerOnBlock = didPeripheralPowerOnBlock
+        if let powerOnBlock = self.didPeripheralPowerOnBlock
         {
             powerOnBlock(error)
         }
     }
     
+    public func peripheralManager(_ peripheral: CBPeripheralManager, didAdd service: CBService, error: Error?) 
+    {
+        if let didAddServiceBlock = self.didPublishServiceBlock
+        {
+            didAddServiceBlock(error)
+        }
+    }
+    
     public func peripheralManagerDidStartAdvertising(_ peripheral: CBPeripheralManager, error: Error?)
     {
-        if let didStartBlock = didStartAdvertisingBlock
+        if let didStartBlock = self.didStartAdvertisingBlock
         {
             didStartBlock(error)
         }
@@ -274,7 +357,7 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
     {
         self.channel = nil //Should already be nil at this point but just for safety do it here too!
         
-        if let didUnpublishBlock = didUnpublishChannelBlock
+        if let didUnpublishBlock = self.didUnpublishChannelBlock
         {
             didUnpublishBlock(error)
         }
