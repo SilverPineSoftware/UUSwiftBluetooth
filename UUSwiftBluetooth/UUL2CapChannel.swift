@@ -34,7 +34,6 @@ public class UUL2CapChannel:NSObject//, StreamDelegate
         super.init()
     }
     
-    
     public func open(psm:CBL2CAPPSM, timeout:TimeInterval = Defaults.openTimeout, completion: @escaping ((Error?) -> Void))
     {
         self.psm = psm //Not sure if this is necessary
