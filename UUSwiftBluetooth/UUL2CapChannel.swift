@@ -34,138 +34,8 @@ public class UUL2CapChannel:NSObject//, StreamDelegate
         super.init()
     }
     
-    public func open(timeout:TimeInterval = Defaults.openTimeout, completion: @escaping ((Error?) -> Void))
+    public func open(psm:CBL2CAPPSM, timeout:TimeInterval = Defaults.openTimeout, completion: @escaping ((Error?) -> Void))
     {
-        let timerId = TimerId.open
-        
-        self.startTimer(timerId, timeout)
-        {
-            self.peripheral.setDidOpenL2ChannelCallback(callback: nil)
-            self.cancelTimer(timerId)
-            
-            NSLog("Open L2CapChannel timeout for peripheral:\(self.peripheral.identifier)")
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            
-            completion(err)
-        }
-        
-                
-        self.peripheral.discoverServices
-        { services, error in
-            
-            let list = services ?? []
-            if let service = list.first(where: { $0.uuid == UUL2CapServer.L2CapConstants.UU_L2CAP_SERVICE_UUID })
-            {
-                self.discoverCharacteristics(timerId: timerId, service: service, completion: completion)
-            }
-            else
-            {
-                self.peripheral.setDidOpenL2ChannelCallback(callback: nil)
-                self.cancelTimer(timerId)
-                
-                var err = error
-                if (err == nil)
-                {
-                    err = NSError.uuCoreBluetoothError(.timeout, userInfo: ["discover services":"failed"])
-                }
-                
-                completion(err)
-            }
-            
-        }
-        
-        
-    }
-    
-    private func discoverCharacteristics(timerId:TimerId, service:CBService, completion: @escaping ((Error?) -> Void))
-    {
-        self.peripheral.discoverCharacteristics([UUL2CapServer.L2CapConstants.UU_L2CAP_PSM_CHARACTERISTIC_UUID, UUL2CapServer.L2CapConstants.UU_L2CAP_CHANNEL_ENCRYPTED_CHARACTERISTIC_UUID], for: service)
-        { characteristics, error in
-        
-            guard (error == nil) else
-            {
-                self.peripheral.setDidOpenL2ChannelCallback(callback: nil)
-                self.cancelTimer(timerId)
-                
-                NSLog("Error discovering characteristics: \(String(describing: error))")
-                
-                completion(NSError.uuCoreBluetoothError(.operationFailed))
-                return
-            }
-            
-            guard let list = characteristics,
-                  let psmChar = list.first(where: { $0.uuid == UUL2CapServer.L2CapConstants.UU_L2CAP_PSM_CHARACTERISTIC_UUID }) else
-            {
-                self.peripheral.setDidOpenL2ChannelCallback(callback: nil)
-                self.cancelTimer(timerId)
-                
-                NSLog("Error discovering characteristics: \(String(describing: error))")
-                
-                completion(NSError.uuCoreBluetoothError(.operationFailed, userInfo: ["Details":"Error finding characteristic in list"]))
-                
-                return
-            }
-            
-            guard psmChar.uuCanReadData else 
-            {
-                self.peripheral.setDidOpenL2ChannelCallback(callback: nil)
-                self.cancelTimer(timerId)
-                
-                NSLog("Error discovering characteristics: \(String(describing: error))")
-                
-                completion(NSError.uuCoreBluetoothError(.operationFailed, userInfo: ["Details":"Cannot read psm value"]))
-                
-                return
-            }
-            
-            
-            
-            self.readCharacteristicValue(timerId: timerId, characteristic: psmChar, completion: completion)
-            
-            
-        }
-    }
-   
-    private func readCharacteristicValue(timerId:TimerId, characteristic:CBCharacteristic, completion: @escaping ((Error?) -> Void))
-    {
-        self.peripheral.readValue(for: characteristic)
-        { _, characteristic, error in
-            
-            guard let psmData = characteristic.value else
-            {
-                self.peripheral.setDidOpenL2ChannelCallback(callback: nil)
-                self.cancelTimer(timerId)
-                
-                NSLog("Error discovering characteristics: \(String(describing: error))")
-                
-                completion(NSError.uuCoreBluetoothError(.operationFailed, userInfo: ["Details":"Error parsing psm data value"]))
-                
-                return
-            }
-            
-            
-            
-            
-            let psm = psmData.withUnsafeBytes({ $0.load(as: UInt16.self )})
-            
-            NSLog("Found psm in characteristic! \(psm)")
-            
-            self.open(timerId: timerId, psm: psm, completion: completion)
-            
-        }
-        
-    }
-    
-    
-    
-    
-    
-    private func open(timerId:TimerId, psm:CBL2CAPPSM, completion: @escaping ((Error?) -> Void))
-    {
-        
-        
-        
-        
         self.psm = psm //Not sure if this is necessary
         let timerId = TimerId.open
         
@@ -182,16 +52,16 @@ public class UUL2CapChannel:NSObject//, StreamDelegate
             completion(error)
         }
         
-//        self.startTimer(timerId, timeout)
-//        {
-//            self.peripheral.setDidOpenL2ChannelCallback(callback: nil)
-//            self.cancelTimer(timerId)
-//
-//            NSLog("Open L2CapChannel with psm:\(psm) timeout for peripheral:\(self.peripheral.identifier)")
-//            let err = NSError.uuCoreBluetoothError(.timeout)
-//            
-//            completion(err)
-//        }
+        self.startTimer(timerId, timeout)
+        {
+            self.peripheral.setDidOpenL2ChannelCallback(callback: nil)
+            self.cancelTimer(timerId)
+
+            NSLog("Open L2CapChannel with psm:\(psm) timeout for peripheral:\(self.peripheral.identifier)")
+            let err = NSError.uuCoreBluetoothError(.timeout)
+            
+            completion(err)
+        }
         
         self.peripheral.underlyingPeripheral.openL2CAPChannel(psm)        
     }

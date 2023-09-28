@@ -8,6 +8,13 @@
 import CoreBluetooth
 import UUSwiftCore
 
+public class UUL2CapConstants
+{
+    public static  let UU_L2CAP_SERVICE_UUID = CBUUID(string: "0EF98E22-A048-4B8E-892E-1FDBD97191D5")
+    public static let UU_L2CAP_PSM_CHARACTERISTIC_UUID = CBUUID(string: "6E53FA48-4063-45B6-9665-0BA0F4F93596")
+    public static let UU_L2CAP_CHANNEL_ENCRYPTED_CHARACTERISTIC_UUID = CBUUID(string: "CE67C620-6302-4456-B97C-89337D2AD7C2")
+}
+
 public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
 {
     public var uuid:CBUUID
@@ -37,13 +44,6 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         self.timerPool = UUTimerPool.getPool("UUL2CapServer_\(uuid)", queue: dispatchQueue)
         
         super.init()
-    }
-    
-    class L2CapConstants
-    {
-        public static  let UU_L2CAP_SERVICE_UUID = CBUUID(string: "0EF98E22-A048-4B8E-892E-1FDBD97191D5")
-        public static let UU_L2CAP_PSM_CHARACTERISTIC_UUID = CBUUID(string: "6E53FA48-4063-45B6-9665-0BA0F4F93596")
-        public static let UU_L2CAP_CHANNEL_ENCRYPTED_CHARACTERISTIC_UUID = CBUUID(string: "CE67C620-6302-4456-B97C-89337D2AD7C2")
     }
         
     
@@ -193,15 +193,15 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         }
         
         
-        self.service = CBMutableService(type: L2CapConstants.UU_L2CAP_SERVICE_UUID, primary: true)
+        self.service = CBMutableService(type: UUL2CapConstants.UU_L2CAP_SERVICE_UUID, primary: true)
         
         var psmCopy = psm
         let psmData = Data(bytes: &psmCopy, count: MemoryLayout<UInt16>.size)
-        self.psmCharacteristic = CBMutableCharacteristic(type: L2CapConstants.UU_L2CAP_PSM_CHARACTERISTIC_UUID, properties: [.read], value: psmData, permissions: [.readable])
+        self.psmCharacteristic = CBMutableCharacteristic(type: UUL2CapConstants.UU_L2CAP_PSM_CHARACTERISTIC_UUID, properties: [.read], value: psmData, permissions: [.readable])
         
         var secureCopy = secure
         let secureData = Data(bytes: &secureCopy, count: MemoryLayout<UInt8>.size)
-        self.encryptedCharacteristic = CBMutableCharacteristic(type: L2CapConstants.UU_L2CAP_CHANNEL_ENCRYPTED_CHARACTERISTIC_UUID, properties: [.read], value: secureData, permissions: [.readable])
+        self.encryptedCharacteristic = CBMutableCharacteristic(type: UUL2CapConstants.UU_L2CAP_CHANNEL_ENCRYPTED_CHARACTERISTIC_UUID, properties: [.read], value: secureData, permissions: [.readable])
         
         self.service?.characteristics = [self.psmCharacteristic!, self.encryptedCharacteristic!]
         
@@ -222,13 +222,7 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         
         let uuidlist = [uuid]
 
-        var name:String = "L2CapServer-"
-        if let num = psm
-        {
-            name += "\(num)"
-        }
-
-        let advertisingData: [String:Any] = [CBAdvertisementDataServiceUUIDsKey:uuidlist, CBAdvertisementDataLocalNameKey:name]
+        let advertisingData: [String:Any] = [CBAdvertisementDataServiceUUIDsKey:uuidlist, CBAdvertisementDataLocalNameKey:"UUL2CapServer"]
         
         
         self.didStartAdvertisingBlock =

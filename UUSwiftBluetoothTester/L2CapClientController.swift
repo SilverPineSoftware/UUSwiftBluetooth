@@ -12,14 +12,6 @@ import UUSwiftBluetooth
 class L2CapClientController:L2CapController
 {
     var peripheral:UUPeripheral!
-    {
-        didSet
-        {
-            psm = UInt16(peripheral.localName.replacingOccurrences(of: "L2CapServer-", with: "")) ?? 0
-        }
-    }
-    
-    private var psm:UInt16 = 0
     private var channel:UUL2CapChannel? = nil
     
     override func viewDidLoad()
@@ -29,7 +21,6 @@ class L2CapClientController:L2CapController
         self.title = "L2Cap Client"
         
         self.configureLeftButton("Connect", connect)
-//        self.configureMiddleButton("Open L2Cap", startChannel)
         self.configureRightButton("Ping", ping)
         
         
@@ -56,29 +47,40 @@ class L2CapClientController:L2CapController
     
     func startChannel()
     {
-        self.addOutputLine("Opening L2CapChannel with psm \(self.psm)...")
-        
-        self.channel = UUL2CapChannel(peripheral)
-        
-//        self.channel?.open(psm: self.psm, timeout: 10.0, completion:
-        self.channel?.open(timeout: 10.0, completion:
-        { error in
-                        
-            if let err = error
+        self.readL2CapSettings
+        { foundPsm, foundEncrypted, error in
+            
+            guard let psm = foundPsm else
             {
-                self.addOutputLine("Error: \(err)")
-            }
-            else if let _ = self.channel
-            {
-                self.addOutputLine("L2Cap Channel Connected!")
-            }
-            else
-            {
-                self.addOutputLine("L2Cap Channel connect attempt returned no error but no channel was created!")
+                self.addOutputLine("No PSM found! Cannot start channel!")
+                return
             }
             
-        })
-        
+            self.addOutputLine("L2Cap Settings (psm:\(psm), encrypted:\(String(describing: foundEncrypted)))")
+            
+            self.addOutputLine("Opening L2CapChannel with psm \(psm)...")
+
+            self.channel = UUL2CapChannel(self.peripheral)
+            
+            self.channel?.open(psm: psm, timeout: 10.0, completion:
+            { error in
+                            
+                if let err = error
+                {
+                    self.addOutputLine("Error: \(err)")
+                }
+                else if let _ = self.channel
+                {
+                    self.addOutputLine("L2Cap Channel Connected!")
+                }
+                else
+                {
+                    self.addOutputLine("L2Cap Channel connect attempt returned no error but no channel was created!")
+                }
+                
+            })
+            
+        }
     }
     
     func ping()
@@ -118,206 +120,104 @@ class L2CapClientController:L2CapController
             }
         })
     }
-}
-
-
-
-
-
-
-class L2CapController:UIViewController, UITableViewDelegate, UITableViewDataSource
-{
-    var initialOutputline:String? = nil
     
-    ///Adds a line of text to the tableview. If a method is passed, it logs the line as well
-    func addOutputLine(_ line:String, _ method:String? = nil)
+    
+    private func readL2CapSettings(completion: @escaping ((CBL2CAPPSM?, Bool?, Error?) -> Void))
     {
-        DispatchQueue.main.async
-        {
-            self.tableView.beginUpdates()
-            
-            self.tableData.append(line)
-            
-            let indexPath = IndexPath(row: self.tableData.count - 1, section: 0)
-            
-            self.tableView.insertRows(at: [indexPath], with: .bottom)
-            self.tableView.endUpdates()
-            
-            self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
-            
-            if let m = method
-            {
-                self.log(m, line)
-            }
-        }
-
+        self.addOutputLine("Reading L2Cap Settings...")
+        self.discoverL2CapService(completion: completion)
     }
     
-    func log(_ method:String, _ text:String)
+    private func discoverL2CapService(completion: @escaping ((CBL2CAPPSM?, Bool?, Error?) -> Void))
     {
-        NSLog("\(method) - \(text)")
-    }
-    
-    ///Clears all tableview lines
-    func clearOutput()
-    {
-        DispatchQueue.main.async
-        {
-            self.tableData.removeAll()
+        self.peripheral.discoverServices([UUL2CapConstants.UU_L2CAP_SERVICE_UUID], timeout: 10)
+        { discoveredServices, error in
             
-            if let initial = self.initialOutputline, !initial.isEmpty
+            guard let service = discoveredServices?.first(where: { $0.uuid == UUL2CapConstants.UU_L2CAP_SERVICE_UUID }) else
             {
-                self.tableData.append(initial)
+                self.addOutputLine("Couldn't find L2Cap Service!")
+                completion(nil, nil, error)
+                return
             }
             
-            self.tableView.reloadData()
+            
+            self.discoverL2CapCharacteristics(service: service, completion: completion)
         }
     }
     
-    func configureLeftButton(_ title:String, _ action: @escaping (() -> Void))
+    private func discoverL2CapCharacteristics(service:CBService, completion: @escaping ((CBL2CAPPSM?, Bool?, Error?) -> Void))
     {
-        configureButton(leftButton, title, action)
-    }
-    
-    func configureMiddleButton(_ title:String, _ action: @escaping (() -> Void))
-    {
-        configureButton(middleButton, title, action)
-    }
-    
-    func configureRightButton(_ title:String, _ action: @escaping (() -> Void))
-    {
-        configureButton(rightButton, title, action)
-    }
-    
-    private func configureButton(_ button:UIButton, _ title:String, _ action: @escaping (() -> Void))
-    {
-        DispatchQueue.main.async
-        {
-            button.isHidden = false
-            button.setTitle(title, for: .normal)
-            button.addAction(UIAction( handler: { _ in action() }), for: .touchUpInside)
+        self.peripheral.discoverCharacteristics([UUL2CapConstants.UU_L2CAP_PSM_CHARACTERISTIC_UUID, UUL2CapConstants.UU_L2CAP_CHANNEL_ENCRYPTED_CHARACTERISTIC_UUID], for: service, timeout: 10)
+        { discoveredCharacteristics, error in
+            
+            guard let psmCharacteristic = discoveredCharacteristics?.first(where: { $0.uuid == UUL2CapConstants.UU_L2CAP_PSM_CHARACTERISTIC_UUID }),
+                  let encrytpedCharacteristic = discoveredCharacteristics?.first(where: { $0.uuid == UUL2CapConstants.UU_L2CAP_CHANNEL_ENCRYPTED_CHARACTERISTIC_UUID }) else
+            {
+                self.addOutputLine("Couldn't find L2Cap Characteristics!")
+                completion(nil, nil, error)
+                return
+            }
+            
+            
+            self.readL2CapCharacteristicValues(psmCharacteristic: psmCharacteristic, encryptionCharacteristic: encrytpedCharacteristic, completion: completion)
         }
     }
     
-    private var tableData:[String] = []
-    
-    override func loadView() {
-        super.loadView()
-        
-        self.view.backgroundColor = .white
-        
-        self.view.addSubview(leftButton)
-        self.view.addSubview(middleButton)
-        self.view.addSubview(rightButton)
-        
-        leftButton.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 5).isActive = true
-        middleButton.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 5).isActive = true
-        rightButton.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 5).isActive = true
+    private func readL2CapCharacteristicValues(psmCharacteristic:CBCharacteristic, encryptionCharacteristic:CBCharacteristic, completion: @escaping ((CBL2CAPPSM?, Bool?, Error?) -> Void))
+    {
+        self.readL2CapPSMValue(characteristic: psmCharacteristic)
+        { foundPSM, error in
+            
+            guard let psm = foundPSM else
+            {
+                self.addOutputLine("Couldn't find L2Cap PSM")
+                completion(nil, nil, error)
+                return
+            }
+            
+            
+            self.readL2CapEncryptionValue(characteristic: encryptionCharacteristic)
+            { foundEncryption, error in
+                
+                completion(psm, foundEncryption, error)
+            }
 
-        leftButton.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor, constant: 5).isActive = true
-        rightButton.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -5).isActive = true
-        middleButton.leadingAnchor.constraint(equalTo: leftButton.trailingAnchor, constant: 5).isActive = true
-        middleButton.trailingAnchor.constraint(equalTo: rightButton.leadingAnchor, constant: -5).isActive = true
-        
-        leftButton.widthAnchor.constraint(equalTo: middleButton.widthAnchor, multiplier: 1.0).isActive = true
-        leftButton.widthAnchor.constraint(equalTo: rightButton.widthAnchor, multiplier: 1.0).isActive = true
-
-        middleButton.widthAnchor.constraint(equalTo: leftButton.widthAnchor, multiplier: 1.0).isActive = true
-        middleButton.widthAnchor.constraint(equalTo: rightButton.widthAnchor, multiplier: 1.0).isActive = true
-        
-        rightButton.widthAnchor.constraint(equalTo: leftButton.widthAnchor, multiplier: 1.0).isActive = true
-        rightButton.widthAnchor.constraint(equalTo: middleButton.widthAnchor, multiplier: 1.0).isActive = true
-        
-        tableView.delegate = self
-        tableView.dataSource = self
-        
-        self.view.addSubview(tableView)
-        tableView.topAnchor.constraint(equalTo: leftButton.bottomAnchor, constant: 5).isActive = true
-        tableView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor, constant: 5).isActive = true
-        tableView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -5).isActive = true
-        tableView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: -5).isActive = true
-        
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: UITableViewCell.uuClassName)
-
+        }
     }
     
-    private let leftButton:UIButton = {
-        return createButton()
-    }()
     
-    private let middleButton:UIButton = {
-        return createButton()
-    }()
-    
-    private let rightButton:UIButton = {
-        return createButton()
-    }()
-    
-    private static func createButton() -> UIButton
+    private func readL2CapPSMValue(characteristic:CBCharacteristic, completion: @escaping ((CBL2CAPPSM?, Error?) -> Void))
     {
-        let v = UIButton(type: .custom)
-        v.translatesAutoresizingMaskIntoConstraints = false
-        v.isHidden = true
-        
-        if #available(iOS 15, *)
-        {
-            v.setTitleColor(UIColor.tintColor, for: .normal)
+        self.peripheral.readValue(for: characteristic)
+        { _, characteristic, error in
+            
+            guard let psmData = characteristic.value else
+            {
+                completion(nil, error)
+                return
+            }
+                    
+            
+            let psm = psmData.withUnsafeBytes({ $0.load(as: UInt16.self )})
+            completion(psm, error)
         }
-        else
-        {
-            v.setTitleColor(UIColor.systemBlue, for: .normal)
-        }
-        
-        return v
     }
     
-    private let tableView:UITableView = {
-       let v = UITableView()
-        v.translatesAutoresizingMaskIntoConstraints = false
-        v.backgroundColor = .white
-        return v
-    }()
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int
+    private func readL2CapEncryptionValue(characteristic:CBCharacteristic, completion: @escaping ((Bool?, Error?) -> Void))
     {
-        return tableData.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
-    {
-        let data = tableData[indexPath.row]
-        
-        let cell = tableView.dequeueReusableCell(withIdentifier: UITableViewCell.uuClassName, for: indexPath)
-        cell.selectionStyle = .none
-
-        if #available(iOS 16, *)
-        {
-            var background = cell.defaultBackgroundConfiguration()
-            background.backgroundColor = .white
-            cell.backgroundConfiguration = background
-        }
-        else
-        {
-            cell.contentView.backgroundColor = .white
-        }
-
-        var content = cell.defaultContentConfiguration()
-        content.text = data
-        content.textProperties.font = UIFont.systemFont(ofSize: 12)
-        cell.contentConfiguration = content
-        
-        return cell
-    }
-    
-    func errorDescription(_ error:Error?) -> String
-    {
-        if let err = error
-        {
-            return "\(err)"
-        }
-        else
-        {
-            return "nil"
+        self.peripheral.readValue(for: characteristic)
+        { _, characteristic, error in
+            
+            guard let encryptedData = characteristic.value else
+            {
+                completion(nil, error)
+                return
+            }
+                    
+            
+            let encrypted = encryptedData.withUnsafeBytes({ $0.load(as: UInt8.self )}) == 0
+            completion(encrypted, error)
         }
     }
 }
+
