@@ -60,8 +60,10 @@ class L2CapServerController:L2CapController
                     self.addOutputLine("Error creating command!")
                 }
             }
-            
-            self.command?.appendBytes(data)
+            else
+            {
+                self.command?.appendBytes(data)
+            }
             
             if let cmd = self.command
             {

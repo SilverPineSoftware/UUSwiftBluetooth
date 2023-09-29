@@ -222,17 +222,18 @@ class UUL2CapCommand:NSObject
     
     
     //appends to the data
-    func appendBytes(_ data:Data)
+    func appendBytes(_ incomingData:Data)
     {
         guard (!self.haveReceivedAllData()) else
         {
-            NSLog("Tried to append \(data.count) bytes but already have \(self.data.count) bytes of expected \(totalExpectedBytes)")
+            NSLog("Tried to append \(incomingData.count) bytes but already have \(self.data.count) bytes of expected \(totalExpectedBytes)")
             return
         }
         
         let existingCount = self.data.count
         let requestedAdditionCount = data.count
         
+        /*
         var adjustedData = data
         
         let preAdjustedCount = existingCount + requestedAdditionCount
@@ -249,20 +250,22 @@ class UUL2CapCommand:NSObject
                 NSLog("Adjusting last chunk of data! Included only \(adjustedData.count) of \(data.count) bytes! (lopped chunk size: \(loppedData.count))")
             }
         }
+        */
         
+        bytesRecieved += incomingData.count
         
-        
-        self.data.append(adjustedData)
+        self.data.append(incomingData)
         
         let previous = Int(bytesRecieved)
-        let adjustedCount = adjustedData.count
+        //let adjustedCount = adjustedData.count
         
-        bytesRecieved += adjustedCount
+        //bytesRecieved += adjustedCount
                 
         let complete:Float = percentageComplete()*100
         
         
-        NSLog("Recieved more data! (\(bytesRecieved)/\(totalExpectedBytes)) \(complete) :: AdjustedCount (\(adjustedData)) : previousBytes (\(previous)) : updated: (\(bytesRecieved))")
+        //NSLog("Recieved more data! (\(bytesRecieved)/\(totalExpectedBytes)) \(complete) :: AdjustedCount (\(incomingData.count)) : previousBytes (\(previous)) : updated: (\(bytesRecieved))")
+        NSLog("Recieved more data! (\(bytesRecieved)/\(totalExpectedBytes)) \(complete)")
     }
     
     func haveReceivedAllData() -> Bool
