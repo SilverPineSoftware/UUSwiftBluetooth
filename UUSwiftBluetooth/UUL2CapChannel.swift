@@ -423,11 +423,20 @@ public extension InputStream
             buffer.deallocate()
         }
         
-        let rawBytesRead = self.read(buffer, maxLength: bufferLength)
-        
         var data = Data()
         
-        data.append(buffer, count: rawBytesRead)
+        while (hasBytesAvailable)
+        {
+            let bytesRead = read(buffer, maxLength: bufferLength)
+            if (bytesRead > 0)
+            {
+                data.append(buffer, count: bytesRead)
+            }
+            else
+            {
+                break
+            }
+        }
         
         return data
     }
