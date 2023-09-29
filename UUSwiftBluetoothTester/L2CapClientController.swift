@@ -14,15 +14,22 @@ class L2CapClientController:L2CapController
     var peripheral:UUPeripheral!
     private var channel:UUL2CapChannel? = nil
     
+    
+    override func buildMenu() -> UIMenu?
+    {
+        
+        let start = UIAction(title: "Connect", handler: { _ in self.connect() })
+        let stop = UIAction(title: "Ping", handler: { _ in self.ping() })
+
+        return UIMenu(title: "Client Actions", image: nil, identifier: nil, options: [], children: [start, stop])
+    }
+    
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
         
         self.title = "L2Cap Client"
-        
-        self.configureLeftButton("Connect", connect)
-        self.configureRightButton("Ping", ping)
-        
         
         self.initialOutputline = "Tap Connect to Begin"
         self.clearOutput()

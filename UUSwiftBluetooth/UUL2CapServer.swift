@@ -102,6 +102,65 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
             manager.unpublishL2CAPChannel(psm)
         }
     }
+    
+    public func sendData(_ data:Data,
+                         _ completion: @escaping ((Int?) -> Void))
+    {
+        
+        guard let outputStream = self.channel?.outputStream else
+        {
+            completion(nil)
+            return
+        }
+        
+        self.uuWriteAllData(outputStream: outputStream, data: data, queue: dispatchQueue, progress: nil, completion: completion)
+    }
+    
+    func uuWriteAllData(outputStream:OutputStream, data:Data?, queue:DispatchQueue = .main, progress:((UInt32) -> Void)?, completion: @escaping ((Int?) -> Void))
+    {
+        NSLog("Called uuWriteData")
+
+        guard let d = data, !d.isEmpty else
+        {
+            NSLog("Data is nil or empty, cannot write!")
+            completion(nil)
+            return
+        }
+        
+        guard outputStream.hasSpaceAvailable else
+        {
+            NSLog("No space available! (try again later?)")
+            completion(nil)
+            return
+        }
+
+        queue.async
+        {
+            self.uuWriteAllDataChunks(outputStream:outputStream, data: d, bytesSent: nil, progress: progress, completion: completion)
+        }
+    }
+    
+    private func uuWriteAllDataChunks(outputStream:OutputStream, data:Data, bytesSent:Int?, progress:((UInt32)->Void)?, completion:((Int?) -> Void))
+    {
+        let numberOfBytesSent = outputStream.uuWriteData(data: data)
+        let totalBytesSent = (bytesSent ?? 0) + numberOfBytesSent
+
+        NSLog("Sent one chunk of data (\(totalBytesSent) bytes)!")
+        if (numberOfBytesSent < data.count)
+        {
+            progress?(UInt32(totalBytesSent))
+            
+            NSLog("Have more bytes to send...")
+
+            let workingData = data.advanced(by: numberOfBytesSent)
+            uuWriteAllDataChunks(outputStream:outputStream, data: workingData, bytesSent: numberOfBytesSent, progress: progress, completion: completion)
+        }
+        else
+        {
+            NSLog("No more bytes to send! Completing!")
+            completion(totalBytesSent)
+        }
+    }
  
     
     private var manager: CBPeripheralManager? = nil
@@ -195,8 +254,8 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         
         self.service = CBMutableService(type: UUL2CapConstants.UU_L2CAP_SERVICE_UUID, primary: true)
         
-        var psmCopy = psm
-        let psmData = Data(bytes: &psmCopy, count: MemoryLayout<UInt16>.size)
+        var psmData = Data()
+        psmData.uuAppend((UInt32(psm)))
         self.psmCharacteristic = CBMutableCharacteristic(type: UUL2CapConstants.UU_L2CAP_PSM_CHARACTERISTIC_UUID, properties: [.read], value: psmData, permissions: [.readable])
         
         var secureCopy = secure
@@ -363,6 +422,16 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         self.openChannelStreams()
     }
     
+//    public func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveRead request: CBATTRequest) 
+//    {
+//        peripheral.respond(to: request, withResult: .success)
+//    }
+//    
+//    public func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest]) 
+//    {
+//        
+//    }
+    
     //MARK: StreamDelegate
     public func stream(_ stream: Stream, handle eventCode: Stream.Event)
     {
@@ -376,15 +445,48 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
 
         case Stream.Event.hasBytesAvailable:
             NSLog("Stream HasBytesAvailable: \(stream.debugDescription)")
+            
+            
+            var workingData:Data? = nil
+            
             if let inputStream = stream as? InputStream
             {
-                self.readAvailableData(inputStream: inputStream, data: nil)
-                { bytesReceived in
-                    
-                    self.didReceiveDataCallback?(bytesReceived)
-                    self.echoBack(bytesReceived)
+                let dataRead = inputStream.uuReadData(10240)
+
+                if let data = dataRead
+                {
+                    if (workingData == nil)
+                    {
+                        workingData = Data()
+                        workingData?.append(data)
+                    }
                 }
             }
+            
+           
+            
+            self.didReceiveDataCallback?(workingData)
+
+            
+            
+//            guard (!amReadingData) else
+//            {
+//                NSLog("Already reading the data!")
+//                return
+//            }
+//            
+//            
+//            if let inputStream = stream as? InputStream
+//            {
+//                NSLog("Calling readAvailableData")
+//                self.readAvailableData(inputStream: inputStream, data: nil)
+//                { bytesReceived in
+//                    
+//                    self.amReadingData = false
+//                    self.didReceiveDataCallback?(bytesReceived)
+////                    self.echoBack(bytesReceived)
+//                }
+//            }
 
         case Stream.Event.hasSpaceAvailable:
             NSLog("Stream Has Space Available: \(stream.debugDescription)")
@@ -397,11 +499,16 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         }
     }
     
+    private var amReadingData:Bool = false
+    
     private func readAvailableData(inputStream:InputStream, data:Data?, completion:((Data?) -> Void))
     {
+        NSLog("Setting amReadingData to true!")
+
+        amReadingData = true
         var workingData:Data? = data
         
-        let dataRead = inputStream.uuReadData(1024)
+        let dataRead = inputStream.uuReadData(10240)
 
         if let data = dataRead
         {
@@ -414,10 +521,14 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         
         if (inputStream.hasBytesAvailable)
         {
+            NSLog("Reading Data, still have bytes available.... calling again")
+
             self.readAvailableData(inputStream:inputStream, data: workingData, completion: completion)
         }
         else
         {
+            NSLog("Reading Data, no more bytes available, returning!")
+
             completion(workingData)
         }
     }

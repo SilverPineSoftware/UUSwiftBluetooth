@@ -9,6 +9,7 @@ import Foundation
 import CoreBluetooth
 import UUSwiftCore
 
+
 public class UUL2CapChannel:NSObject//, StreamDelegate
 {
     private var channel:CBL2CAPChannel? = nil
@@ -66,14 +67,6 @@ public class UUL2CapChannel:NSObject//, StreamDelegate
         self.peripheral.underlyingPeripheral.openL2CAPChannel(psm)        
     }
     
-    
-    
-
-    
-    
-    
-    
-    
 
     private func openStreams()
     {
@@ -125,8 +118,6 @@ public class UUL2CapChannel:NSObject//, StreamDelegate
                             _ sendProgress:((UInt32) -> Void)? = nil,
                             _ completion: @escaping ((Int?, Data?, Error?) -> Void))
     {
-        //TODO: Set timeouts and stuff!
-
         let timerId = TimerId.operation
 
         guard let outputStream = self.channel?.outputStream, (self.channel?.inputStream != nil) else
@@ -418,5 +409,4 @@ public extension OutputStream
         })
     }
 }
-
 
