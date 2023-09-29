@@ -393,21 +393,9 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         
             if let inputStream = stream as? InputStream
             {
-//                inputStream.uuReadDataV2(10240) { progress in
-//                    
-//                } completionCallback: { dataRead in
-//                    let dataRead = inputStream.uuReadData(10240)
-//                    NSLog("Requested 10240 bytes read, actually read \(dataRead?.count ?? 0)")
-//
-//                    self.didReceiveDataCallback?(dataRead)
-//                }
-
-                
-                
                 let dataRead = inputStream.uuReadData(10240)
                 NSLog("Requested 10240 bytes read, actually read \(dataRead?.count ?? 0)")
-                self.handleRxFrameReceived(dataRead)
-//                self.didReceiveDataCallback?(dataRead)
+                self.didReceiveDataCallback?(dataRead)
             }
             
 
@@ -422,6 +410,7 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         }
     }
     
+    /*
     private var rxQueue:[Data]? = nil
     private func handleRxFrameReceived(_ data:Data?)
     {
@@ -461,7 +450,7 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
             
             self.didReceiveDataCallback?(fullDataSet)
         }
-    }
+    }*/
     
 //    private var amReadingData:Bool = false
 //    
