@@ -422,15 +422,6 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         self.openChannelStreams()
     }
     
-//    public func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveRead request: CBATTRequest) 
-//    {
-//        peripheral.respond(to: request, withResult: .success)
-//    }
-//    
-//    public func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest]) 
-//    {
-//        
-//    }
     
     //MARK: StreamDelegate
     public func stream(_ stream: Stream, handle eventCode: Stream.Event)
@@ -463,30 +454,7 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
                 }
             }
             
-           
-            
             self.didReceiveDataCallback?(workingData)
-
-            
-            
-//            guard (!amReadingData) else
-//            {
-//                NSLog("Already reading the data!")
-//                return
-//            }
-//            
-//            
-//            if let inputStream = stream as? InputStream
-//            {
-//                NSLog("Calling readAvailableData")
-//                self.readAvailableData(inputStream: inputStream, data: nil)
-//                { bytesReceived in
-//                    
-//                    self.amReadingData = false
-//                    self.didReceiveDataCallback?(bytesReceived)
-////                    self.echoBack(bytesReceived)
-//                }
-//            }
 
         case Stream.Event.hasSpaceAvailable:
             NSLog("Stream Has Space Available: \(stream.debugDescription)")
