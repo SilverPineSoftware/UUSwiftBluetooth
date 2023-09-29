@@ -113,53 +113,7 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
             return
         }
         
-        self.uuWriteAllData(outputStream: outputStream, data: data, queue: dispatchQueue, progress: nil, completion: completion)
-    }
-    
-    func uuWriteAllData(outputStream:OutputStream, data:Data?, queue:DispatchQueue = .main, progress:((UInt32) -> Void)?, completion: @escaping ((Int?) -> Void))
-    {
-        NSLog("Called uuWriteData")
-
-        guard let d = data, !d.isEmpty else
-        {
-            NSLog("Data is nil or empty, cannot write!")
-            completion(nil)
-            return
-        }
-        
-        guard outputStream.hasSpaceAvailable else
-        {
-            NSLog("No space available! (try again later?)")
-            completion(nil)
-            return
-        }
-
-        queue.async
-        {
-            self.uuWriteAllDataChunks(outputStream:outputStream, data: d, bytesSent: nil, progress: progress, completion: completion)
-        }
-    }
-    
-    private func uuWriteAllDataChunks(outputStream:OutputStream, data:Data, bytesSent:Int?, progress:((UInt32)->Void)?, completion:((Int?) -> Void))
-    {
-        let numberOfBytesSent = outputStream.uuWriteData(data: data)
-        let totalBytesSent = (bytesSent ?? 0) + numberOfBytesSent
-
-        NSLog("Sent one chunk of data (\(totalBytesSent) bytes)!")
-        if (numberOfBytesSent < data.count)
-        {
-            progress?(UInt32(totalBytesSent))
-            
-            NSLog("Have more bytes to send...")
-
-            let workingData = data.advanced(by: numberOfBytesSent)
-            uuWriteAllDataChunks(outputStream:outputStream, data: workingData, bytesSent: numberOfBytesSent, progress: progress, completion: completion)
-        }
-        else
-        {
-            NSLog("No more bytes to send! Completing!")
-            completion(totalBytesSent)
-        }
+        outputStream.uuWriteData(data: data, chunkSize: nil, progressCallback: nil, completionCallback: completion)
     }
  
     
@@ -429,125 +383,118 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         switch eventCode
         {
         case Stream.Event.openCompleted:
-            NSLog("Stream Opened: \(stream.debugDescription)")
+            NSLog("Stream Opened")
 
         case Stream.Event.endEncountered:
-            NSLog("Stream End Encountered: \(stream.debugDescription)")
+            NSLog("Stream End Encountered")
 
         case Stream.Event.hasBytesAvailable:
-            NSLog("Stream HasBytesAvailable: \(stream.debugDescription)")
-            
-            
-            var workingData:Data? = nil
-            
+            NSLog("Stream HasBytesAvailable")
+        
             if let inputStream = stream as? InputStream
             {
-                let dataRead = inputStream.uuReadData(10240)
+//                inputStream.uuReadDataV2(10240) { progress in
+//                    
+//                } completionCallback: { dataRead in
+//                    let dataRead = inputStream.uuReadData(10240)
+//                    NSLog("Requested 10240 bytes read, actually read \(dataRead?.count ?? 0)")
+//
+//                    self.didReceiveDataCallback?(dataRead)
+//                }
 
-                if let data = dataRead
-                {
-                    if (workingData == nil)
-                    {
-                        workingData = Data()
-                        workingData?.append(data)
-                    }
-                }
+                
+                
+                let dataRead = inputStream.uuReadData(10240)
+                NSLog("Requested 10240 bytes read, actually read \(dataRead?.count ?? 0)")
+                self.handleRxFrameReceived(dataRead)
+//                self.didReceiveDataCallback?(dataRead)
             }
             
-            self.didReceiveDataCallback?(workingData)
 
         case Stream.Event.hasSpaceAvailable:
-            NSLog("Stream Has Space Available: \(stream.debugDescription)")
+            NSLog("Stream Has Space Available")
 
         case Stream.Event.errorOccurred:
-            NSLog("Stream Error Occurred: \(stream.debugDescription)")
+            NSLog("Stream Error Occurred")
 
         default:
-            NSLog("Unhandled Stream event code: \(eventCode)")
+            NSLog("Unhandled Stream event code")
         }
     }
     
-    private var amReadingData:Bool = false
-    
-    private func readAvailableData(inputStream:InputStream, data:Data?, completion:((Data?) -> Void))
+    private var rxQueue:[Data]? = nil
+    private func handleRxFrameReceived(_ data:Data?)
     {
-        NSLog("Setting amReadingData to true!")
-
-        amReadingData = true
-        var workingData:Data? = data
-        
-        let dataRead = inputStream.uuReadData(10240)
-
-        if let data = dataRead
+        guard let d = data else
         {
-            if (workingData == nil)
-            {
-                workingData = Data()
-                workingData?.append(data)
-            }
-        }
-        
-        if (inputStream.hasBytesAvailable)
-        {
-            NSLog("Reading Data, still have bytes available.... calling again")
-
-            self.readAvailableData(inputStream:inputStream, data: workingData, completion: completion)
-        }
-        else
-        {
-            NSLog("Reading Data, no more bytes available, returning!")
-
-            completion(workingData)
-        }
-    }
-    
-    private var bytesToSend:Data? = nil
-
-    private func echoBack(_ receivedBytes:Data?)
-    {
-        
-        let tx = String("\(receivedBytes?.uuToHexString() ?? "nil")".reversed())
-        
-        self.bytesToSend = Data(tx.uuToHexData() ?? NSData())
-        
-        if let outputStream = self.channel?.outputStream as? OutputStream
-        {
-            self.sendData(outputStream: outputStream, bytesPreviouslySent: nil)
-            { totalBytesSent in
-                                
-                if let total = totalBytesSent
-                {
-                    NSLog("\(total) Total Bytes Sent!")
-                }
-                else
-                {
-                    NSLog("Total Bytes Sent is nil!")
-                }
-                
-            }
-        }
-    }
-    
-    private func sendData(outputStream:OutputStream, bytesPreviouslySent:Int?, completion:((Int?) -> Void))
-    {
-        guard let dataToSend = bytesToSend, dataToSend.count > 0 else
-        {
-            completion(bytesPreviouslySent)
             return
         }
         
-        
-        let numberOfBytesSent = outputStream.uuWriteData(data: dataToSend)
-        let totalBytesSent = (bytesPreviouslySent ?? 0) + numberOfBytesSent
-
-        if (numberOfBytesSent < (self.bytesToSend?.count ?? 0))
+        if (rxQueue == nil)
         {
-            self.bytesToSend = self.bytesToSend?.advanced(by: numberOfBytesSent)
-            sendData(outputStream: outputStream, bytesPreviouslySent: totalBytesSent, completion: completion)
+            rxQueue = []
         }
-        else
+        
+        rxQueue?.append(d)
+        
+        self.debounceDataReceived()
+    }
+    
+    private func debounceDataReceived()
+    {
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(self.handleRxQueueComplete), object: nil)
+        self.perform(#selector(self.handleRxQueueComplete), with: nil, afterDelay: 1.0)
+    }
+    
+    @objc private func handleRxQueueComplete()
+    {
+        if (self.channel?.inputStream.hasBytesAvailable == false)
         {
-            completion(totalBytesSent)
+            var fullDataSet = Data()
+            
+            for block in self.rxQueue ?? []
+            {
+                fullDataSet.append(block)
+            }
+            
+            self.rxQueue = nil
+            
+            self.didReceiveDataCallback?(fullDataSet)
         }
     }
+    
+//    private var amReadingData:Bool = false
+//    
+//    private func readAvailableData(inputStream:InputStream, data:Data?, completion:((Data?) -> Void))
+//    {
+//        NSLog("Setting amReadingData to true!")
+//
+//        amReadingData = true
+//        var workingData:Data? = data
+//        
+//        let dataRead = inputStream.uuReadData(10240)
+//
+//        if let data = dataRead
+//        {
+//            if (workingData == nil)
+//            {
+//                workingData = Data()
+//                workingData?.append(data)
+//            }
+//        }
+//        
+//        if (inputStream.hasBytesAvailable)
+//        {
+//            NSLog("Reading Data, still have bytes available.... calling again")
+//
+//            self.readAvailableData(inputStream:inputStream, data: workingData, completion: completion)
+//        }
+//        else
+//        {
+//            NSLog("Reading Data, no more bytes available, returning!")
+//
+//            completion(workingData)
+//        }
+//    }
+
 }

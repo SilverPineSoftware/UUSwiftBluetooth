@@ -163,20 +163,82 @@ public class UUL2CapChannel:NSObject//, StreamDelegate
     
     private func readAvailableData(_ stream:InputStream)
     {
-        self.uuReadAllData(inputStream:stream, bufferLength:1024, queue: dispatchQueue)
-        { dataRead in
-         
-            if let callback = self.dataReceivedCallback
-            {
-                callback(dataRead)
-            }
-            else
-            {
-                NSLog("Received data in stream but do not have anywhere to show it!")
-            }
-            
+        let dataRead = stream.uuReadData(10240)
+        NSLog("Requested 10240 bytes read, actually read \(dataRead?.count ?? 0)")
+        self.handleRxFrameReceived(dataRead)
+        
+        
+        
+//        stream.uuReadDataV2(10240) { lastChunkRead in
+//            
+//        } completionCallback: { dataRead in
+//            if let callback = self.dataReceivedCallback
+//            {
+//                callback(dataRead)
+//            }
+//            else
+//            {
+//                NSLog("Received data in stream but do not have anywhere to show it!")
+//            }
+//        }
+
+        
+        
+//        self.uuReadAllData(inputStream:stream, bufferLength:10240, queue: dispatchQueue)
+//        { dataRead in
+//         
+//            if let callback = self.dataReceivedCallback
+//            {
+//                callback(dataRead)
+//            }
+//            else
+//            {
+//                NSLog("Received data in stream but do not have anywhere to show it!")
+//            }
+//            
+//        }
+        
+    }
+    
+    private var rxQueue:[Data]? = nil
+    private func handleRxFrameReceived(_ data:Data?)
+    {
+        guard let d = data else
+        {
+            return
         }
         
+        if (rxQueue == nil)
+        {
+            rxQueue = []
+        }
+        
+        rxQueue?.append(d)
+        
+        self.debounceDataReceived()
+    }
+    
+    private func debounceDataReceived()
+    {
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(self.handleRxQueueComplete), object: nil)
+        self.perform(#selector(self.handleRxQueueComplete), with: nil, afterDelay: 1.0)
+    }
+    
+    @objc private func handleRxQueueComplete()
+    {
+        if (self.channel?.inputStream.hasBytesAvailable == false)
+        {
+            var fullDataSet = Data()
+            
+            for block in self.rxQueue ?? []
+            {
+                fullDataSet.append(block)
+            }
+            
+            self.rxQueue = nil
+            
+            self.dataReceivedCallback?(fullDataSet)
+        }
     }
     
     private func handleStreamOpened(stream:Stream)
@@ -268,6 +330,7 @@ public class UUL2CapChannel:NSObject//, StreamDelegate
         
         guard outputStream.hasSpaceAvailable else
         {
+            //if no space available, sleep and retry
             NSLog("No space available! (try again later?)")
             completion(nil)
             return
@@ -275,29 +338,7 @@ public class UUL2CapChannel:NSObject//, StreamDelegate
 
         queue.async
         {
-            self.uuWriteAllDataChunks(outputStream:outputStream, data: d, bytesSent: nil, progress: progress, completion: completion)
-        }
-    }
-    
-    private func uuWriteAllDataChunks(outputStream:OutputStream, data:Data, bytesSent:Int?, progress:((UInt32)->Void)?, completion:((Int?) -> Void))
-    {
-        let numberOfBytesSent = outputStream.uuWriteData(data: data)
-        let totalBytesSent = (bytesSent ?? 0) + numberOfBytesSent
-
-        NSLog("Sent one chunk of data (\(totalBytesSent) bytes)!")
-        if (numberOfBytesSent < data.count)
-        {
-            progress?(UInt32(totalBytesSent))
-            
-            NSLog("Have more bytes to send...")
-
-            let workingData = data.advanced(by: numberOfBytesSent)
-            uuWriteAllDataChunks(outputStream:outputStream, data: workingData, bytesSent: numberOfBytesSent, progress: progress, completion: completion)
-        }
-        else
-        {
-            NSLog("No more bytes to send! Completing!")
-            completion(totalBytesSent)
+            outputStream.uuWriteData(data: d, chunkSize: nil, progressCallback: progress, completionCallback: completion)
         }
     }
     
@@ -332,6 +373,8 @@ public class UUL2CapChannel:NSObject//, StreamDelegate
         let timerId = formatTimerId(timerBucket)
         timerPool.cancel(by: timerId)
     }
+    
+    
     
 }
 
@@ -392,21 +435,60 @@ public extension InputStream
 
 public extension OutputStream
 {
-    func uuWriteData(data:Data) -> Int
+    func uuWriteData(data:Data, chunkSize:Int? = nil, progressCallback:((UInt32) -> Void)? = nil, completionCallback:((Int) -> Void)? = nil)
     {
-        return data.withUnsafeBytes({ (unsafeRawBufferPointer:UnsafeRawBufferPointer) -> Int in
-            
-            let pointer = unsafeRawBufferPointer.bindMemory(to: UInt8.self)
-            
-            if let baseAddress = pointer.baseAddress
+        guard data.count > 0 else
+        {
+            completionCallback?(0)
+            return
+        }
+        
+        var totalBytesSent = 0
+        let totalExpectedBytesToSend = data.count
+        
+        let dataChunkSize = chunkSize ?? totalExpectedBytesToSend
+        
+                
+        while (totalBytesSent < totalExpectedBytesToSend)
+        {
+            NSLog("Grabbing chunk of data at \(totalBytesSent) of size \(dataChunkSize)")
+            if let dataChunk = data.uuData(at: totalBytesSent, count: dataChunkSize)
             {
-                return self.write(baseAddress, maxLength: data.count)
+                let actualBytesSent = dataChunk.withUnsafeBytes({ (unsafeRawBufferPointer:UnsafeRawBufferPointer) -> Int in
+                    
+                    let pointer = unsafeRawBufferPointer.bindMemory(to: UInt8.self)
+                    
+                    if let baseAddress = pointer.baseAddress
+                    {
+                        return self.write(baseAddress, maxLength: dataChunk.count)
+                    }
+                    else
+                    {
+                        return 0
+                    }
+                })
+                
+                NSLog("Wrote \(actualBytesSent) bytes!")
+                
+                if (actualBytesSent <= 0) //If it couldn't send any, bail?
+                {
+                    break
+                }
+                else
+                {
+                    totalBytesSent += actualBytesSent
+                    progressCallback?(UInt32(totalBytesSent))
+                }
             }
             else
             {
-                return 0
+                break
             }
-        })
+            
+            
+        }
+        
+        completionCallback?(totalBytesSent)
     }
 }
 

@@ -22,8 +22,9 @@ class L2CapServerController:L2CapController
     {
         let start = UIAction(title: "Start", handler: { _ in self.listen() })
         let stop = UIAction(title: "Stop", handler: { _ in self.stop() })
+        let clearOutput = UIAction(title: "Clear Output", handler: { _ in self.clearOutput() })
 
-        return UIMenu(title: "Server Actions", image: nil, identifier: nil, options: [], children: [start, stop])
+        return UIMenu(title: "Server Actions", image: nil, identifier: nil, options: [], children: [start, stop, clearOutput])
     }
     
     override func viewDidLoad()
@@ -47,16 +48,34 @@ class L2CapServerController:L2CapController
             
             if (self.command == nil)
             {
-                self.addOutputLine("Starting recieve!")
-                self.command = UUL2CapCommand.fromData(data)
+                self.command = UUL2CapCommand.createToReceive(data)
+                NSLog("Setting command on server controller!")
+
+                if let cmd = self.command
+                {
+                    self.addOutputLine("Starting recieve of \(cmd.commandId) command! Expecting \(cmd.totalExpectedBytes) bytes.")
+                }
+                else
+                {
+                    self.addOutputLine("Error creating command!")
+                }
             }
             
             self.command?.appendBytes(data)
             
-            if let cmd = self.command, cmd.haveReceivedAllData()
+            if let cmd = self.command
             {
-                self.processCommand(cmd)
+                if (cmd.haveReceivedAllData())
+                {
+                    self.updateProgressRow(1.0)
+                    self.processCommand(cmd)
+                }
+                else
+                {
+                    self.updateProgressRow(cmd.percentageComplete())
+                }
             }
+            
             
         }
     }
@@ -95,9 +114,7 @@ class L2CapServerController:L2CapController
     
     func sendCommand(_ commandId:UUL2CapCommand.Id, _ data:Data)
     {
-        let command = UUL2CapCommand(commandId: commandId, totalExpectedBytes: data.count)
-        command.appendBytes(data)
-        
+        let command = UUL2CapCommand.createToSend(commandId, data)
         self.server.sendData(command.toData())
         { bytesSent in
             self.addOutputLine("Echo back sent!")

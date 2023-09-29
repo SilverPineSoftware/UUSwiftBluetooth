@@ -17,33 +17,40 @@ class L2CapController:UIViewController, UITableViewDelegate, UITableViewDataSour
     ///Adds a line of text to the tableview. If a method is passed, it logs the line as well
     func addOutputLine(_ line:String, _ method:String? = nil)
     {
-        DispatchQueue.main.async
-        {
-            self.tableView.beginUpdates()
-            
-            self.tableData.append(line)
-            
-            let indexPath = IndexPath(row: self.tableData.count - 1, section: 0)
-            
-            self.tableView.insertRows(at: [indexPath], with: .bottom)
-            self.tableView.endUpdates()
-            
-            self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
-            
-            if let m = method
-            {
-                self.log(m, line)
-            }
-        }
+        self.appendTableDataLine(line)
     }
     
     func addImageLine(image:UIImage)
+    {
+        self.appendTableDataLine(image)
+    }
+    
+    //Adds or updates a row that states "47.5% Complete"
+    func updateProgressRow(_ percent:Float)
+    {
+        DispatchQueue.main.async
+        {
+            if let _ = self.tableData.last as? Float
+            {
+                self.tableData[self.tableData.count - 1] = percent
+                let indexPath = IndexPath(row: self.tableData.count - 1, section: 0)
+                self.tableView.reloadRows(at: [indexPath], with: .none)
+            }
+            else
+            {
+                self.appendTableDataLine(percent)
+            }
+        }
+        
+    }
+    
+    private func appendTableDataLine(_ item:Any)
     {
         DispatchQueue.main.async
         {
             self.tableView.beginUpdates()
             
-            self.tableData.append(image)
+            self.tableData.append(item)
             
             let indexPath = IndexPath(row: self.tableData.count - 1, section: 0)
             
@@ -148,12 +155,20 @@ class L2CapController:UIViewController, UITableViewDelegate, UITableViewDataSour
 
         var content = cell.defaultContentConfiguration()
         content.text = data as? String
-        content.image = data as? UIImage
-        content.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 5, leading: 5, bottom: 5, trailing: 5)
+        content.image = data as? UIImage //Fill all the space because 
+        
+        if let progress = data as? Float
+        {
+            let prettyPercent = progress*100
+            content.text = String(format: "%.2f%% Complete!", prettyPercent)
+        }
+        
         content.textProperties.font = UIFont.systemFont(ofSize: 12)
+        content.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 5, leading: 5, bottom: 5, trailing: 5)
         cell.contentConfiguration = content
         
         return cell
+        
     }
     
     func errorDescription(_ error:Error?) -> String
@@ -193,32 +208,71 @@ class UUL2CapCommand:NSObject
         }
     }
     
+    private var bytesRecieved: Int = 0
     var totalExpectedBytes:Int = 0
     var commandId:Id
     var data:Data
     
-    init(commandId: Id, totalExpectedBytes: Int)
+    private init(commandId: Id)
     {
         self.commandId = commandId
-        self.totalExpectedBytes = totalExpectedBytes
-        self.data = Data(capacity: totalExpectedBytes)
+        self.totalExpectedBytes = 0
+        self.data = Data()
     }
     
-    var bytesRecieved: Int = 0
     
     //appends to the data
     func appendBytes(_ data:Data)
     {
-        self.data.append(data)
-        bytesRecieved += data.count
+        guard (!self.haveReceivedAllData()) else
+        {
+            NSLog("Tried to append \(data.count) bytes but already have \(self.data.count) bytes of expected \(totalExpectedBytes)")
+            return
+        }
+        
+        let existingCount = self.data.count
+        let requestedAdditionCount = data.count
+        
+        var adjustedData = data
+        
+        let preAdjustedCount = existingCount + requestedAdditionCount
+        if (preAdjustedCount > totalExpectedBytes)
+        {
+            
+            let remainingBytes = requestedAdditionCount - (preAdjustedCount - totalExpectedBytes)
+            
+            
+            let indexToStart = 0
+            if let loppedData = data.uuData(at: indexToStart, count: remainingBytes)
+            {
+                adjustedData = loppedData
+                NSLog("Adjusting last chunk of data! Included only \(adjustedData.count) of \(data.count) bytes! (lopped chunk size: \(loppedData.count))")
+            }
+        }
+        
+        
+        
+        self.data.append(adjustedData)
+        
+        let previous = Int(bytesRecieved)
+        let adjustedCount = adjustedData.count
+        
+        bytesRecieved += adjustedCount
                 
-        let percentageComplete = (totalExpectedBytes != 0) ? (bytesRecieved/totalExpectedBytes) : 0
-        NSLog("Recieved more data! (\(bytesRecieved)/\(totalExpectedBytes)) \(percentageComplete*100)%")
+        let complete:Float = percentageComplete()*100
+        
+        
+        NSLog("Recieved more data! (\(bytesRecieved)/\(totalExpectedBytes)) \(complete) :: AdjustedCount (\(adjustedData)) : previousBytes (\(previous)) : updated: (\(bytesRecieved))")
     }
     
     func haveReceivedAllData() -> Bool
     {
         return bytesRecieved >= totalExpectedBytes
+    }
+    
+    func percentageComplete() -> Float
+    {
+        return ((totalExpectedBytes != 0) ? Float(bytesRecieved)/Float(totalExpectedBytes) : 0.0)
     }
     
     
@@ -239,6 +293,7 @@ class UUL2CapCommand:NSObject
         buffer.uuAppend(UInt8(0x68)) //h
         buffer.uuAppend(UInt8(commandId.rawValue))
         buffer.uuAppend(UInt32(data.count))
+        
         buffer.append(data)
         return buffer
     }
@@ -247,7 +302,7 @@ class UUL2CapCommand:NSObject
     
     static let headerSize = 16
     
-    static func fromData(_ data:Data) -> UUL2CapCommand?
+    static func createToReceive(_ data:Data) -> UUL2CapCommand?
     {
         guard data.count > headerSize else
         {
@@ -257,6 +312,13 @@ class UUL2CapCommand:NSObject
         var index = 0
         
         let headerText = data.uuString(at: 0, count: 11, with: .utf8)
+        guard (headerText == "UUBluetooth") else
+        {
+            NSLog("Header isn't for UUBluetooth, bailing!")
+            return nil
+        }
+        
+        
         index += headerText?.count ?? 0
         
         let commandByte = data.uuUInt8(at: index) ?? 0
@@ -272,13 +334,26 @@ class UUL2CapCommand:NSObject
 
         let capacity = Int(commandLength ?? 0)
         NSLog("Creating L2CapCommand of size: \(capacity)")
-        let cmd = UUL2CapCommand(commandId: commandId, totalExpectedBytes: capacity)
+        
+//        let totalBytesExpectedWithHeader = capacity + UUL2CapCommand.headerSize
+        
+        let cmd = UUL2CapCommand(commandId: commandId)
+        
+        
+        cmd.totalExpectedBytes = capacity
         
         if let cmdBytesLeft = data.uuData(at: index, count: data.count - index)
         {
             cmd.appendBytes(cmdBytesLeft)
         }
         
+        return cmd
+    }
+    
+    static func createToSend(_ commandId:UUL2CapCommand.Id, _ data:Data) -> UUL2CapCommand
+    {
+        let cmd = UUL2CapCommand(commandId: commandId)
+        cmd.data = data
         return cmd
     }
 }

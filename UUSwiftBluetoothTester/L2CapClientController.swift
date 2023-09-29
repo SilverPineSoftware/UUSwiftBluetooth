@@ -17,11 +17,22 @@ class L2CapClientController:L2CapController
     
     override func buildMenu() -> UIMenu?
     {
+        var actions:[UIAction] = []
         
-        let start = UIAction(title: "Connect", handler: { _ in self.connect() })
-        let stop = UIAction(title: "Ping", handler: { _ in self.ping() })
+        if (channel == nil)
+        {
+            actions.append(UIAction(title: "Start Channel", handler: { _ in self.connect() }))
+        }
+        else
+        {
+            actions.append(UIAction(title: "Ping", handler: { _ in self.ping() }))
+            actions.append(UIAction(title: "Send Image 1", handler: { _ in self.sendImage1() }))
+            actions.append(UIAction(title: "Send Image 2", handler: { _ in self.sendImage2() }))
+            actions.append(UIAction(title: "Clear Output", handler: { _ in self.clearOutput() }))
+        }
+        
 
-        return UIMenu(title: "Client Actions", image: nil, identifier: nil, options: [], children: [start, stop])
+        return UIMenu(title: "Client Actions", image: nil, identifier: nil, options: [], children: actions)
     }
     
     
@@ -75,6 +86,7 @@ class L2CapClientController:L2CapController
                 if let err = error
                 {
                     self.addOutputLine("Error: \(err)")
+                    self.channel = nil
                 }
                 else if let _ = self.channel
                 {
@@ -82,8 +94,11 @@ class L2CapClientController:L2CapController
                 }
                 else
                 {
+                    self.channel = nil
                     self.addOutputLine("L2Cap Channel connect attempt returned no error but no channel was created!")
                 }
+                
+                self.refreshMenu()
                 
             })
             
@@ -93,39 +108,137 @@ class L2CapClientController:L2CapController
     func ping()
     {
         let tx = "4747474747"
-        self.addOutputLine("TX: \(tx)")
+        let command = UUL2CapCommand.createToSend(.echo, Data(tx.uuToHexData() ?? NSData()))
         
-        let data = Data(tx.uuToHexData() ?? NSData())
+        let commandAsData = command.toData()
+        let totalBytesToSend = commandAsData.count
         
-        self.channel?.sendMessage(data, 10.0,
+        self.addOutputLine("TX: \(commandAsData.uuToHexString())")
+        
+        
+        
+        self.channel?.sendMessage(command.toData(), 10.0,
         { progressBytesSent in
             
-            if (data.count > 0)
+            
+            if (totalBytesToSend > 0)
             {
-                self.addOutputLine("Data Send Progress: \((progressBytesSent/UInt32(data.count))*100)%")
+                
+                let percent = Float(progressBytesSent)/Float(totalBytesToSend)
+                self.updateProgressRow(percent)
+
+                let remaining = UInt32(totalBytesToSend) - progressBytesSent
+                NSLog("Send Progress: (\(progressBytesSent)/\(totalBytesToSend))  \(remaining) Remaining")
+                
             }
+            
+            
         },
         { totalBytesSent, dataReceived, error in
             
-            if let total = totalBytesSent
+            DispatchQueue.main.async
             {
-                self.addOutputLine("\(total) Total Bytes Sent!")
-            }
-            else
-            {
-                self.addOutputLine("Total Bytes Sent is nil!")
+                if let total = totalBytesSent
+                {
+                    self.addOutputLine("\(total) Total Bytes Sent!")
+                }
+                else
+                {
+                    self.addOutputLine("Total Bytes Sent is nil!")
+                }
+                
+                
+                if let rec = dataReceived
+                {
+                    self.addOutputLine("Recieved \(rec.count) bytes. Raw Bytes:\n\(rec.uuToHexString())\n")
+                }
+                else
+                {
+                    self.addOutputLine("Received nil bytes!")
+                }
             }
             
-            
-            if let rec = dataReceived
-            {
-                self.addOutputLine("Recieved \(rec.count) bytes. Raw Bytes:\n\(rec.uuToHexString())\n")
-            }
-            else
-            {
-                self.addOutputLine("Received nil bytes!")
-            }
         })
+    }
+    
+    private func sendImage1()
+    {
+        self.sendImage("image_one")
+    }
+    
+    private func sendImage2()
+    {
+        self.sendImage("image_two")
+    }
+    
+    private func sendImage(_ name:String)
+    {
+        guard let imageOneData = getImageFromBundle(name) else
+        {
+            self.addOutputLine("Couldn't load \(name) from bundle!")
+            return
+        }
+        
+        let command = UUL2CapCommand.createToSend(.sendImage, imageOneData)
+        let messageData = command.toData()
+        
+        
+        self.addOutputLine("Sending \(name)... total image bytes: \(imageOneData.count)")
+        
+        let start = Date().timeIntervalSinceReferenceDate
+        
+        
+        let totalBytesToSend = messageData.count
+        
+        self.channel?.sendMessage(messageData, 120,
+        { progress in
+            
+            if (totalBytesToSend > 0)
+            {
+                let percent:Float = Float(progress)/Float(totalBytesToSend)
+                self.updateProgressRow(percent)
+                let remaining = UInt32(totalBytesToSend) - progress
+                NSLog("Send Progress: (\(progress)/\(totalBytesToSend))  \(remaining) Remaining")
+            }
+            
+        },
+        { totalBytesSent, rxReceived, error in
+            
+            DispatchQueue.main.async 
+            {
+                self.addOutputLine("Send \(name) complete! Error: \(self.errorDescription(error))")
+                
+                self.addOutputLine("Total bytes sent: \(totalBytesSent ?? 0)")
+                
+                let duration = Date().timeIntervalSinceReferenceDate - start
+                self.addOutputLine("Total Duration: \(duration)")
+                
+                self.addOutputLine("RX: \(rxReceived?.uuToHexString() ?? "nil")")
+            }
+           
+            
+        })
+    }
+    
+    
+    private func getImageFromBundle(_ name:String) -> Data?
+    {
+        guard let path = Bundle.main.path(forResource: name, ofType: ".jpg") else
+        {
+            return nil
+        }
+        
+        guard let image = UIImage(contentsOfFile: path) else
+        {
+            return nil
+        }
+       
+        guard let imageData = image.jpegData(compressionQuality: 0.5) else
+        {
+            return nil
+        }
+        
+        return imageData
     }
     
     
