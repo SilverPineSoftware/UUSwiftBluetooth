@@ -90,3 +90,5 @@ fastlane/test_output
 iOSInjectionProject/
 .DS_Store
 /UUSwiftBluetooth.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+/Package.resolved
+/.swiftpm
