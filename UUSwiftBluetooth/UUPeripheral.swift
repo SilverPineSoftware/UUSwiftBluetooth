@@ -20,8 +20,19 @@ public typealias UUDiscoverCharacteristicsCompletionBlock = (([CBCharacteristic]
 // UUPeripheral is a convenience class that wraps a CBPeripheral and it's
 // advertisement data into one object.
 //
-open class UUPeripheral
+open class UUPeripheral: Identifiable
 {
+    public var id: UUID
+    {
+        get
+        {
+            return self.underlyingPeripheral.identifier
+        }
+    }
+    
+    public typealias ID = UUID
+    
+
     public class Defaults
     {
         public static var connectTimeout: TimeInterval = 10.0
