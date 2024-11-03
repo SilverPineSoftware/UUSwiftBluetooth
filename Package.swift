@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
 	name: "UUSwiftBluetooth",
 	platforms: [
-		.iOS(.v16),
+		.iOS(.v10),
 		.macOS(.v10_15)
 	],
 
