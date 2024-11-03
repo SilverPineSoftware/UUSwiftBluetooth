@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version: 6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,8 +6,8 @@ import PackageDescription
 let package = Package(
 	name: "UUSwiftBluetooth",
 	platforms: [
-		.iOS(.v10),
-		.macOS(.v10_15)
+        .iOS(SupportedPlatform.IOSVersion.v16),
+        .macOS(SupportedPlatform.MacOSVersion.v10_15)
 	],
 
 	products: [
@@ -22,7 +22,7 @@ let package = Package(
 		// and from where they can be fetched:
 		.package(
 			url: "https://github.com/SilverPineSoftware/UUSwiftCore.git",
-			from: "1.1.8"
+			from: "1.1.9"
 		)
 	],
 
@@ -33,7 +33,7 @@ let package = Package(
             path: "UUSwiftBluetooth",
             exclude: ["Info.plist"])
 	],
-	swiftLanguageVersions: [
+    swiftLanguageModes: [
 		.v4_2,
 		.v5
 	]
