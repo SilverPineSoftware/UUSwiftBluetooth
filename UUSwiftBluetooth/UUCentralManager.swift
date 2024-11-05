@@ -53,7 +53,7 @@ public class UUCentralManager
         NSLog("Initializing UUCoreBluetooth with options: \(String(describing: opts))")
         
         options = opts
-        isConfiguredForStateRestoration = (options?.uuSafeGetString(CBCentralManagerOptionRestoreIdentifierKey) != nil)
+        isConfiguredForStateRestoration = (options?.uuGetString(CBCentralManagerOptionRestoreIdentifierKey) != nil)
         delegate = isConfiguredForStateRestoration ? UUCentralManagerRestoringDelegate() : UUCentralManagerDelegate()
         centralManager = CBCentralManager(delegate: delegate, queue: dispatchQueue, options: options)
         delegate.centralStateChangedBlock = handleCentralStateChanged
