@@ -20,7 +20,7 @@ public typealias UUDiscoverCharacteristicsCompletionBlock = (([CBCharacteristic]
 // UUPeripheral is a convenience class that wraps a CBPeripheral and it's
 // advertisement data into one object.
 //
-open class UUPeripheral: Identifiable
+public class UUPeripheral: ObservableObject, Identifiable
 {
     public var id: UUID
     {
@@ -44,7 +44,7 @@ open class UUPeripheral: Identifiable
     private let dispatchQueue: DispatchQueue
     private let delegate = UUPeripheralDelegate()
     private let timerPool: UUTimerPool
-    
+
     // Reference to the underlying CBPeripheral
     public var underlyingPeripheral: CBPeripheral!
     {
@@ -55,19 +55,19 @@ open class UUPeripheral: Identifiable
     }
     
     // The most recent advertisement data
-    var advertisementData: [String: Any] = [:]
+    @Published var advertisementData: [String: Any] = [:]
     
     // Timestamp of when this peripheral was first seen
-    private(set) public var firstAdvertisementTime: Date = Date()
+    @Published private(set) public var firstAdvertisementTime: Date = Date()
     
     // Timestamp of when the last advertisement was seen
-    private(set) public var lastAdvertisementTime: Date = Date()
+    @Published private(set) public var lastAdvertisementTime: Date = Date()
     
     // Most recent signal strength
-    private(set) public var rssi: Int = 0
+    @Published private(set) public var rssi: Int = 0
     
     // Timestamp of when the RSSI was last updated
-    private(set) public var lastRssiUpdateTime: Date = Date()
+    @Published private(set) public var lastRssiUpdateTime: Date = Date()
     
     public var timeSinceLastUpdate: TimeInterval
     {
@@ -138,11 +138,11 @@ open class UUPeripheral: Identifiable
         return advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data
     }
     
-    // Hook for derived classes to parse custom manufacturing data during object creation.
-    open func parseManufacturingData()
-    {
-        
-    }
+//    // Hook for derived classes to parse custom manufacturing data during object creation.
+//    open func parseManufacturingData()
+//    {
+//        
+//    }
     
     
     
@@ -155,7 +155,6 @@ open class UUPeripheral: Identifiable
         advertisementData = updatedAdvertisement
         lastAdvertisementTime = Date()
         updateRssi(rssi)
-        parseManufacturingData()
     }
     
     func updateRssi(_ rssi: Int)
