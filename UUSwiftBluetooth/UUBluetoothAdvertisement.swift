@@ -12,11 +12,11 @@ import UUSwiftCore
 // UUBluetoothAdvertisement wraps the data returned from the CoreBluetooth Api during BLE scanning.  Namely
 // the peripheral, the advertisement data dictionary, and the signal strength (RSSI).
 //
-open class UUBluetoothAdvertisement
+public class UUBluetoothAdvertisement
 {
-    private(set) var peripheral: CBPeripheral
-    private(set) var advertisementData: [String:Any]? = nil
-    private(set) var rssi: Int? = nil
+    private(set) public var peripheral: CBPeripheral
+    private(set) public var advertisementData: [String:Any]? = nil
+    private(set) public var rssi: Int? = nil
     
     required public init(_ peripheral: CBPeripheral, _ advertisementData: [String:Any]?, _ rssi: Int?)
     {
