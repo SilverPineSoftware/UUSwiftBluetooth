@@ -8,35 +8,69 @@
 import UIKit
 import CoreBluetooth
 import UUSwiftCore
+import Combine
 
-public class UUBluetoothScanner<T: UUPeripheral>
+public struct UUBluetoothScanSettings
 {
-    private let centralManager: UUCentralManager
-    private var nearbyPeripherals: [String:T] = [:]
-    private var nearbyPeripheralsLock = NSRecursiveLock()
+   public init(allowDuplicates: Bool = false,
+                serviceUUIDs: [CBUUID]? = nil,
+                filters: [UUPeripheralFilter]? = nil,
+                outOfRangeFilters: [UUOutOfRangePeripheralFilter]? = nil,
+                outOfRangeFilterEvaluationFrequency: TimeInterval = 0.5,
+                scanWatchdogTimeout: TimeInterval = 0.5)
+    {
+        self.allowDuplicates = allowDuplicates
+        self.serviceUUIDs = serviceUUIDs
+        self.filters = filters
+        self.outOfRangeFilters = outOfRangeFilters
+        self.outOfRangeFilterEvaluationFrequency = outOfRangeFilterEvaluationFrequency
+        self.scanWatchdogTimeout = scanWatchdogTimeout
+    }
     
-    private var nearbyPeripheralCallback: (([T])->()) = { _ in }
-    private let factory: UUPeripheralFactory<T>?
-    private var outOfRangeFilters: [UUOutOfRangePeripheralFilter]? = nil
+    public var allowDuplicates: Bool = false
+    public var serviceUUIDs: [CBUUID]? = nil
+    public var filters: [UUPeripheralFilter]? = nil
+    public var outOfRangeFilters: [UUOutOfRangePeripheralFilter]? = nil
     public var outOfRangeFilterEvaluationFrequency: TimeInterval = 0.5
+    public var scanWatchdogTimeout: TimeInterval = 0.5
+}
+
+public class UUBluetoothScanner: ObservableObject
+{
+    private let outOfRangeFilterEvaluationFrequencyTimerId = "UUBluetoothScanner_outOfRangeFilterEvaluationFrequency"
+    private let scanWatchdogTimerId = "UUBluetoothScanner_scanWatchdogTimer"
     
-    public required init(centralManager: UUCentralManager = UUCentralManager.shared, peripheralFactory: UUPeripheralFactory<T>? = nil)
+    private let centralManager: UUCentralManager
+    private var nearbyPeripheralMap: [String:UUPeripheral] = [:]
+    private var nearbyPeripheralMapLock = NSRecursiveLock()
+    
+    private var scanSettings = UUBluetoothScanSettings()
+    
+    private var nearbyPeripheralCallback: (([UUPeripheral])->()) = { _ in }
+    
+    //@Published public var nearbyPeripherals: [UUPeripheral] = []
+    
+    public required init(centralManager: UUCentralManager = UUCentralManager.shared)
     {
         self.centralManager = centralManager
-        self.factory = peripheralFactory
     }
     
     public func startScan(
-        services: [CBUUID]? = nil,
-        allowDuplicates: Bool = false,
-        filters: [UUPeripheralFilter]? = nil,
-        outOfRangeFilters: [UUOutOfRangePeripheralFilter]? = nil,
-        callback: @escaping ([T])->())
+        _ settings: UUBluetoothScanSettings,
+        callback: @escaping ([UUPeripheral])->())
     {
+        self.scanSettings = settings
         self.nearbyPeripheralCallback = callback
-        self.outOfRangeFilters = outOfRangeFilters
-        self.centralManager.startScan(serviceUuids: services, allowDuplicates: allowDuplicates, peripheralFactory: factory, filters: filters, peripheralFoundCallback: handlePeripheralFound, willRestoreCallback: handleWillRestoreState)
+        
+        self.centralManager.startScan(
+            serviceUuids: settings.serviceUUIDs,
+            allowDuplicates: settings.allowDuplicates,
+            filters: settings.filters,
+            peripheralFoundCallback: handlePeripheralFound,
+            willRestoreCallback: handleWillRestoreState)
+        
         self.startOutOfRangeEvaluationTimer()
+        self.startScanWatchdogTimer()
     }
     
     public var isScanning: Bool
@@ -48,22 +82,30 @@ public class UUBluetoothScanner<T: UUPeripheral>
     {
         self.centralManager.stopScan()
         self.stopOutOfRangeEvaluationTimer()
+        self.stopScanWatchdogTimer()
     }
     
-    private func handlePeripheralFound(peripheral: T)
+    private func handlePeripheralFound(peripheral: UUPeripheral)
     {
-        defer { nearbyPeripheralsLock.unlock() }
-        nearbyPeripheralsLock.lock()
+        defer { nearbyPeripheralMapLock.unlock() }
+        nearbyPeripheralMapLock.lock()
         
-        nearbyPeripherals[peripheral.identifier] = peripheral
+        startScanWatchdogTimer()
+        
+        nearbyPeripheralMap[peripheral.identifier] = peripheral
         
         let sorted = sortedPeripherals()
+        
+        //self.nearbyPeripherals = sorted
+        
         nearbyPeripheralCallback(sorted)
+        
+        NSLog("There are \(sorted.count) peripherals nearby")
     }
     
-    private func sortedPeripherals() -> [T]
+    private func sortedPeripherals() -> [UUPeripheral]
     {
-        return nearbyPeripherals.values.sorted
+        return nearbyPeripheralMap.values.sorted
         { lhs, rhs in
             return lhs.rssi > rhs.rssi
         }
@@ -74,28 +116,26 @@ public class UUBluetoothScanner<T: UUPeripheral>
         
     }
     
-    private let outOfRangeFilterEvaluationFrequencyTimerId = "UUBluetoothScanner_outOfRangeFilterEvaluationFrequency"
-
     private func startOutOfRangeEvaluationTimer()
     {
         stopOutOfRangeEvaluationTimer()
         
-        guard let filters = self.outOfRangeFilters else
+        guard let filters = scanSettings.outOfRangeFilters else
         {
             return
         }
 
-        let t = UUTimer(identifier: outOfRangeFilterEvaluationFrequencyTimerId, interval: outOfRangeFilterEvaluationFrequency, userInfo: nil, shouldRepeat: true, pool: UUTimerPool.shared)
+        let t = UUTimer(identifier: outOfRangeFilterEvaluationFrequencyTimerId, interval: scanSettings.outOfRangeFilterEvaluationFrequency, userInfo: nil, shouldRepeat: true, pool: UUTimerPool.shared)
         { t in
             
-            defer { self.nearbyPeripheralsLock.unlock() }
-            self.nearbyPeripheralsLock.lock()
+            defer { self.nearbyPeripheralMapLock.unlock() }
+            self.nearbyPeripheralMapLock.lock()
             
             var didChange = false
 
-            var keep: [T] = []
+            var keep: [UUPeripheral] = []
             
-            for peripheral in self.nearbyPeripherals.values
+            for peripheral in self.nearbyPeripheralMap.values
             {
                 var outOfRange = false
 
@@ -115,16 +155,17 @@ public class UUBluetoothScanner<T: UUPeripheral>
                 }
             }
 
-            self.nearbyPeripherals.removeAll()
+            self.nearbyPeripheralMap.removeAll()
 
             for peripheral in keep
             {
-                self.nearbyPeripherals[peripheral.identifier] = peripheral
+                self.nearbyPeripheralMap[peripheral.identifier] = peripheral
             }
 
             if (didChange)
             {
                 let sorted = self.sortedPeripherals()
+                //self.nearbyPeripherals = sorted
                 self.nearbyPeripheralCallback(sorted)
             }
         }
@@ -136,5 +177,30 @@ public class UUBluetoothScanner<T: UUPeripheral>
     {
         UUTimerPool.shared.cancel(by: outOfRangeFilterEvaluationFrequencyTimerId)
     }
-
+    
+    private func startScanWatchdogTimer()
+    {
+        stopScanWatchdogTimer()
+        
+        let t = UUTimer(identifier: scanWatchdogTimerId, interval: scanSettings.scanWatchdogTimeout, userInfo: nil, shouldRepeat: true, pool: UUTimerPool.shared)
+        { t in
+            
+            if (self.isScanning)
+            {
+                NSLog("Restarting scanning after scan watchdog timeout")
+                self.centralManager.restartScanning()
+            }
+            else
+            {
+                NSLog("Scan was stopped, skipping scan restart")
+            }
+        }
+        
+        t.start()
+    }
+    
+    private func stopScanWatchdogTimer()
+    {
+        UUTimerPool.shared.cancel(by: scanWatchdogTimerId)
+    }
 }

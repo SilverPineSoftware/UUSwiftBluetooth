@@ -18,7 +18,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     private var tableData: [UUPeripheral] = []
     
-    private var scanner = UUBluetoothScanner(peripheralFactory:  CustomPeripheralFactory())
+    private var scanner = UUBluetoothScanner()
     
     private var lastTableUpdate: TimeInterval = 0
     
@@ -140,7 +140,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         navigationController?.pushViewController(host, animated: true)
     }
     
-    private func handleNearbyPeripheralsChanged(_ list: [CustomPeripheral])
+    private func handleNearbyPeripheralsChanged(_ list: [UUPeripheral])
     {
         let now = Date().timeIntervalSinceReferenceDate
         let diff = now - lastTableUpdate
@@ -186,24 +186,29 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             let outOfRangeFilters = [OutOfRangePeripheralFilter()]
             self.tableData.removeAll()
             self.tableView.reloadData()
-            scanner.startScan(services: nil, allowDuplicates: true, filters: filters, outOfRangeFilters: outOfRangeFilters, callback: self.handleNearbyPeripheralsChanged)
+            
+            let settings = UUBluetoothScanSettings(
+                filters: filters,
+                outOfRangeFilters: outOfRangeFilters)
+            
+            scanner.startScan(settings, callback: self.handleNearbyPeripheralsChanged)
             rightNavBarItem.title = "Stop"
         }
     }
 }
 
-class CustomPeripheralFactory: UUPeripheralFactory<CustomPeripheral>
-{
-    public override init()
-    {
-        super.init()
-    }
-    
-    override func create(_ dispatchQueue: DispatchQueue, _ centralManager: UUCentralManager, _ peripheral: CBPeripheral) -> CustomPeripheral
-    {
-        return CustomPeripheral(dispatchQueue: dispatchQueue, centralManager: centralManager, peripheral: peripheral)
-    }
-}
+//class CustomPeripheralFactory: UUPeripheralFactory<CustomPeripheral>
+//{
+//    public override init()
+//    {
+//        super.init()
+//    }
+//    
+//    override func create(_ dispatchQueue: DispatchQueue, _ centralManager: UUCentralManager, _ peripheral: CBPeripheral) -> CustomPeripheral
+//    {
+//        return CustomPeripheral(dispatchQueue: dispatchQueue, centralManager: centralManager, peripheral: peripheral)
+//    }
+//}
 
 class PeripheralFilter: UUPeripheralFilter
 {
