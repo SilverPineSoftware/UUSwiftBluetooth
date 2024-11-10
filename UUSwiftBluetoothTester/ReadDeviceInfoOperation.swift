@@ -9,7 +9,7 @@ import UIKit
 import CoreBluetooth
 import UUSwiftBluetooth
 
-class ReadDeviceInfoOperation: UUPeripheralOperation<UUPeripheral>
+class ReadDeviceInfoOperation: UUPeripheralOperation
 {
     var manufacturerName: String = ""
     var systemId: String = ""

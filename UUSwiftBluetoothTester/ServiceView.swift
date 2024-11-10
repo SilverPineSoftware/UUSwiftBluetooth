@@ -11,10 +11,10 @@ import UUSwiftBluetooth
 
 class ServiceViewModel: ObservableObject
 {
-    @Published var peripheral: UUPeripheral
+    @Published var peripheral: any UUPeripheral
     @Published var service: CBService
     
-    init(_ peripheral: UUPeripheral, _ service: CBService)
+    init(_ peripheral: any UUPeripheral, _ service: CBService)
     {
         self.peripheral = peripheral
         self.service = service
@@ -22,7 +22,7 @@ class ServiceViewModel: ObservableObject
     
     func onConnect()
     {
-        peripheral.connect(connected:
+        peripheral.connect(timeout: 20.0, connected:
         {
             DispatchQueue.main.async
             {
@@ -41,7 +41,7 @@ class ServiceViewModel: ObservableObject
     
     func onDiscoverCharacteristics()
     {
-        peripheral.discoverCharacteristics(nil, for: service)
+        peripheral.discoverCharacteristics(characteristicUUIDs: nil, for: service, timeout: 20.0)
         { characteristics, errOpt in
             
             NSLog("Characteristic discovery complete, found \(characteristics?.count ?? 0) characteristics")
@@ -62,7 +62,7 @@ class ServiceViewModel: ObservableObject
     
     func onDiscoverIncludedServices()
     {
-        peripheral.discoverIncludedServices(nil, for: service)
+        peripheral.discoverIncludedServices(includedServiceUUIDs: nil, for: service, timeout: 20.0)
         { updatedPeripheral, errOpt in
             
             DispatchQueue.main.async

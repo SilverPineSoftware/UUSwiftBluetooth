@@ -9,24 +9,144 @@ import UIKit
 import CoreBluetooth
 import UUSwiftCore
 
-public typealias UUPeripheralBlock = ((UUPeripheral)->())
-public typealias UUPeripheralErrorBlock = ((UUPeripheral, Error?)->())
-public typealias UUPeripheralCharacteristicErrorBlock = ((UUPeripheral, CBCharacteristic, Error?)->())
-public typealias UUPeripheralDescriptorErrorBlock = ((UUPeripheral, CBDescriptor, Error?)->())
-public typealias UUPeripheralIntegerErrorBlock = ((UUPeripheral, Int, Error?)->())
+public typealias UUPeripheralBlock = ((any UUPeripheral)->())
+public typealias UUPeripheralErrorBlock = ((any UUPeripheral, Error?)->())
+public typealias UUPeripheralCharacteristicErrorBlock = ((any UUPeripheral, CBCharacteristic, Error?)->())
+public typealias UUPeripheralDescriptorErrorBlock = ((any UUPeripheral, CBDescriptor, Error?)->())
+public typealias UUPeripheralIntegerErrorBlock = ((any UUPeripheral, Int, Error?)->())
 public typealias UUDiscoverServicesCompletionBlock = (([CBService]?, Error?)->())
 public typealias UUDiscoverCharacteristicsCompletionBlock = (([CBCharacteristic]?, Error?)->())
+
+public protocol UUPeripheral: Identifiable where ID == UUID
+{
+    var underlyingPeripheral: CBPeripheral { get }
+    
+    // The most recent advertisement data
+    var advertisementData: [String: Any] { get }
+    
+    // Timestamp of when this peripheral was first seen
+    var firstAdvertisementTime: Date { get }
+    
+    // Timestamp of when the last advertisement was seen
+    var lastAdvertisementTime: Date { get }
+    
+    // Most recent signal strength
+    var rssi: Int { get }
+    
+    // Timestamp of when the RSSI was last updated
+    var lastRssiUpdateTime: Date { get }
+    
+    var timeSinceLastUpdate: TimeInterval { get }
+    
+    var identifier: UUID { get }
+    
+    var name: String { get }
+    
+    var localName: String { get }
+    
+    // Local Name or Peripheral Name
+    var friendlyName: String { get }
+    
+    var peripheralState: CBPeripheralState { get }
+    
+    var services: [CBService]? { get }
+    
+    // Returns value of CBAdvertisementDataIsConnectable from advertisement data.  Default
+    // value is NO if value is not present. Per the CoreBluetooth documentation, this
+    // value indicates if the peripheral is connectable "right now", which implies
+    // it may change in the future.
+    var isConnectable: Bool { get }
+    
+    // Returns value of CBAdvertisementDataManufacturerDataKey from advertisement data.
+    var manufacturingData: Data? { get }
+
+    func connect(
+        timeout: TimeInterval,
+        connected: @escaping ()->(),
+        disconnected: @escaping (Error?)->())
+        
+    func disconnect(timeout: TimeInterval)
+    
+    func discoverServices(
+        serviceUUIDs: [CBUUID]?,
+        timeout: TimeInterval,
+        completion: @escaping UUDiscoverServicesCompletionBlock)
+    
+    func discoverCharacteristics(
+        characteristicUUIDs: [CBUUID]?,
+        for service: CBService,
+        timeout: TimeInterval,
+        completion: @escaping UUDiscoverCharacteristicsCompletionBlock)
+    
+    func discoverIncludedServices(
+        includedServiceUUIDs: [CBUUID]?,
+        for service: CBService,
+        timeout: TimeInterval,
+        completion: @escaping UUPeripheralErrorBlock)
+    
+    func discoverDescriptorsForCharacteristic(
+        for characteristic: CBCharacteristic,
+        timeout: TimeInterval,
+        completion: @escaping UUPeripheralCharacteristicErrorBlock)
+    
+    func discover(
+        characteristics: [CBUUID]?,
+        for serviceUuid: CBUUID,
+        timeout: TimeInterval,
+        completion: @escaping UUDiscoverCharacteristicsCompletionBlock)
+    
+    func setNotifyValue(
+        enabled: Bool,
+        for characteristic: CBCharacteristic,
+        timeout: TimeInterval,
+        notifyHandler: UUPeripheralCharacteristicErrorBlock?,
+        completion: @escaping UUPeripheralCharacteristicErrorBlock)
+    
+    func readValue(
+        for characteristic: CBCharacteristic,
+        timeout: TimeInterval,
+        completion: @escaping UUPeripheralCharacteristicErrorBlock)
+    
+    func readValue(
+        for descriptor: CBDescriptor,
+        timeout: TimeInterval,
+        completion: @escaping UUPeripheralDescriptorErrorBlock)
+    
+    func writeValue(
+        data: Data,
+        for characteristic: CBCharacteristic,
+        timeout: TimeInterval,
+        completion: @escaping UUPeripheralCharacteristicErrorBlock)
+    
+    func writeValueWithoutResponse(
+        data: Data,
+        for characteristic: CBCharacteristic,
+        completion: @escaping UUPeripheralCharacteristicErrorBlock)
+    
+    func writeValue(
+        data: Data,
+        for descriptor: CBDescriptor,
+        timeout: TimeInterval,
+        completion: @escaping UUPeripheralDescriptorErrorBlock)
+    
+    func readRSSI(
+        timeout: TimeInterval,
+        completion: @escaping UUPeripheralIntegerErrorBlock)
+
+    // Should this be public?
+    func setDidOpenL2ChannelCallback(callback:((CBPeripheral, CBL2CAPChannel?, Error?) -> Void)?)
+}
 
 // UUPeripheral is a convenience class that wraps a CBPeripheral and it's
 // advertisement data into one object.
 //
-public class UUPeripheral: ObservableObject, Identifiable
+internal class UUCoreBluetoothPeripheral: UUPeripheral
 {
     public var id: UUID
     {
         get
         {
-            return self.underlyingPeripheral.identifier
+            return self.identifier
         }
     }
     
@@ -46,7 +166,7 @@ public class UUPeripheral: ObservableObject, Identifiable
     private let timerPool: UUTimerPool
 
     // Reference to the underlying CBPeripheral
-    public var underlyingPeripheral: CBPeripheral!
+    public var underlyingPeripheral: CBPeripheral
     {
         didSet
         {
@@ -55,19 +175,19 @@ public class UUPeripheral: ObservableObject, Identifiable
     }
     
     // The most recent advertisement data
-    @Published var advertisementData: [String: Any] = [:]
+    public var advertisementData: [String: Any] = [:]
     
     // Timestamp of when this peripheral was first seen
-    @Published private(set) public var firstAdvertisementTime: Date = Date()
+    private(set) public var firstAdvertisementTime: Date = Date()
     
     // Timestamp of when the last advertisement was seen
-    @Published private(set) public var lastAdvertisementTime: Date = Date()
+    private(set) public var lastAdvertisementTime: Date = Date()
     
     // Most recent signal strength
-    @Published private(set) public var rssi: Int = 0
+    private(set) public var rssi: Int = 0
     
     // Timestamp of when the RSSI was last updated
-    @Published private(set) public var lastRssiUpdateTime: Date = Date()
+    private(set) public var lastRssiUpdateTime: Date = Date()
     
     public var timeSinceLastUpdate: TimeInterval
     {
@@ -87,9 +207,9 @@ public class UUPeripheral: ObservableObject, Identifiable
     
     // Passthrough properties to read values directly from CBPeripheral
     
-    public var identifier: String
+    public var identifier: UUID
     {
-        return underlyingPeripheral.identifier.uuidString
+        return underlyingPeripheral.identifier
     }
     
     public var name: String
@@ -143,8 +263,6 @@ public class UUPeripheral: ObservableObject, Identifiable
 //    {
 //        
 //    }
-    
-    
     
     func updateFromScan(
         _ peripheral: CBPeripheral,
@@ -270,7 +388,7 @@ public class UUPeripheral: ObservableObject, Identifiable
     // Block based wrapper around CBPeripheral discoverServices, with an optional
     // timeout value.  A negative timeout value will disable the timeout.
     public func discoverServices(
-        _ serviceUUIDs: [CBUUID]? = nil,
+        serviceUUIDs: [CBUUID]? = nil,
         timeout: TimeInterval = Defaults.operationTimeout,
         completion: @escaping UUDiscoverServicesCompletionBlock)
     {
@@ -310,7 +428,7 @@ public class UUPeripheral: ObservableObject, Identifiable
     // Block based wrapper around CBPeripheral discoverCharacteristics:forService,
     // with an optional timeout value.  A negative timeout value will disable the timeout.
     public func discoverCharacteristics(
-        _ characteristicUUIDs: [CBUUID]?,
+        characteristicUUIDs: [CBUUID]?,
         for service: CBService,
         timeout: TimeInterval = Defaults.operationTimeout,
         completion: @escaping UUDiscoverCharacteristicsCompletionBlock)
@@ -351,7 +469,7 @@ public class UUPeripheral: ObservableObject, Identifiable
     // Block based wrapper around CBPeripheral discoverIncludedServices:forService,
     // with an optional timeout value.  A negative timeout value will disable the timeout.
     public func discoverIncludedServices(
-        _ includedServiceUUIDs: [CBUUID]?,
+        includedServiceUUIDs: [CBUUID]?,
         for service: CBService,
         timeout: TimeInterval = Defaults.operationTimeout,
         completion: @escaping UUPeripheralErrorBlock)
@@ -432,7 +550,7 @@ public class UUPeripheral: ObservableObject, Identifiable
     // Block based wrapper around CBPeripheral setNotifyValue, with an optional
     // timeout value.  A negative timeout value will disable the timeout.
     public func setNotifyValue(
-        _ enabled: Bool,
+        enabled: Bool,
         for characteristic: CBCharacteristic,
         timeout: TimeInterval = Defaults.operationTimeout,
         notifyHandler: UUPeripheralCharacteristicErrorBlock?,
@@ -576,7 +694,7 @@ public class UUPeripheral: ObservableObject, Identifiable
     // CBCharacteristicWriteWithResponse, with an optional timeout value.  A negative
     // timeout value will disable the timeout.
     public func writeValue(
-        _ data: Data,
+        data: Data,
         for characteristic: CBCharacteristic,
         timeout: TimeInterval = Defaults.operationTimeout,
         completion: @escaping UUPeripheralCharacteristicErrorBlock)
@@ -621,7 +739,7 @@ public class UUPeripheral: ObservableObject, Identifiable
     // CBCharacteristicWriteWithoutResponse.  Block callback is invoked after sending.
     // Per CoreBluetooth documentation, there is no garauntee of delivery.
     public func writeValueWithoutResponse(
-        _ data: Data,
+        data: Data,
         for characteristic: CBCharacteristic,
         completion: @escaping UUPeripheralCharacteristicErrorBlock)
     {
@@ -644,7 +762,7 @@ public class UUPeripheral: ObservableObject, Identifiable
     // CBCharacteristicWriteWithResponse, with an optional timeout value.  A negative
     // timeout value will disable the timeout.
     public func writeValue(
-        _ data: Data,
+        data: Data,
         for descriptor: CBDescriptor,
         timeout: TimeInterval = Defaults.operationTimeout,
         completion: @escaping UUPeripheralDescriptorErrorBlock)
@@ -737,7 +855,7 @@ public class UUPeripheral: ObservableObject, Identifiable
     {
         let start = Date().timeIntervalSinceReferenceDate
         
-        discoverServices([serviceUuid], timeout: timeout)
+        discoverServices(serviceUUIDs: [serviceUuid], timeout: timeout)
         { discoveredServices, err in
             
             if let error = err
@@ -756,7 +874,7 @@ public class UUPeripheral: ObservableObject, Identifiable
             let duration = Date().timeIntervalSinceReferenceDate - start
             let remainingTimeout = timeout - duration
             
-            self.discoverCharacteristics(characteristics, for: foundService, timeout: remainingTimeout, completion: completion)
+            self.discoverCharacteristics(characteristicUUIDs: characteristics, for: foundService, timeout: remainingTimeout, completion: completion)
         }
     }
     

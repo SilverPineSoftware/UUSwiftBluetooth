@@ -11,7 +11,7 @@ import UUSwiftBluetooth
 
 class CharacteristicRowViewModel: ObservableObject
 {
-    var peripheral: UUPeripheral
+    var peripheral: any UUPeripheral
     @Published var characteristic: CBCharacteristic
     @Published var showDivider: Bool
     
@@ -41,7 +41,7 @@ class CharacteristicRowViewModel: ObservableObject
     }
 
     
-    init(_ peripheral: UUPeripheral, _ characteristic: CBCharacteristic, showDivider: Bool = false)
+    init(_ peripheral: any UUPeripheral, _ characteristic: CBCharacteristic, showDivider: Bool = false)
     {
         self.peripheral = peripheral
         self.characteristic = characteristic
@@ -86,7 +86,7 @@ class CharacteristicRowViewModel: ObservableObject
     
     func onToggleNotify()
     {
-        peripheral.setNotifyValue(!characteristic.isNotifying, for: characteristic)
+        peripheral.setNotifyValue(enabled: !characteristic.isNotifying, for: characteristic, timeout: 20.0)
         { updatedPeripheral, updatedCharacteristic, errOpt in
             
             NSLog("Characteristic \(updatedCharacteristic.uuid.uuidString) value changed to \(updatedCharacteristic.value?.uuToHexString() ?? "<nil>")")
@@ -111,7 +111,7 @@ class CharacteristicRowViewModel: ObservableObject
     
     func onReadData()
     {
-        peripheral.readValue(for: characteristic)
+        peripheral.readValue(for: characteristic, timeout: 20.0)
         { updatedPeripheral, updatedCharacteristic, errOpt in
             
             DispatchQueue.main.async
@@ -127,7 +127,7 @@ class CharacteristicRowViewModel: ObservableObject
     {
         if let data = editTextAsData
         {
-            peripheral.writeValue(data, for: characteristic)
+            peripheral.writeValue(data: data, for: characteristic, timeout: 20.0)
             { updatedPeripheral, updatedCharacteristic, errOpt in
                 
                 DispatchQueue.main.async
@@ -144,7 +144,7 @@ class CharacteristicRowViewModel: ObservableObject
     {
         if let data = editTextAsData
         {
-            peripheral.writeValueWithoutResponse(data, for: characteristic)
+            peripheral.writeValueWithoutResponse(data: data, for: characteristic)
             { updatedPeripheral, updatedCharacteristic, errOpt in
                 
                 DispatchQueue.main.async

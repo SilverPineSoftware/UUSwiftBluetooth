@@ -13,8 +13,8 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
 {
     var centralStateChangedBlock: UUCentralStateChangedBlock? = nil
     var peripheralFoundBlock: UUPeripheralFoundBlock? = nil
-    var connectBlocks: [String: UUCBPeripheralBlock] = [:]
-    var disconnectBlocks: [String: UUCBPeripheralErrorBlock] = [:]
+    var connectBlocks: [UUID: UUCBPeripheralBlock] = [:]
+    var disconnectBlocks: [UUID: UUCBPeripheralErrorBlock] = [:]
     
     // MARK:- CBCentralManagerDelegate
     
@@ -33,7 +33,7 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral)
     {
-        let key = peripheral.identifier.uuidString
+        let key = peripheral.identifier
         let block = connectBlocks[key]
         connectBlocks.removeValue(forKey: key)
         block?(peripheral)
@@ -41,7 +41,7 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
     
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?)
     {
-        let key = peripheral.identifier.uuidString
+        let key = peripheral.identifier
         let block = disconnectBlocks[key]
         disconnectBlocks.removeValue(forKey: key)
         connectBlocks.removeValue(forKey: key)
@@ -50,7 +50,7 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?)
     {
-        let key = peripheral.identifier.uuidString
+        let key = peripheral.identifier
         let block = disconnectBlocks[key]
         disconnectBlocks.removeValue(forKey: key)
         connectBlocks.removeValue(forKey: key)

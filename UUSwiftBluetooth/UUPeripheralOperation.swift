@@ -8,9 +8,9 @@
 import Foundation
 import CoreBluetooth
 
-open class UUPeripheralOperation<T: UUPeripheral>
+open class UUPeripheralOperation
 {
-    public let peripheral: T
+    public let peripheral: any UUPeripheral
     private var operationError: Error? = nil
     private var operationCallback: ((Error?)->())? = nil
     private var discoveredServices: [CBService] = []
@@ -18,15 +18,15 @@ open class UUPeripheralOperation<T: UUPeripheral>
     
     private var servicesNeedingCharacteristicDiscovery: [CBService] = []
     
-    public var connectTimeout: TimeInterval = UUPeripheral.Defaults.connectTimeout
-    public var disconnectTimeout: TimeInterval = UUPeripheral.Defaults.disconnectTimeout
-    public var serviceDiscoveryTimeout: TimeInterval = UUPeripheral.Defaults.operationTimeout
-    public var characteristicDiscoveryTimeout: TimeInterval = UUPeripheral.Defaults.operationTimeout
-    public var readTimeout: TimeInterval = UUPeripheral.Defaults.operationTimeout
-    public var writeTimeout: TimeInterval = UUPeripheral.Defaults.operationTimeout
+    public var connectTimeout: TimeInterval = UUCoreBluetoothPeripheral.Defaults.connectTimeout
+    public var disconnectTimeout: TimeInterval = UUCoreBluetoothPeripheral.Defaults.disconnectTimeout
+    public var serviceDiscoveryTimeout: TimeInterval = UUCoreBluetoothPeripheral.Defaults.operationTimeout
+    public var characteristicDiscoveryTimeout: TimeInterval = UUCoreBluetoothPeripheral.Defaults.operationTimeout
+    public var readTimeout: TimeInterval = UUCoreBluetoothPeripheral.Defaults.operationTimeout
+    public var writeTimeout: TimeInterval = UUCoreBluetoothPeripheral.Defaults.operationTimeout
     
     
-    public init(_ peripheral: T)
+    public init(_ peripheral: any UUPeripheral)
     {
         self.peripheral = peripheral
     }
@@ -56,7 +56,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
         requireDiscoveredCharacteristic(for: toCharacteristic)
         { char in
             
-            self.peripheral.writeValue(data, for: char, timeout: self.writeTimeout)
+            self.peripheral.writeValue(data: data, for: char, timeout: self.writeTimeout)
             { p, char, error in
                 
                 if let err = error
@@ -76,7 +76,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
         requireDiscoveredCharacteristic(for: toCharacteristic)
         { char in
             
-            self.peripheral.writeValueWithoutResponse(data, for: char)
+            self.peripheral.writeValueWithoutResponse(data: data, for: char)
             { p, char, error in
                 
                 if let err = error
@@ -236,7 +236,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
     {
         requireDiscoveredCharacteristic(for: characteristic)
         { char in
-            self.peripheral.setNotifyValue(true, for: char, timeout: self.readTimeout)
+            self.peripheral.setNotifyValue(enabled: true, for: char, timeout: self.readTimeout)
             { p, char, err in
                 
                 if let e = err
@@ -266,7 +266,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
         requireDiscoveredCharacteristic(for: characteristic)
         { char in
             
-            self.peripheral.setNotifyValue(false, for: char, timeout: self.readTimeout, notifyHandler: nil)
+            self.peripheral.setNotifyValue(enabled: false, for: char, timeout: self.readTimeout, notifyHandler: nil)
             { p, char, err in
                 
                 if let e = err
@@ -330,7 +330,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
     
     private func handleConnected()
     {
-        peripheral.discoverServices(servicesToDiscover, timeout: serviceDiscoveryTimeout)
+        peripheral.discoverServices(serviceUUIDs: servicesToDiscover, timeout: serviceDiscoveryTimeout)
         { services, error in
             
             if let err = error
@@ -374,7 +374,7 @@ open class UUPeripheralOperation<T: UUPeripheral>
     
     private func discoverCharacteristics(for service: CBService, _ completion: @escaping ()->())
     {
-        peripheral.discoverCharacteristics(characteristicsToDiscover(for: service.uuid), for: service, timeout: characteristicDiscoveryTimeout)
+        peripheral.discoverCharacteristics(characteristicUUIDs: characteristicsToDiscover(for: service.uuid), for: service, timeout: characteristicDiscoveryTimeout)
         { characteristics, error in
             
             if let err = error

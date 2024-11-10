@@ -11,7 +11,7 @@ import UUSwiftBluetooth
 
 class L2CapClientController:L2CapController
 {
-    var peripheral:UUPeripheral!
+    var peripheral: (any UUPeripheral)? = nil
     private var channel:UUL2CapChannel? = nil
     
     
@@ -49,7 +49,7 @@ class L2CapClientController:L2CapController
     func connect()
     {
         self.addOutputLine("Connecting...")
-        self.peripheral.connect(timeout: UUPeripheral.Defaults.connectTimeout)
+        self.peripheral?.connect(timeout: 20.0)
         {
             self.addOutputLine("Connected")
             self.startChannel()
@@ -65,6 +65,8 @@ class L2CapClientController:L2CapController
     
     func startChannel()
     {
+        guard let p = self.peripheral else { return }
+        
         self.readL2CapSettings
         { foundPsm, foundEncrypted, error in
             
@@ -78,7 +80,7 @@ class L2CapClientController:L2CapController
             
             self.addOutputLine("Opening L2CapChannel with psm \(psm)...")
 
-            self.channel = UUL2CapChannel(self.peripheral)
+            self.channel = UUL2CapChannel(p)
             
             self.channel?.open(psm: psm, timeout: 10.0, completion:
             { error in
@@ -250,7 +252,7 @@ class L2CapClientController:L2CapController
     
     private func discoverL2CapService(completion: @escaping ((CBL2CAPPSM?, Bool?, Error?) -> Void))
     {
-        self.peripheral.discoverServices([UUL2CapConstants.UU_L2CAP_SERVICE_UUID], timeout: 10)
+        self.peripheral?.discoverServices(serviceUUIDs: [UUL2CapConstants.UU_L2CAP_SERVICE_UUID], timeout: 10)
         { discoveredServices, error in
             
             guard let service = discoveredServices?.first(where: { $0.uuid == UUL2CapConstants.UU_L2CAP_SERVICE_UUID }) else
@@ -267,7 +269,7 @@ class L2CapClientController:L2CapController
     
     private func discoverL2CapCharacteristics(service:CBService, completion: @escaping ((CBL2CAPPSM?, Bool?, Error?) -> Void))
     {
-        self.peripheral.discoverCharacteristics([UUL2CapConstants.UU_L2CAP_PSM_CHARACTERISTIC_UUID, UUL2CapConstants.UU_L2CAP_CHANNEL_ENCRYPTED_CHARACTERISTIC_UUID], for: service, timeout: 10)
+        self.peripheral?.discoverCharacteristics(characteristicUUIDs: [UUL2CapConstants.UU_L2CAP_PSM_CHARACTERISTIC_UUID, UUL2CapConstants.UU_L2CAP_CHANNEL_ENCRYPTED_CHARACTERISTIC_UUID], for: service, timeout: 10)
         { discoveredCharacteristics, error in
             
             guard let psmCharacteristic = discoveredCharacteristics?.first(where: { $0.uuid == UUL2CapConstants.UU_L2CAP_PSM_CHARACTERISTIC_UUID }),
@@ -308,7 +310,7 @@ class L2CapClientController:L2CapController
     
     private func readL2CapPSMValue(characteristic:CBCharacteristic, completion: @escaping ((CBL2CAPPSM?, Error?) -> Void))
     {
-        self.peripheral.readValue(for: characteristic)
+        self.peripheral?.readValue(for: characteristic, timeout: 20.0)
         { _, characteristic, error in
             
             guard let psmData = characteristic.value else
@@ -325,7 +327,7 @@ class L2CapClientController:L2CapController
     
     private func readL2CapEncryptionValue(characteristic:CBCharacteristic, completion: @escaping ((Bool?, Error?) -> Void))
     {
-        self.peripheral.readValue(for: characteristic)
+        self.peripheral?.readValue(for: characteristic, timeout: 20.0)
         { _, characteristic, error in
             
             guard let encryptedData = characteristic.value else

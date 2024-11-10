@@ -11,18 +11,18 @@ import UUSwiftBluetooth
 
 class PeripheralViewModel: ObservableObject
 {
-    @Published var peripheral: UUPeripheral
+    @Published var peripheral: any UUPeripheral
     
-    var serviceTapHandler: ((UUPeripheral, CBService)->()) = { _,_ in }
+    var serviceTapHandler: ((any UUPeripheral, CBService)->()) = { _,_ in }
     
-    init(_ peripheral: UUPeripheral)
+    init(_ peripheral: any UUPeripheral)
     {
         self.peripheral = peripheral
     }
     
     func onConnect()
     {
-        peripheral.connect(connected:
+        peripheral.connect(timeout: 20.0, connected:
         {
             DispatchQueue.main.async
             {
@@ -41,12 +41,12 @@ class PeripheralViewModel: ObservableObject
     
     func onDisconnect()
     {
-        peripheral.disconnect()
+        peripheral.disconnect(timeout: 20.0)
     }
     
     func onDiscoverServices()
     {
-        peripheral.discoverServices
+        peripheral.discoverServices(serviceUUIDs: [], timeout: 20.0)
         { services, errOpt in
             
             NSLog("Service discovery complete, found \(services?.count ?? 0) services")
@@ -101,7 +101,7 @@ struct PeripheralView: View
             ScrollView(.vertical, showsIndicators: false)
             {
                 SectionHeaderView(label: "Info")
-                LabelValueRowView(label: "ID:", value: viewModel.peripheral.identifier)
+                LabelValueRowView(label: "ID:", value: viewModel.peripheral.identifier.uuidString)
                 LabelValueRowView(label: "Name:", value: viewModel.peripheral.friendlyName)
                 LabelValueRowView(label: "State:", value: "\(UUCBPeripheralStateToString(viewModel.peripheral.peripheralState)) - (\(viewModel.peripheral.peripheralState.rawValue))")
                 LabelValueRowView(label: "RSSI:", value: "\(viewModel.peripheral.rssi)")

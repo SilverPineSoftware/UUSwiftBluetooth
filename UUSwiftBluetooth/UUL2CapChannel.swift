@@ -13,7 +13,7 @@ import UUSwiftCore
 public class UUL2CapChannel:NSObject//, StreamDelegate
 {
     private var channel:CBL2CAPChannel? = nil
-    private let peripheral:UUPeripheral
+    private let peripheral: any UUPeripheral
     private var psm:CBL2CAPPSM = 0
 
     private(set) public var dispatchQueue = DispatchQueue(label: "UUL2CapChannelQueue", qos: .userInitiated, attributes: [], autoreleaseFrequency: .inherit, target: nil)
@@ -27,7 +27,7 @@ public class UUL2CapChannel:NSObject//, StreamDelegate
         
     }
     
-    public init(_ peripheral: UUPeripheral)
+    public init(_ peripheral: any UUPeripheral)
     {
         self.peripheral = peripheral
         self.timerPool = UUTimerPool.getPool("UUL2CapChannel_\(peripheral.identifier)", queue: dispatchQueue)

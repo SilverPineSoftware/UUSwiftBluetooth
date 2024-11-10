@@ -16,7 +16,7 @@ class PeripheralTableRow: UITableViewCell
     @IBOutlet weak var connectionStateLabel: UILabel!
     @IBOutlet weak var timeSinceLastUpdateLabel: UILabel!
     
-    func update(peripheral: UUPeripheral)
+    func update(peripheral: any UUPeripheral)
     {
         friendlyNameLabel.text = peripheral.friendlyName
         idLabel.text = "\(peripheral.identifier)\nConnectable: \(peripheral.isConnectable)"

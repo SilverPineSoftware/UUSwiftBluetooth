@@ -9,5 +9,5 @@ import UIKit
 
 public protocol UUPeripheralFilter
 {
-    func shouldDiscover(_ peripheral: UUPeripheral) -> Bool
+    func shouldDiscover(_ peripheral: any UUPeripheral) -> Bool
 }

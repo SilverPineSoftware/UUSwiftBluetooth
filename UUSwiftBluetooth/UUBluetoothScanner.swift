@@ -41,12 +41,12 @@ public class UUBluetoothScanner: ObservableObject
     private let scanWatchdogTimerId = "UUBluetoothScanner_scanWatchdogTimer"
     
     private let centralManager: UUCentralManager
-    private var nearbyPeripheralMap: [String:UUPeripheral] = [:]
+    private var nearbyPeripheralMap: [UUID: any UUPeripheral] = [:]
     private var nearbyPeripheralMapLock = NSRecursiveLock()
     
     private var scanSettings = UUBluetoothScanSettings()
     
-    private var nearbyPeripheralCallback: (([UUPeripheral])->()) = { _ in }
+    private var nearbyPeripheralCallback: (([any UUPeripheral])->()) = { _ in }
     
     //@Published public var nearbyPeripherals: [UUPeripheral] = []
     
@@ -57,7 +57,7 @@ public class UUBluetoothScanner: ObservableObject
     
     public func startScan(
         _ settings: UUBluetoothScanSettings,
-        callback: @escaping ([UUPeripheral])->())
+        callback: @escaping ([any UUPeripheral])->())
     {
         self.scanSettings = settings
         self.nearbyPeripheralCallback = callback
@@ -85,7 +85,7 @@ public class UUBluetoothScanner: ObservableObject
         self.stopScanWatchdogTimer()
     }
     
-    private func handlePeripheralFound(peripheral: UUPeripheral)
+    private func handlePeripheralFound(peripheral: any UUPeripheral)
     {
         defer { nearbyPeripheralMapLock.unlock() }
         nearbyPeripheralMapLock.lock()
@@ -103,7 +103,7 @@ public class UUBluetoothScanner: ObservableObject
         NSLog("There are \(sorted.count) peripherals nearby")
     }
     
-    private func sortedPeripherals() -> [UUPeripheral]
+    private func sortedPeripherals() -> [any UUPeripheral]
     {
         return nearbyPeripheralMap.values.sorted
         { lhs, rhs in
@@ -133,7 +133,7 @@ public class UUBluetoothScanner: ObservableObject
             
             var didChange = false
 
-            var keep: [UUPeripheral] = []
+            var keep: [any UUPeripheral] = []
             
             for peripheral in self.nearbyPeripheralMap.values
             {
