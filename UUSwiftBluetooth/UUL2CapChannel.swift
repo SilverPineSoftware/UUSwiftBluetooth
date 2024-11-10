@@ -64,7 +64,7 @@ public class UUL2CapChannel:NSObject//, StreamDelegate
             completion(err)
         }
         
-        self.peripheral.underlyingPeripheral.openL2CAPChannel(psm)        
+        self.peripheral.openL2CAPChannel(psm: psm)        
     }
     
 

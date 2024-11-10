@@ -19,7 +19,7 @@ public typealias UUDiscoverCharacteristicsCompletionBlock = (([CBCharacteristic]
 
 public protocol UUPeripheral: Identifiable where ID == UUID
 {
-    var underlyingPeripheral: CBPeripheral { get }
+    //var underlyingPeripheral: CBPeripheral { get }
     
     // The most recent advertisement data
     var advertisementData: [String: Any] { get }
@@ -133,6 +133,8 @@ public protocol UUPeripheral: Identifiable where ID == UUID
         timeout: TimeInterval,
         completion: @escaping UUPeripheralIntegerErrorBlock)
 
+    func openL2CAPChannel(psm: CBL2CAPPSM)
+    
     // Should this be public?
     func setDidOpenL2ChannelCallback(callback:((CBPeripheral, CBL2CAPChannel?, Error?) -> Void)?)
 }
@@ -1017,6 +1019,11 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral
     public func logBlocks()
     {
         delegate.logBlocks()
+    }
+    
+    func openL2CAPChannel(psm: CBL2CAPPSM)
+    {
+        self.underlyingPeripheral.openL2CAPChannel(psm)
     }
     
     internal func setDidOpenL2ChannelCallback(callback:((CBPeripheral, CBL2CAPChannel?, Error?) -> Void)?)
