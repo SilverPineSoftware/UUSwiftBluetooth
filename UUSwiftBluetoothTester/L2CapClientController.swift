@@ -11,7 +11,7 @@ import UUSwiftBluetooth
 
 class L2CapClientController:L2CapController
 {
-    var peripheral: (any UUPeripheral)? = nil
+    var peripheral: (UUPeripheral)? = nil
     private var channel:UUL2CapChannel? = nil
     
     

@@ -14,7 +14,7 @@ import UUSwiftCore
 public typealias UUCentralStateChangedBlock = ((CBManagerState)->())
 public typealias UUPeripheralFoundBlock = ((CBPeripheral, [String:Any], Int)->())
 public typealias UUWillRestoreStateBlock = (([String:Any])->())
-public typealias UUPeripheralListBlock = (([any UUPeripheral])->())
+public typealias UUPeripheralListBlock = (([UUPeripheral])->())
 
 
 /**
@@ -29,7 +29,7 @@ public class UUCentralManager
     private var delegate: UUCentralManagerDelegate
     var centralManager: CBCentralManager
     
-    private var peripherals: [UUID: UUCoreBluetoothPeripheral] = [:]
+    private var peripherals: [UUID: UUPeripheral] = [:]
     private var peripheralsMutex = NSRecursiveLock()
     
     private var scanUuidList: [CBUUID]? = nil
@@ -125,7 +125,7 @@ public class UUCentralManager
         allowDuplicates: Bool,
         //peripheralFactory: UUPeripheralFactory<T>?,
         filters: [UUPeripheralFilter]?,
-        peripheralFoundCallback: @escaping ((any UUPeripheral)->()),
+        peripheralFoundCallback: @escaping ((UUPeripheral)->()),
         willRestoreCallback: @escaping UUWillRestoreStateBlock)
     {
         NSLog("starting scan")
@@ -190,7 +190,7 @@ public class UUCentralManager
         willRestoreStateBlock?(options)
     }
     
-    private func shouldDiscoverPeripheral(_ peripheral: UUCoreBluetoothPeripheral) -> Bool
+    private func shouldDiscoverPeripheral(_ peripheral: UUPeripheral) -> Bool
     {
         guard let filters = scanFilters else
         {
@@ -227,31 +227,31 @@ public class UUCentralManager
     }
     
     
-    func registerConnectionBlocks(_ peripheral: UUCoreBluetoothPeripheral, _ connectedBlock: @escaping UUCBPeripheralBlock, _ disconnectedBlock: @escaping UUCBPeripheralErrorBlock)
+    func registerConnectionBlocks(_ peripheral: UUPeripheral, _ connectedBlock: @escaping UUCBPeripheralBlock, _ disconnectedBlock: @escaping UUCBPeripheralErrorBlock)
     {
         let key = peripheral.identifier
         delegate.connectBlocks[key] = connectedBlock
         delegate.disconnectBlocks[key] = disconnectedBlock
     }
     
-    func removeConnectionBlocks(_ peripheral: UUCoreBluetoothPeripheral)
+    func removeConnectionBlocks(_ peripheral: UUPeripheral)
     {
         let key = peripheral.identifier
         delegate.connectBlocks.removeValue(forKey: key)
         delegate.disconnectBlocks.removeValue(forKey: key)
     }
     
-    func connect(_ peripheral: UUCoreBluetoothPeripheral, _ options: [String:Any]?)
+    func connect(_ peripheral: UUPeripheral, _ options: [String:Any]?)
     {
         centralManager.connect(peripheral.underlyingPeripheral, options: options)
     }
     
-    func cancelPeripheralConnection(_ peripheral: UUCoreBluetoothPeripheral)
+    func cancelPeripheralConnection(_ peripheral: UUPeripheral)
     {
         centralManager.cancelPeripheralConnection(peripheral.underlyingPeripheral)
     }
     
-    func notifyDisconnect(_ peripheral: UUCoreBluetoothPeripheral, _ error: Error?)
+    func notifyDisconnect(_ peripheral: UUPeripheral, _ error: Error?)
     {
        let key = peripheral.identifier
        let disconnectBlock = delegate.disconnectBlocks[key]
@@ -424,12 +424,12 @@ public class UUCentralManager
         return uuPeripheral;
     }*/
     
-    private func getOrCreatePeripheral(/*_ factory: UUPeripheralFactory<T>?, */_ cbPeripheral: CBPeripheral) -> UUCoreBluetoothPeripheral?
+    private func getOrCreatePeripheral(/*_ factory: UUPeripheralFactory<T>?, */_ cbPeripheral: CBPeripheral) -> UUPeripheral?
     {
         var p = findPeripheralFromCbPeripheral(cbPeripheral)
         if (p == nil)
         {
-            p = UUCoreBluetoothPeripheral(dispatchQueue: self.dispatchQueue, centralManager: self, peripheral: cbPeripheral)
+            p = UUPeripheral(dispatchQueue: self.dispatchQueue, centralManager: self, peripheral: cbPeripheral)
         }
         
         return p
@@ -446,7 +446,7 @@ public class UUCentralManager
 //        return p
 //    }
     
-    private func findPeripheralFromCbPeripheral(_ peripheral: CBPeripheral) -> UUCoreBluetoothPeripheral?
+    private func findPeripheralFromCbPeripheral(_ peripheral: CBPeripheral) -> UUPeripheral?
     {
         defer { peripheralsMutex.unlock() }
         peripheralsMutex.lock()
@@ -458,7 +458,7 @@ public class UUCentralManager
         //_ factory: UUPeripheralFactory<T>?,
         _ peripheral: CBPeripheral,
         _ advertisementData: [String:Any],
-        _ rssi: Int) -> UUCoreBluetoothPeripheral?
+        _ rssi: Int) -> UUPeripheral?
     {
         guard let uuPeripheral = getOrCreatePeripheral(peripheral) else
         {
@@ -470,7 +470,7 @@ public class UUCentralManager
         return uuPeripheral
     }
     
-    private func updatePeripheral(_ peripheral: UUCoreBluetoothPeripheral)
+    private func updatePeripheral(_ peripheral: UUPeripheral)
     {
         defer { peripheralsMutex.unlock() }
         peripheralsMutex.lock()
@@ -478,7 +478,7 @@ public class UUCentralManager
         peripherals[peripheral.identifier] = peripheral
     }
     
-    private func removePeripheral(_ peripheral: UUCoreBluetoothPeripheral)
+    private func removePeripheral(_ peripheral: UUPeripheral)
     {
         defer { peripheralsMutex.unlock() }
         peripheralsMutex.lock()

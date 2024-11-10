@@ -16,7 +16,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     @IBOutlet weak var rightNavBarItem: UIBarButtonItem!
     @IBOutlet weak var leftNavBarItem: UIBarButtonItem!
     
-    private var tableData: [any UUPeripheral] = []
+    private var tableData: [UUPeripheral] = []
     
     private var scanner = UUBluetoothScanner()
     
@@ -66,7 +66,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     private var readInfoOperation: ReadDeviceInfoOperation? = nil
     
-    private func showPeripheralOptions(_ peripheral: any UUPeripheral)
+    private func showPeripheralOptions(_ peripheral: UUPeripheral)
     {
         let alert = UIAlertController(title: "\(peripheral.friendlyName)", message: "Choose an action", preferredStyle: .actionSheet)
         alert.addAction(UIAlertAction(title: "Read Info", style: .default, handler:
@@ -132,7 +132,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }
     }
     
-    private func handleServiceTapped(_ peripheral: any UUPeripheral, _ service: CBService)
+    private func handleServiceTapped(_ peripheral: UUPeripheral, _ service: CBService)
     {
         let viewModel = ServiceViewModel(peripheral, service)
         let view = ServiceView(viewModel: viewModel)
@@ -140,7 +140,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         navigationController?.pushViewController(host, animated: true)
     }
     
-    private func handleNearbyPeripheralsChanged(_ list: [any UUPeripheral])
+    private func handleNearbyPeripheralsChanged(_ list: [UUPeripheral])
     {
         let now = Date().timeIntervalSinceReferenceDate
         let diff = now - lastTableUpdate
@@ -212,7 +212,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
 class PeripheralFilter: UUPeripheralFilter
 {
-    func shouldDiscover(_ peripheral: any UUPeripheral) -> Bool
+    func shouldDiscover(_ peripheral: UUPeripheral) -> Bool
     {
         if (peripheral.friendlyName.isEmpty)
         {
@@ -225,7 +225,7 @@ class PeripheralFilter: UUPeripheralFilter
 
 class OutOfRangePeripheralFilter: UUOutOfRangePeripheralFilter
 {
-    func checkPeripheralRange(_ peripheral: any UUPeripheral) -> UUOutOfRangePeripheralFilterResult
+    func checkPeripheralRange(_ peripheral: UUPeripheral) -> UUOutOfRangePeripheralFilterResult
     {
         if (peripheral.timeSinceLastUpdate > 0.5)
         {

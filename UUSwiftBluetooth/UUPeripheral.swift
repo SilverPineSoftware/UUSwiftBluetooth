@@ -9,14 +9,15 @@ import UIKit
 import CoreBluetooth
 import UUSwiftCore
 
-public typealias UUPeripheralBlock = ((any UUPeripheral)->())
-public typealias UUPeripheralErrorBlock = ((any UUPeripheral, Error?)->())
-public typealias UUPeripheralCharacteristicErrorBlock = ((any UUPeripheral, CBCharacteristic, Error?)->())
-public typealias UUPeripheralDescriptorErrorBlock = ((any UUPeripheral, CBDescriptor, Error?)->())
-public typealias UUPeripheralIntegerErrorBlock = ((any UUPeripheral, Int, Error?)->())
+public typealias UUPeripheralBlock = ((UUPeripheral)->())
+public typealias UUPeripheralErrorBlock = ((UUPeripheral, Error?)->())
+public typealias UUPeripheralCharacteristicErrorBlock = ((UUPeripheral, CBCharacteristic, Error?)->())
+public typealias UUPeripheralDescriptorErrorBlock = ((UUPeripheral, CBDescriptor, Error?)->())
+public typealias UUPeripheralIntegerErrorBlock = ((UUPeripheral, Int, Error?)->())
 public typealias UUDiscoverServicesCompletionBlock = (([CBService]?, Error?)->())
 public typealias UUDiscoverCharacteristicsCompletionBlock = (([CBCharacteristic]?, Error?)->())
 
+/*
 public protocol UUPeripheral: Identifiable where ID == UUID
 {
     //var underlyingPeripheral: CBPeripheral { get }
@@ -137,12 +138,12 @@ public protocol UUPeripheral: Identifiable where ID == UUID
     
     // Should this be public?
     func setDidOpenL2ChannelCallback(callback:((CBPeripheral, CBL2CAPChannel?, Error?) -> Void)?)
-}
+}*/
 
 // UUPeripheral is a convenience class that wraps a CBPeripheral and it's
 // advertisement data into one object.
 //
-internal class UUCoreBluetoothPeripheral: UUPeripheral
+public class UUPeripheral: Identifiable  //: UUPeripheral
 {
     public var id: UUID
     {

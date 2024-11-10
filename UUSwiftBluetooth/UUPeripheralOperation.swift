@@ -10,7 +10,7 @@ import CoreBluetooth
 
 open class UUPeripheralOperation
 {
-    public let peripheral: any UUPeripheral
+    public let peripheral: UUPeripheral
     private var operationError: Error? = nil
     private var operationCallback: ((Error?)->())? = nil
     private var discoveredServices: [CBService] = []
@@ -18,15 +18,15 @@ open class UUPeripheralOperation
     
     private var servicesNeedingCharacteristicDiscovery: [CBService] = []
     
-    public var connectTimeout: TimeInterval = UUCoreBluetoothPeripheral.Defaults.connectTimeout
-    public var disconnectTimeout: TimeInterval = UUCoreBluetoothPeripheral.Defaults.disconnectTimeout
-    public var serviceDiscoveryTimeout: TimeInterval = UUCoreBluetoothPeripheral.Defaults.operationTimeout
-    public var characteristicDiscoveryTimeout: TimeInterval = UUCoreBluetoothPeripheral.Defaults.operationTimeout
-    public var readTimeout: TimeInterval = UUCoreBluetoothPeripheral.Defaults.operationTimeout
-    public var writeTimeout: TimeInterval = UUCoreBluetoothPeripheral.Defaults.operationTimeout
+    public var connectTimeout: TimeInterval = UUPeripheral.Defaults.connectTimeout
+    public var disconnectTimeout: TimeInterval = UUPeripheral.Defaults.disconnectTimeout
+    public var serviceDiscoveryTimeout: TimeInterval = UUPeripheral.Defaults.operationTimeout
+    public var characteristicDiscoveryTimeout: TimeInterval = UUPeripheral.Defaults.operationTimeout
+    public var readTimeout: TimeInterval = UUPeripheral.Defaults.operationTimeout
+    public var writeTimeout: TimeInterval = UUPeripheral.Defaults.operationTimeout
     
     
-    public init(_ peripheral: any UUPeripheral)
+    public init(_ peripheral: UUPeripheral)
     {
         self.peripheral = peripheral
     }

@@ -11,11 +11,11 @@ import UUSwiftBluetooth
 
 class PeripheralViewModel: ObservableObject
 {
-    @Published var peripheral: any UUPeripheral
+    @Published var peripheral: UUPeripheral
     
-    var serviceTapHandler: ((any UUPeripheral, CBService)->()) = { _,_ in }
+    var serviceTapHandler: ((UUPeripheral, CBService)->()) = { _,_ in }
     
-    init(_ peripheral: any UUPeripheral)
+    init(_ peripheral: UUPeripheral)
     {
         self.peripheral = peripheral
     }

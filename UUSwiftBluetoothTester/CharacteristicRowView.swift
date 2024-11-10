@@ -11,7 +11,7 @@ import UUSwiftBluetooth
 
 class CharacteristicRowViewModel: ObservableObject
 {
-    var peripheral: any UUPeripheral
+    var peripheral: UUPeripheral
     @Published var characteristic: CBCharacteristic
     @Published var showDivider: Bool
     
@@ -41,7 +41,7 @@ class CharacteristicRowViewModel: ObservableObject
     }
 
     
-    init(_ peripheral: any UUPeripheral, _ characteristic: CBCharacteristic, showDivider: Bool = false)
+    init(_ peripheral: UUPeripheral, _ characteristic: CBCharacteristic, showDivider: Bool = false)
     {
         self.peripheral = peripheral
         self.characteristic = characteristic

@@ -15,5 +15,5 @@ public enum UUOutOfRangePeripheralFilterResult
 
 public protocol UUOutOfRangePeripheralFilter
 {
-    func checkPeripheralRange(_ peripheral: any UUPeripheral) -> UUOutOfRangePeripheralFilterResult
+    func checkPeripheralRange(_ peripheral: UUPeripheral) -> UUOutOfRangePeripheralFilterResult
 }

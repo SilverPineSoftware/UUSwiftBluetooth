@@ -11,10 +11,10 @@ import UUSwiftBluetooth
 
 class ServiceViewModel: ObservableObject
 {
-    @Published var peripheral: any UUPeripheral
+    @Published var peripheral: UUPeripheral
     @Published var service: CBService
     
-    init(_ peripheral: any UUPeripheral, _ service: CBService)
+    init(_ peripheral: UUPeripheral, _ service: CBService)
     {
         self.peripheral = peripheral
         self.service = service
