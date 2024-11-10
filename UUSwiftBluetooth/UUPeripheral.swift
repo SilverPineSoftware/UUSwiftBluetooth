@@ -143,18 +143,18 @@ public protocol UUPeripheral: Identifiable where ID == UUID
 // UUPeripheral is a convenience class that wraps a CBPeripheral and it's
 // advertisement data into one object.
 //
-public class UUPeripheral: Identifiable  //: UUPeripheral
+public class UUPeripheral//: Identifiable  //: UUPeripheral
 {
-    public var id: UUID
-    {
-        get
-        {
-            return self.identifier
-        }
-    }
-    
-    public typealias ID = UUID
-    
+//    public var id: UUID
+//    {
+//        get
+//        {
+//            return self.identifier
+//        }
+//    }
+//    
+//    public typealias ID = UUID
+//    
 
     public class Defaults
     {
