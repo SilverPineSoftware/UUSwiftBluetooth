@@ -142,8 +142,6 @@ public class UUCentralManager
         delegate.peripheralFoundBlock =
         { peripheral, advertisementData, rssi in
             
-            //let uuPeripheral: T = self.updatedPeripheralFromScan(peripheral, advertisementData, rssi)
-            //var uuPeripheral: T? = peripheralFactory?.create(self.dispatchQueue, self, peripheral)
             if let p = self.updatePeripheralFromScan(peripheral, advertisementData, rssi)
             {
                 NSLog("Updated peripheral after scan. peripheral: \(String(describing: p.underlyingPeripheral)), rssi: \(p.rssi), advertisement: \(p.advertisementData)")

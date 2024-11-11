@@ -220,20 +220,14 @@ public class UUPeripheral//: Identifiable  //: UUPeripheral
         return underlyingPeripheral.name ?? ""
     }
     
-    public var localName: String
-    {
-        return advertisementData[CBAdvertisementDataLocalNameKey] as? String ?? ""
-    }
-    
     public var friendlyName: String
     {
-        var result = localName
-        if (result.isEmpty)
+        if let val = localName, val.isEmpty == false
         {
-            result = self.name
+            return val
         }
         
-        return result
+        return self.name
     }
     
     public var peripheralState: CBPeripheralState
@@ -244,6 +238,13 @@ public class UUPeripheral//: Identifiable  //: UUPeripheral
     public var services: [CBService]?
     {
         return underlyingPeripheral.services
+    }
+    
+    ///
+    /// Returns the value of CBAdvertisementDataLocalNameKey from the advertisement data.
+    public var localName: String?
+    {
+        return advertisementData[CBAdvertisementDataLocalNameKey] as? String
     }
     
     // Returns value of CBAdvertisementDataIsConnectable from advertisement data.  Default
@@ -261,11 +262,44 @@ public class UUPeripheral//: Identifiable  //: UUPeripheral
         return advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data
     }
     
-//    // Hook for derived classes to parse custom manufacturing data during object creation.
-//    open func parseManufacturingData()
-//    {
-//        
-//    }
+    ///
+    ///Returns the value of CBAdvertisementDataTxPowerLevelKey from the advertisement data.
+    public var transmitPower: Int?
+    {
+        return advertisementData.uuGetInt(CBAdvertisementDataTxPowerLevelKey)
+    }
+    
+    /**
+     * Returns the value of kCBAdvDataRxPrimaryPHY from the advertisment data.  This is an undocumented value that represents
+     * the Primary Phy value for the peripheral
+     */
+    public var primaryPhy: Int?
+    {
+        return advertisementData.uuGetInt(UUBluetoothConstants.AdvertisementDataKeys.rxPrimaryPHY)
+    }
+    
+    /**
+     * Returns the value of kCBAdvDataRxSecondaryPHY from the advertisment data.  This is an undocumented value that represents
+     * the secondary Phy value for the peripheral
+     */
+    public var secondaryPhy: Int?
+    {
+        return advertisementData.uuGetInt(UUBluetoothConstants.AdvertisementDataKeys.rxSecondaryPHY)
+    }
+    
+    /**
+     * Returns the value of kCBAdvDataTimestamp from the advertisment data.  This is an undocumented value that represents
+     * the timestamp of when the operating system received the advertisement.
+     */
+    public var timestamp: Date?
+    {
+        guard let num = advertisementData.uuGetDouble(UUBluetoothConstants.AdvertisementDataKeys.timestamp) else
+        {
+            return nil
+        }
+        
+        return Date(timeIntervalSinceReferenceDate: num)
+    }
     
     func updateFromScan(
         _ peripheral: CBPeripheral,

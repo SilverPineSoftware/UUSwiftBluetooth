@@ -8,7 +8,6 @@
 import UIKit
 import CoreBluetooth
 import UUSwiftCore
-import Combine
 
 public struct UUBluetoothScanSettings
 {
@@ -32,10 +31,10 @@ public struct UUBluetoothScanSettings
     public var filters: [UUPeripheralFilter]? = nil
     public var outOfRangeFilters: [UUOutOfRangePeripheralFilter]? = nil
     public var outOfRangeFilterEvaluationFrequency: TimeInterval = 0.5
-    public var scanWatchdogTimeout: TimeInterval = 0.5
+    public var scanWatchdogTimeout: TimeInterval = 0.0
 }
 
-public class UUBluetoothScanner: ObservableObject
+public class UUBluetoothScanner //: ObservableObject
 {
     private let outOfRangeFilterEvaluationFrequencyTimerId = "UUBluetoothScanner_outOfRangeFilterEvaluationFrequency"
     private let scanWatchdogTimerId = "UUBluetoothScanner_scanWatchdogTimer"
@@ -178,25 +177,42 @@ public class UUBluetoothScanner: ObservableObject
         UUTimerPool.shared.cancel(by: outOfRangeFilterEvaluationFrequencyTimerId)
     }
     
+    private func shouldUseScanWatchdog() -> Bool
+    {
+        // The scan watchdog serves as a way to collect more real time advertisements from the app.  By default Core Bluetooth
+        // will aggregate and only deliver advertisements once per scan api call.  The allow duplicates flag can be used when
+        // the app is in the foreground to make Core Bluetooth return all advertisements.  When this value is true there is no
+        // need for this ranging behavior.  Similarly, if the calling app hasn't configured any out of range filters, there is no
+        // need for this.  The main purpose of 'ranging' is to monitor the advertisement data over time and potentially make
+        // decisions like in or out of range.
+        return (scanSettings.scanWatchdogTimeout > 0 &&
+                scanSettings.allowDuplicates == false &&
+                scanSettings.outOfRangeFilters != nil &&
+                scanSettings.outOfRangeFilters?.isEmpty == false)
+    }
+    
     private func startScanWatchdogTimer()
     {
         stopScanWatchdogTimer()
         
-        let t = UUTimer(identifier: scanWatchdogTimerId, interval: scanSettings.scanWatchdogTimeout, userInfo: nil, shouldRepeat: true, pool: UUTimerPool.shared)
-        { t in
+        if (shouldUseScanWatchdog())
+        {
+            let t = UUTimer(identifier: scanWatchdogTimerId, interval: scanSettings.scanWatchdogTimeout, userInfo: nil, shouldRepeat: true, pool: UUTimerPool.shared)
+            { t in
+                
+                if (self.isScanning)
+                {
+                    NSLog("Restarting scanning after scan watchdog timeout")
+                    self.centralManager.restartScanning()
+                }
+                else
+                {
+                    NSLog("Scan was stopped, skipping scan restart")
+                }
+            }
             
-            if (self.isScanning)
-            {
-                NSLog("Restarting scanning after scan watchdog timeout")
-                self.centralManager.restartScanning()
-            }
-            else
-            {
-                NSLog("Scan was stopped, skipping scan restart")
-            }
+            t.start()
         }
-        
-        t.start()
     }
     
     private func stopScanWatchdogTimer()

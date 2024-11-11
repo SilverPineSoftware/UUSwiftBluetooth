@@ -183,7 +183,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         else
         {
             let filters = [PeripheralFilter()]
-            let outOfRangeFilters = [OutOfRangePeripheralFilter()]
+            let outOfRangeFilters:[UUOutOfRangePeripheralFilter] = [] //[OutOfRangePeripheralFilter()]
             self.tableData.removeAll()
             self.tableView.reloadData()
             
@@ -227,7 +227,7 @@ class OutOfRangePeripheralFilter: UUOutOfRangePeripheralFilter
 {
     func checkPeripheralRange(_ peripheral: UUPeripheral) -> UUOutOfRangePeripheralFilterResult
     {
-        if (peripheral.timeSinceLastUpdate > 0.5)
+        if (peripheral.timeSinceLastUpdate > 5.0)
         {
             return .outOfRange
         }

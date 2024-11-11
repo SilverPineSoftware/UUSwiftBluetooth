@@ -1636,4 +1636,11 @@ public struct UUBluetoothConstants
          */
         public static let valueTriggerSetting = CBUUID(string: "290A")
     }
+    
+    public struct AdvertisementDataKeys
+    {
+        public static let rxPrimaryPHY = "kCBAdvDataRxPrimaryPHY"
+        public static let rxSecondaryPHY = "kCBAdvDataRxSecondaryPHY"
+        public static let timestamp = "kCBAdvDataTimestamp"
+    }
 }
