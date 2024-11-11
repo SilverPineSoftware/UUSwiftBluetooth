@@ -22,7 +22,7 @@ class PeripheralTableRow: UITableViewCell
         idLabel.text = "\(peripheral.identifier)\nConnectable: \(peripheral.isConnectable)"
         rssiLabel.text = "\(peripheral.rssi)"
         connectionStateLabel.text = UUCBPeripheralStateToString(peripheral.peripheralState);
-        timeSinceLastUpdateLabel.text = String(format: "%.3f", Date().timeIntervalSince(peripheral.lastAdvertisementTime))
+        timeSinceLastUpdateLabel.text = String(format: "%.3f", peripheral.timeSinceLastUpdate)
 
     }
 }

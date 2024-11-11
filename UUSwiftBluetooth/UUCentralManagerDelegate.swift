@@ -12,7 +12,7 @@ import UUSwiftCore
 class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
 {
     var centralStateChangedBlock: UUCentralStateChangedBlock? = nil
-    var peripheralFoundBlock: UUPeripheralFoundBlock? = nil
+    var peripheralFoundBlock: UUBluetoothAdvertisementBlock? = nil
     var connectBlocks: [UUID: UUCBPeripheralBlock] = [:]
     var disconnectBlocks: [UUID: UUCBPeripheralErrorBlock] = [:]
     
@@ -26,9 +26,15 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber)
     {
-        NSLog("peripheral: %@, RSSI: %@, advertisement: %@", peripheral, RSSI, advertisementData)
+        guard let block = peripheralFoundBlock else
+        {
+            NSLog("No callback defined, Skipping peripheral: \(peripheral), RSSI: \(RSSI), advertisement: \(advertisementData)")
+            return
+        }
         
-        peripheralFoundBlock?(peripheral, advertisementData, RSSI.intValue)
+        NSLog("peripheral: %@, RSSI: %@, advertisement: %@", peripheral, RSSI, advertisementData)
+        block(UUBluetoothAdvertisement(peripheral, advertisementData, RSSI.intValue))
+        //peripheralFoundBlock?(peripheral, advertisementData, RSSI.intValue)
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral)

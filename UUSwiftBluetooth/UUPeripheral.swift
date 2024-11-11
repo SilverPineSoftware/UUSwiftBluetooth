@@ -17,145 +17,11 @@ public typealias UUPeripheralIntegerErrorBlock = ((UUPeripheral, Int, Error?)->(
 public typealias UUDiscoverServicesCompletionBlock = (([CBService]?, Error?)->())
 public typealias UUDiscoverCharacteristicsCompletionBlock = (([CBCharacteristic]?, Error?)->())
 
-/*
-public protocol UUPeripheral: Identifiable where ID == UUID
-{
-    //var underlyingPeripheral: CBPeripheral { get }
-    
-    // The most recent advertisement data
-    var advertisementData: [String: Any] { get }
-    
-    // Timestamp of when this peripheral was first seen
-    var firstAdvertisementTime: Date { get }
-    
-    // Timestamp of when the last advertisement was seen
-    var lastAdvertisementTime: Date { get }
-    
-    // Most recent signal strength
-    var rssi: Int { get }
-    
-    // Timestamp of when the RSSI was last updated
-    var lastRssiUpdateTime: Date { get }
-    
-    var timeSinceLastUpdate: TimeInterval { get }
-    
-    var identifier: UUID { get }
-    
-    var name: String { get }
-    
-    var localName: String { get }
-    
-    // Local Name or Peripheral Name
-    var friendlyName: String { get }
-    
-    var peripheralState: CBPeripheralState { get }
-    
-    var services: [CBService]? { get }
-    
-    // Returns value of CBAdvertisementDataIsConnectable from advertisement data.  Default
-    // value is NO if value is not present. Per the CoreBluetooth documentation, this
-    // value indicates if the peripheral is connectable "right now", which implies
-    // it may change in the future.
-    var isConnectable: Bool { get }
-    
-    // Returns value of CBAdvertisementDataManufacturerDataKey from advertisement data.
-    var manufacturingData: Data? { get }
-
-    func connect(
-        timeout: TimeInterval,
-        connected: @escaping ()->(),
-        disconnected: @escaping (Error?)->())
-        
-    func disconnect(timeout: TimeInterval)
-    
-    func discoverServices(
-        serviceUUIDs: [CBUUID]?,
-        timeout: TimeInterval,
-        completion: @escaping UUDiscoverServicesCompletionBlock)
-    
-    func discoverCharacteristics(
-        characteristicUUIDs: [CBUUID]?,
-        for service: CBService,
-        timeout: TimeInterval,
-        completion: @escaping UUDiscoverCharacteristicsCompletionBlock)
-    
-    func discoverIncludedServices(
-        includedServiceUUIDs: [CBUUID]?,
-        for service: CBService,
-        timeout: TimeInterval,
-        completion: @escaping UUPeripheralErrorBlock)
-    
-    func discoverDescriptorsForCharacteristic(
-        for characteristic: CBCharacteristic,
-        timeout: TimeInterval,
-        completion: @escaping UUPeripheralCharacteristicErrorBlock)
-    
-    func discover(
-        characteristics: [CBUUID]?,
-        for serviceUuid: CBUUID,
-        timeout: TimeInterval,
-        completion: @escaping UUDiscoverCharacteristicsCompletionBlock)
-    
-    func setNotifyValue(
-        enabled: Bool,
-        for characteristic: CBCharacteristic,
-        timeout: TimeInterval,
-        notifyHandler: UUPeripheralCharacteristicErrorBlock?,
-        completion: @escaping UUPeripheralCharacteristicErrorBlock)
-    
-    func readValue(
-        for characteristic: CBCharacteristic,
-        timeout: TimeInterval,
-        completion: @escaping UUPeripheralCharacteristicErrorBlock)
-    
-    func readValue(
-        for descriptor: CBDescriptor,
-        timeout: TimeInterval,
-        completion: @escaping UUPeripheralDescriptorErrorBlock)
-    
-    func writeValue(
-        data: Data,
-        for characteristic: CBCharacteristic,
-        timeout: TimeInterval,
-        completion: @escaping UUPeripheralCharacteristicErrorBlock)
-    
-    func writeValueWithoutResponse(
-        data: Data,
-        for characteristic: CBCharacteristic,
-        completion: @escaping UUPeripheralCharacteristicErrorBlock)
-    
-    func writeValue(
-        data: Data,
-        for descriptor: CBDescriptor,
-        timeout: TimeInterval,
-        completion: @escaping UUPeripheralDescriptorErrorBlock)
-    
-    func readRSSI(
-        timeout: TimeInterval,
-        completion: @escaping UUPeripheralIntegerErrorBlock)
-
-    func openL2CAPChannel(psm: CBL2CAPPSM)
-    
-    // Should this be public?
-    func setDidOpenL2ChannelCallback(callback:((CBPeripheral, CBL2CAPChannel?, Error?) -> Void)?)
-}*/
-
 // UUPeripheral is a convenience class that wraps a CBPeripheral and it's
 // advertisement data into one object.
 //
-public class UUPeripheral//: Identifiable  //: UUPeripheral
+public class UUPeripheral
 {
-//    public var id: UUID
-//    {
-//        get
-//        {
-//            return self.identifier
-//        }
-//    }
-//    
-//    public typealias ID = UUID
-//    
-
     public class Defaults
     {
         public static var connectTimeout: TimeInterval = 10.0
@@ -177,24 +43,31 @@ public class UUPeripheral//: Identifiable  //: UUPeripheral
         }
     }
     
+    private(set) public var advertisements: [UUBluetoothAdvertisement] = []
+    
     // The most recent advertisement data
-    public var advertisementData: [String: Any] = [:]
+    //public var advertisementData: [String: Any] = [:]
     
     // Timestamp of when this peripheral was first seen
-    private(set) public var firstAdvertisementTime: Date = Date()
+    //private(set) public var firstAdvertisementTime: Date = Date()
     
     // Timestamp of when the last advertisement was seen
-    private(set) public var lastAdvertisementTime: Date = Date()
+    //private(set) public var lastAdvertisementTime: Date = Date()
     
     // Most recent signal strength
-    private(set) public var rssi: Int = 0
+    //private(set) public var rssi: Int = 0
     
     // Timestamp of when the RSSI was last updated
-    private(set) public var lastRssiUpdateTime: Date = Date()
+    //private(set) public var lastRssiUpdateTime: Date = Date()
     
     public var timeSinceLastUpdate: TimeInterval
     {
-        return Date.timeIntervalSinceReferenceDate - lastRssiUpdateTime.timeIntervalSinceReferenceDate
+        guard let lastBeaconTime = lastAdvertisement?.timestamp else
+        {
+            return 0
+        }
+    
+        return Date.timeIntervalSinceReferenceDate - lastBeaconTime.timeIntervalSinceReferenceDate
     }
     
     public required init(
@@ -222,7 +95,8 @@ public class UUPeripheral//: Identifiable  //: UUPeripheral
     
     public var friendlyName: String
     {
-        if let val = localName, val.isEmpty == false
+        
+        if let val = lastAdvertisement?.localName, val.isEmpty == false
         {
             return val
         }
@@ -240,87 +114,109 @@ public class UUPeripheral//: Identifiable  //: UUPeripheral
         return underlyingPeripheral.services
     }
     
-    ///
-    /// Returns the value of CBAdvertisementDataLocalNameKey from the advertisement data.
-    public var localName: String?
+    public var lastAdvertisement: UUBluetoothAdvertisement?
     {
-        return advertisementData[CBAdvertisementDataLocalNameKey] as? String
+        return advertisements.last
     }
     
-    // Returns value of CBAdvertisementDataIsConnectable from advertisement data.  Default
-    // value is NO if value is not present. Per the CoreBluetooth documentation, this
-    // value indicates if the peripheral is connectable "right now", which implies
-    // it may change in the future.
+    public var rssi: Int
+    {
+        return lastAdvertisement?.rssi ?? UUBluetoothConstants.noRssi
+    }
+    
     public var isConnectable: Bool
     {
-        return advertisementData.uuGetBool(CBAdvertisementDataIsConnectable) ?? false
+        return lastAdvertisement?.isConnectable ?? false
     }
     
-    // Returns value of CBAdvertisementDataManufacturerDataKey from advertisement data.
-    public var manufacturingData: Data?
-    {
-        return advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data
-    }
+//
+//    ///
+//    /// Returns the value of CBAdvertisementDataLocalNameKey from the advertisement data.
+//    public var localName: String?
+//    {
+//        return lastAdvertisement?.localName
+//    }
+//    
+//    // Returns value of CBAdvertisementDataIsConnectable from advertisement data.  Default
+//    // value is NO if value is not present. Per the CoreBluetooth documentation, this
+//    // value indicates if the peripheral is connectable "right now", which implies
+//    // it may change in the future.
+//    public var isConnectable: Bool?
+//    {
+//        return lastAdvertisement?.isConnectable
+//    }
+//    
+//    // Returns value of CBAdvertisementDataManufacturerDataKey from advertisement data.
+//    public var manufacturingData: Data?
+//    {
+//        return lastAdvertisement?.manufacturingData
+//    }
+//    
+//    ///
+//    ///Returns the value of CBAdvertisementDataTxPowerLevelKey from the advertisement data.
+//    public var transmitPower: Int?
+//    {
+//        return lastAdvertisement?.transmitPower
+//    }
+//    
+//    /**
+//     * Returns the value of kCBAdvDataRxPrimaryPHY from the advertisment data.  This is an undocumented value that represents
+//     * the Primary Phy value for the peripheral
+//     */
+//    public var primaryPhy: Int?
+//    {
+//        return advertisementData.uuGetInt(UUBluetoothConstants.AdvertisementDataKeys.rxPrimaryPHY)
+//    }
+//    
+//    /**
+//     * Returns the value of kCBAdvDataRxSecondaryPHY from the advertisment data.  This is an undocumented value that represents
+//     * the secondary Phy value for the peripheral
+//     */
+//    public var secondaryPhy: Int?
+//    {
+//        return advertisementData.uuGetInt(UUBluetoothConstants.AdvertisementDataKeys.rxSecondaryPHY)
+//    }
+//    
+//    /**
+//     * Returns the value of kCBAdvDataTimestamp from the advertisment data.  This is an undocumented value that represents
+//     * the timestamp of when the operating system received the advertisement.
+//     */
+//    public var timestamp: Date?
+//    {
+//        guard let num = advertisementData.uuGetDouble(UUBluetoothConstants.AdvertisementDataKeys.timestamp) else
+//        {
+//            return nil
+//        }
+//        
+//        return Date(timeIntervalSinceReferenceDate: num)
+//    }
     
-    ///
-    ///Returns the value of CBAdvertisementDataTxPowerLevelKey from the advertisement data.
-    public var transmitPower: Int?
-    {
-        return advertisementData.uuGetInt(CBAdvertisementDataTxPowerLevelKey)
-    }
-    
-    /**
-     * Returns the value of kCBAdvDataRxPrimaryPHY from the advertisment data.  This is an undocumented value that represents
-     * the Primary Phy value for the peripheral
-     */
-    public var primaryPhy: Int?
-    {
-        return advertisementData.uuGetInt(UUBluetoothConstants.AdvertisementDataKeys.rxPrimaryPHY)
-    }
-    
-    /**
-     * Returns the value of kCBAdvDataRxSecondaryPHY from the advertisment data.  This is an undocumented value that represents
-     * the secondary Phy value for the peripheral
-     */
-    public var secondaryPhy: Int?
-    {
-        return advertisementData.uuGetInt(UUBluetoothConstants.AdvertisementDataKeys.rxSecondaryPHY)
-    }
-    
-    /**
-     * Returns the value of kCBAdvDataTimestamp from the advertisment data.  This is an undocumented value that represents
-     * the timestamp of when the operating system received the advertisement.
-     */
-    public var timestamp: Date?
-    {
-        guard let num = advertisementData.uuGetDouble(UUBluetoothConstants.AdvertisementDataKeys.timestamp) else
-        {
-            return nil
-        }
-        
-        return Date(timeIntervalSinceReferenceDate: num)
-    }
-    
-    func updateFromScan(
+    /*func updateFromScan(
         _ peripheral: CBPeripheral,
         _ updatedAdvertisement: [String:Any],
         _ rssi: Int)
     {
         underlyingPeripheral = peripheral
-        advertisementData = updatedAdvertisement
-        lastAdvertisementTime = Date()
+        //advertisementData = updatedAdvertisement
+        //lastAdvertisementTime = Date()
+        advertisements.append(UUBluetoothAdvertisement(peripheral, updatedAdvertisement, rssi))
         updateRssi(rssi)
+    }*/
+    
+    func appendAdvertisement(_ advertisement: UUBluetoothAdvertisement)
+    {
+        advertisements.append(advertisement)
     }
     
     func updateRssi(_ rssi: Int)
     {
         // Per CoreBluetooth documentation, a value of 127 indicates the RSSI
         // reading is not available
-        if rssi != 127
+        /*if rssi != 127
         {
             self.rssi = rssi
             self.lastRssiUpdateTime = Date()
-        }
+        }*/
     }
     
     
@@ -1066,3 +962,4 @@ public class UUPeripheral//: Identifiable  //: UUPeripheral
         self.delegate.didOpenL2ChannelBlock = callback
     }    
 }
+

@@ -13,6 +13,7 @@ import UUSwiftCore
 
 public typealias UUCentralStateChangedBlock = ((CBManagerState)->())
 public typealias UUPeripheralFoundBlock = ((CBPeripheral, [String:Any], Int)->())
+public typealias UUBluetoothAdvertisementBlock = ((UUBluetoothAdvertisement)->())
 public typealias UUWillRestoreStateBlock = (([String:Any])->())
 public typealias UUPeripheralListBlock = (([UUPeripheral])->())
 
@@ -29,6 +30,7 @@ public class UUCentralManager
     private var delegate: UUCentralManagerDelegate
     var centralManager: CBCentralManager
     
+    // Keep track of connected peripherals
     private var peripherals: [UUID: UUPeripheral] = [:]
     private var peripheralsMutex = NSRecursiveLock()
     
@@ -140,11 +142,11 @@ public class UUCentralManager
         NSLog("isScanning: \(isScanning)")
         willRestoreStateBlock = willRestoreCallback
         delegate.peripheralFoundBlock =
-        { peripheral, advertisementData, rssi in
+        { advertisement in
             
-            if let p = self.updatePeripheralFromScan(peripheral, advertisementData, rssi)
+            if let p = self.updatePeripheralFromScan(advertisement)
             {
-                NSLog("Updated peripheral after scan. peripheral: \(String(describing: p.underlyingPeripheral)), rssi: \(p.rssi), advertisement: \(p.advertisementData)")
+                //NSLog("Updated peripheral after scan. peripheral: \(String(describing: p.underlyingPeripheral)), rssi: \(p.rssi), advertisement: \(p.advertisementData)")
                 
                 if (self.shouldDiscoverPeripheral(p))
                 {
@@ -422,7 +424,7 @@ public class UUCentralManager
         return uuPeripheral;
     }*/
     
-    private func getOrCreatePeripheral(/*_ factory: UUPeripheralFactory<T>?, */_ cbPeripheral: CBPeripheral) -> UUPeripheral?
+    private func getOrCreatePeripheral(_ cbPeripheral: CBPeripheral) -> UUPeripheral?
     {
         var p = findPeripheralFromCbPeripheral(cbPeripheral)
         if (p == nil)
@@ -452,18 +454,18 @@ public class UUCentralManager
         return peripherals[peripheral.identifier]
     }
     
-    private func updatePeripheralFromScan(
+    private func updatePeripheralFromScan(_ advertisement: UUBluetoothAdvertisement) -> UUPeripheral?
         //_ factory: UUPeripheralFactory<T>?,
-        _ peripheral: CBPeripheral,
-        _ advertisementData: [String:Any],
-        _ rssi: Int) -> UUPeripheral?
+        //_ peripheral: CBPeripheral,
+        //_ advertisementData: [String:Any],
+        //_ rssi: Int) -> UUPeripheral?
     {
-        guard let uuPeripheral = getOrCreatePeripheral(peripheral) else
+        guard let uuPeripheral = getOrCreatePeripheral(advertisement.peripheral) else
         {
             return nil
         }
         
-        uuPeripheral.updateFromScan(peripheral, advertisementData, rssi)
+        uuPeripheral.appendAdvertisement(advertisement) // peripheral, advertisementData, rssi)
         updatePeripheral(uuPeripheral)
         return uuPeripheral
     }

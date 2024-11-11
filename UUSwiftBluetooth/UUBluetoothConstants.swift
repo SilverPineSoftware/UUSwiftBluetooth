@@ -10,6 +10,11 @@ import CoreBluetooth
 
 public struct UUBluetoothConstants
 {
+    /**
+     * Special constant used to indicate that an RSSI reading is not available.
+     */
+    public static let noRssi: Int = 127
+    
     public struct Services
     {
         /**
