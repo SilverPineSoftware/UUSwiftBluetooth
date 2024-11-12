@@ -124,10 +124,11 @@ public class UUPeripheral
         return lastAdvertisement?.rssi ?? UUBluetoothConstants.noRssi
     }
     
+    /*
     public var isConnectable: Bool
     {
         return lastAdvertisement?.isConnectable ?? false
-    }
+    }*/
     
 //
 //    ///

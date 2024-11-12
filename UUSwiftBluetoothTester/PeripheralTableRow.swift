@@ -19,7 +19,7 @@ class PeripheralTableRow: UITableViewCell
     func update(peripheral: UUPeripheral)
     {
         friendlyNameLabel.text = peripheral.friendlyName
-        idLabel.text = "\(peripheral.identifier)\nConnectable: \(peripheral.isConnectable)"
+        idLabel.text = "\(peripheral.identifier)" //\nConnectable: \(peripheral.isConnectable)"
         rssiLabel.text = "\(peripheral.rssi)"
         connectionStateLabel.text = UUCBPeripheralStateToString(peripheral.peripheralState);
         timeSinceLastUpdateLabel.text = String(format: "%.3f", peripheral.timeSinceLastUpdate)
