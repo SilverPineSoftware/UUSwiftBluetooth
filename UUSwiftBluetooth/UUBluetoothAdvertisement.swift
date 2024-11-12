@@ -99,4 +99,32 @@ public class UUBluetoothAdvertisement
         
         return Date(timeIntervalSinceReferenceDate: num)
     }
+    
+    public var services: [CBUUID]?
+    {
+        guard let d = advertisementData else { return nil }
+        
+        return d[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID]
+    }
+    
+    public var serviceData: [CBUUID: Data]?
+    {
+        guard let d = advertisementData else { return nil }
+        
+        return d[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data]
+    }
+    
+    public var overflowServices: [CBUUID]?
+    {
+        guard let d = advertisementData else { return nil }
+        
+        return d[CBAdvertisementDataOverflowServiceUUIDsKey] as? [CBUUID]
+    }
+    
+    public var solicitedServices: [CBUUID]?
+    {
+        guard let d = advertisementData else { return nil }
+        
+        return d[CBAdvertisementDataSolicitedServiceUUIDsKey] as? [CBUUID]
+    }
 }
