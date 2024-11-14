@@ -81,6 +81,11 @@ public class UUPeripheral
         self.timerPool = UUTimerPool.getPool("UUPeripheral_\(peripheral.identifier)", queue: centralManager.dispatchQueue)
     }
     
+    public func clearAdvertisements()
+    {
+        advertisements.removeAll()
+    }
+    
     // Passthrough properties to read values directly from CBPeripheral
     
     public var identifier: UUID

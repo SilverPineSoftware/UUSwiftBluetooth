@@ -180,7 +180,18 @@ public class UUCentralManager
     {
         defer { peripheralsMutex.unlock() }
         peripheralsMutex.lock()
+        
+        let keep = peripherals.values.filter { p in
+            p.peripheralState != .disconnected
+        }
+        
         peripherals.removeAll()
+        
+        for p in keep
+        {
+            p.clearAdvertisements()
+            peripherals[p.identifier] = p
+        }
     }
 
     private func resumeScanning()
