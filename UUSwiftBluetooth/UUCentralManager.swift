@@ -125,11 +125,13 @@ public class UUCentralManager
     public func startScan(
         serviceUuids: [CBUUID]?,
         allowDuplicates: Bool,
-        //peripheralFactory: UUPeripheralFactory<T>?,
         filters: [UUPeripheralFilter]?,
         peripheralFoundCallback: @escaping ((UUPeripheral)->()),
         willRestoreCallback: @escaping UUWillRestoreStateBlock)
     {
+        NSLog("Clearing nearby peripherals")
+        clearNearbyPeripherals()
+        
         NSLog("starting scan")
         
         var opts: [String:Any] = [:]
@@ -172,6 +174,13 @@ public class UUCentralManager
         }
        
         resumeScanning()
+    }
+    
+    private func clearNearbyPeripherals()
+    {
+        defer { peripheralsMutex.unlock() }
+        peripheralsMutex.lock()
+        peripherals.removeAll()
     }
 
     private func resumeScanning()
