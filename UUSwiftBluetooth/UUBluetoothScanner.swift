@@ -9,31 +9,6 @@ import UIKit
 import CoreBluetooth
 import UUSwiftCore
 
-public struct UUBluetoothScanSettings
-{
-   public init(allowDuplicates: Bool = false,
-                serviceUUIDs: [CBUUID]? = nil,
-                filters: [UUPeripheralFilter]? = nil,
-                outOfRangeFilters: [UUOutOfRangePeripheralFilter]? = nil,
-                outOfRangeFilterEvaluationFrequency: TimeInterval = 0.5,
-                scanWatchdogTimeout: TimeInterval = 0.5)
-    {
-        self.allowDuplicates = allowDuplicates
-        self.serviceUUIDs = serviceUUIDs
-        self.filters = filters
-        self.outOfRangeFilters = outOfRangeFilters
-        self.outOfRangeFilterEvaluationFrequency = outOfRangeFilterEvaluationFrequency
-        self.scanWatchdogTimeout = scanWatchdogTimeout
-    }
-    
-    public var allowDuplicates: Bool = false
-    public var serviceUUIDs: [CBUUID]? = nil
-    public var filters: [UUPeripheralFilter]? = nil
-    public var outOfRangeFilters: [UUOutOfRangePeripheralFilter]? = nil
-    public var outOfRangeFilterEvaluationFrequency: TimeInterval = 0.5
-    public var scanWatchdogTimeout: TimeInterval = 0.0
-}
-
 public class UUBluetoothScanner //: ObservableObject
 {
     private let outOfRangeFilterEvaluationFrequencyTimerId = "UUBluetoothScanner_outOfRangeFilterEvaluationFrequency"
@@ -64,7 +39,7 @@ public class UUBluetoothScanner //: ObservableObject
         self.centralManager.startScan(
             serviceUuids: settings.serviceUUIDs,
             allowDuplicates: settings.allowDuplicates,
-            filters: settings.filters,
+            filters: settings.discoveryFilters,
             peripheralFoundCallback: handlePeripheralFound,
             willRestoreCallback: handleWillRestoreState)
         

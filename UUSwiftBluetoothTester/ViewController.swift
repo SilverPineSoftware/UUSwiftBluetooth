@@ -188,7 +188,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             self.tableView.reloadData()
             
             let settings = UUBluetoothScanSettings(
-                filters: filters,
+                discoveryFilters: filters,
                 outOfRangeFilters: outOfRangeFilters)
             
             scanner.startScan(settings, callback: self.handleNearbyPeripheralsChanged)
