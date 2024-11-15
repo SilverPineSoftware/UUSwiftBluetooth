@@ -36,12 +36,13 @@ public class UUCentralManager
     
     private var scanUuidList: [CBUUID]? = nil
     private var scanOptions: [String:Any]? = nil
-    private var scanFilters: [UUPeripheralFilter]? = nil
+    //private var scanFilters: [UUPeripheralFilter]? = nil
     private(set) public var isScanning: Bool = false
     private var isConfiguredForStateRestoration: Bool = false
     
     private var centralStateChangedBlock: UUCentralStateChangedBlock? = nil
     private var rssiPollingBlocks: [String:UUPeripheralBlock] = [:]
+    private var peripheralFoundBlock: UUPeripheralBlock? = nil
     private var willRestoreStateBlock: UUWillRestoreStateBlock? = nil
     private var options: [String:Any]? = nil
     
@@ -83,6 +84,9 @@ public class UUCentralManager
     
     private func handleCentralStateChanged(_ state: CBManagerState)
     {
+        defer { peripheralsMutex.unlock() }
+        peripheralsMutex.lock()
+        
         peripherals.values.forEach
         { p in
             
@@ -122,11 +126,15 @@ public class UUCentralManager
         NSLog("Central is resetting")
     }
     
+    public func retrieveConnectedPeripherals(withServices services: [CBUUID]) -> [CBPeripheral]
+    {
+        return self.centralManager.retrieveConnectedPeripherals(withServices: services)
+    }
+    
     public func startScan(
         serviceUuids: [CBUUID]?,
         allowDuplicates: Bool,
-        filters: [UUPeripheralFilter]?,
-        peripheralFoundCallback: @escaping ((UUPeripheral)->()),
+        peripheralFoundCallback: @escaping UUPeripheralBlock,
         willRestoreCallback: @escaping UUWillRestoreStateBlock)
     {
         NSLog("Clearing nearby peripherals")
@@ -139,41 +147,42 @@ public class UUCentralManager
         
         scanUuidList = serviceUuids
         scanOptions = opts
-        scanFilters = filters
         isScanning = true
         NSLog("isScanning: \(isScanning)")
         willRestoreStateBlock = willRestoreCallback
-        delegate.peripheralFoundBlock =
-        { advertisement in
-            
-            if let p = self.updatePeripheralFromScan(advertisement)
-            {
-                //NSLog("Updated peripheral after scan. peripheral: \(String(describing: p.underlyingPeripheral)), rssi: \(p.rssi), advertisement: \(p.advertisementData)")
-                
-                if (self.shouldDiscoverPeripheral(p))
-                {
-                    peripheralFoundCallback(p)
-                }
-            }
-            
-            /*
-            if (uuPeripheral == nil)
-            {
-                uuPeripheral = UUPeripheral(self.dispatchQueue, self, peripheral) as? T
-            }
-            
-            if let p = uuPeripheral
-            {
-                NSLog("Updated peripheral after scan. peripheral: \(String(describing: p.underlyingPeripheral)), rssi: \(p.rssi), advertisement: \(p.advertisementData)")
-                
-                if (self.shouldDiscoverPeripheral(p))
-                {
-                    peripheralFoundCallback(p)
-                }
-            }*/
-        }
-       
+        peripheralFoundBlock = peripheralFoundCallback
+        delegate.peripheralFoundBlock = handleAdvertisement
         resumeScanning()
+    }
+    
+    private func handleAdvertisement(_ advertisement: UUBluetoothAdvertisement)
+    {
+        defer { peripheralsMutex.unlock() }
+        peripheralsMutex.lock()
+        
+        let uuid = advertisement.peripheral.identifier
+        
+        var lookup = peripherals[uuid]
+        if (lookup == nil)
+        {
+            lookup = UUPeripheral(dispatchQueue: self.dispatchQueue, centralManager: self, peripheral: advertisement.peripheral)
+        }
+        
+        guard let p = lookup else
+        {
+            // Should never happen, but we are safe coders!
+            return
+        }
+        
+        p.appendAdvertisement(advertisement)
+        peripherals[uuid] = p
+        
+        guard let block = peripheralFoundBlock else
+        {
+            return
+        }
+        
+        block(p)
     }
     
     private func clearNearbyPeripherals()
@@ -181,7 +190,8 @@ public class UUCentralManager
         defer { peripheralsMutex.unlock() }
         peripheralsMutex.lock()
         
-        let keep = peripherals.values.filter { p in
+        let keep = peripherals.values.filter
+        { p in
             p.peripheralState != .disconnected
         }
         
@@ -210,6 +220,7 @@ public class UUCentralManager
         willRestoreStateBlock?(options)
     }
     
+    /*
     private func shouldDiscoverPeripheral(_ peripheral: UUPeripheral) -> Bool
     {
         guard let filters = scanFilters else
@@ -226,7 +237,7 @@ public class UUCentralManager
         }
         
         return true
-    }
+    }*/
     
     public func stopScan()
     {
@@ -286,165 +297,10 @@ public class UUCentralManager
        {
            NSLog("No delegate to notify disconnected")
        }
-   }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    /*
-    // Begins polling RSSI for a peripheral.  When the RSSI is successfully
-    // retrieved, the peripheralFoundBlock is called.  This method is useful to
-    // perform a crude 'ranging' logic when already connected to a peripheral
-    - (void) startRssiPolling:(nonnull UUPeripheral*)peripheral
-                     interval:(NSTimeInterval)interval
-            peripheralUpdated:(nonnull UUPeripheralBlock)peripheralUpdated
-    {
-        [self.rssiPollingBlocks uuSafeSetValue:peripheralUpdated forKey:peripheral.identifier];
-        
-        NSString* timerId = [peripheral.peripheral uuPollRssiTimerId];
-        [UUCoreBluetooth cancelWatchdogTimer:timerId];
-        
-        [peripheral.peripheral uuReadRssi:kUUCoreBluetoothTimeoutDisabled
-                               completion:^(CBPeripheral * _Nonnull cbPeripheral, NSNumber * _Nonnull rssi, NSError * _Nullable error)
-        {
-            UUCoreBluetoothLog(@"RSSI Updated for %@-%@, %@, error: %@", cbPeripheral.uuIdentifier, cbPeripheral.name, rssi, error);
-            
-            UUPeripheralBlock block = [self.rssiPollingBlocks uuSafeGet:cbPeripheral.uuIdentifier];
-
-            if (!error)
-            {
-                UUPeripheral* peripheral = [self updatedPeripheralFromRssiRead:cbPeripheral rssi:rssi];
-                
-                if (block)
-                {
-                    block(peripheral);
-                }
-            }
-            else
-            {
-                UUCoreBluetoothLog(@"Error while reading RSSI: %@", error);
-            }
-            
-            if (block)
-            {
-                [UUCoreBluetooth startWatchdogTimer:timerId
-                                            timeout:interval
-                                           userInfo:peripheral
-                                              block:^(id  _Nullable userInfo)
-                 {
-                     UUPeripheral* peripheral = userInfo;
-                     UUCoreBluetoothLog(@"RSSI Polling timer %@ - %@", peripheral.identifier, peripheral.name);
-                     
-                     UUPeripheralBlock block = [self.rssiPollingBlocks uuSafeGet:peripheral.identifier];
-                     if (!block)
-                     {
-                         UUCoreBluetoothLog(@"Peripheral %@-%@ not polling anymore", peripheral.identifier, peripheral.name);
-                     }
-                     else if (peripheral.peripheralState == CBPeripheralStateConnected)
-                     {
-                         [self startRssiPolling:peripheral interval:interval peripheralUpdated:peripheralUpdated];
-                     }
-                     else
-                     {
-                         UUCoreBluetoothLog(@"Peripheral %@-%@ is not connected anymore, cannot poll for RSSI", peripheral.identifier, peripheral.name);
-                     }
-                 }];
-            }
-            
-        }];
-    }
-
-    - (void) stopRssiPolling:(nonnull UUPeripheral*)peripheral
-    {
-        [self.rssiPollingBlocks uuSafeRemove:peripheral.identifier];
-    }
-
-    - (BOOL) isPollingForRssi:(nonnull UUPeripheral*)peripheral
-    {
-        return ([self.rssiPollingBlocks uuSafeGet:peripheral.identifier] != nil);
-    }
-
-     */
-    
-    /*
-    private func createPeripheral<T: UUPeripheral>(_ peripheral: CBPeripheral) -> T
-    {
-        var p: T? = nil//peripheralFactory?.create(dispatchQueue, self, peripheral)
-        
-        if (p == nil)
-        {
-            //p = UUPeripheral(dispatchQueue, self, peripheral)
-        }
-        
-        return p!
     }
     
-    private func findPeripheralFromCbPeripheral<T: UUPeripheral>(_ peripheral: CBPeripheral) -> T
-    {
-        defer { peripheralsMutex.unlock() }
-        peripheralsMutex.lock()
-        
-        var uuPeripheral = peripherals[peripheral.identifier.uuidString]
-        if (uuPeripheral == nil)
-        {
-            uuPeripheral = createPeripheral(peripheral)
-        }
-        
-        return uuPeripheral as! T
-    }
     
-    private func updatedPeripheralFromCbPeripheral<T: UUPeripheral>(_ peripheral: CBPeripheral) -> T
-    {
-        let uuPeripheral = findPeripheralFromCbPeripheral(peripheral)
-        uuPeripheral.underlyingPeripheral = peripheral
-        updatePeripheral(uuPeripheral)
-        return uuPeripheral as! T
-    }
-    
-    private func updatedPeripheralFromScan<T: UUPeripheral>(
-        _ peripheral: CBPeripheral,
-        _ advertisementData: [String:Any],
-        _ rssi: Int) -> T
-    {
-        let uuPeripheral: T = findPeripheralFromCbPeripheral(peripheral)
-        uuPeripheral.updateFromScan(peripheral, advertisementData, rssi)
-        updatePeripheral(uuPeripheral)
-        return uuPeripheral
-    }*/
-
-    /*
-    - (nonnull UUPeripheral*) updatedPeripheralFromRssiRead:(nonnull CBPeripheral*)peripheral
-                                                       rssi:(nullable NSNumber*)rssi
-    {
-        UUPeripheral* uuPeripheral = [self findPeripheralFromCbPeripheral:peripheral];
-        
-        NSNumber* oldRssi = uuPeripheral.rssi;
-        #pragma unused(oldRssi)
-        
-        [uuPeripheral updateRssi:rssi];
-        
-        UUCoreBluetoothLog(@"peripheralRssiChanged, %@ - %@, from: %@ to %@", uuPeripheral.identifier, uuPeripheral.name, oldRssi, rssi);
-        
-        [self updatePeripheral:uuPeripheral];
-        
-        return uuPeripheral;
-    }*/
-    
-    private func getOrCreatePeripheral(_ cbPeripheral: CBPeripheral) -> UUPeripheral?
+    /*private func getOrCreatePeripheral(_ cbPeripheral: CBPeripheral) -> UUPeripheral?
     {
         var p = findPeripheralFromCbPeripheral(cbPeripheral)
         if (p == nil)
@@ -453,50 +309,35 @@ public class UUCentralManager
         }
         
         return p
-    }
+    }*/
     
-//    private func createPeripheral<T: UUPeripheral>(_ factory: UUPeripheralFactory<T>?, _ cbPeripheral: CBPeripheral) -> T?
-//    {
-//        var p = factory?.create(self.dispatchQueue, self, cbPeripheral)
-//        if (p == nil)
-//        {
-//            p = UUPeripheral(dispatchQueue: self.dispatchQueue, centralManager: self, peripheral: cbPeripheral) as? T
-//        }
-//        
-//        return p
-//    }
-    
-    private func findPeripheralFromCbPeripheral(_ peripheral: CBPeripheral) -> UUPeripheral?
+    /*private func findPeripheralFromCbPeripheral(_ peripheral: CBPeripheral) -> UUPeripheral?
     {
         defer { peripheralsMutex.unlock() }
         peripheralsMutex.lock()
         
         return peripherals[peripheral.identifier]
-    }
+    }*/
     
-    private func updatePeripheralFromScan(_ advertisement: UUBluetoothAdvertisement) -> UUPeripheral?
-        //_ factory: UUPeripheralFactory<T>?,
-        //_ peripheral: CBPeripheral,
-        //_ advertisementData: [String:Any],
-        //_ rssi: Int) -> UUPeripheral?
+    /*private func updatePeripheralFromScan(_ advertisement: UUBluetoothAdvertisement) -> UUPeripheral?
     {
         guard let uuPeripheral = getOrCreatePeripheral(advertisement.peripheral) else
         {
             return nil
         }
         
-        uuPeripheral.appendAdvertisement(advertisement) // peripheral, advertisementData, rssi)
+        uuPeripheral.appendAdvertisement(advertisement)
         updatePeripheral(uuPeripheral)
         return uuPeripheral
-    }
+    }*/
     
-    private func updatePeripheral(_ peripheral: UUPeripheral)
+    /*private func updatePeripheral(_ peripheral: UUPeripheral)
     {
         defer { peripheralsMutex.unlock() }
         peripheralsMutex.lock()
         
         peripherals[peripheral.identifier] = peripheral
-    }
+    }*/
     
     private func removePeripheral(_ peripheral: UUPeripheral)
     {
@@ -617,14 +458,3 @@ public func UUCBCharacteristicPropertiesToString(_ props: CBCharacteristicProper
     
     return parts.joined(separator: ", ")
 }
-
-
-
-/*
-extension UUCentralManager // Timers
-{
-    static func startWatchdogTimer(_ timerId: String, timeout: TimeInterval, userInfo: Any?, block: UUWatchdogTimerBlock?)
-    {
-        UUTimer.startWatchdogTimer(timerId, timeout, userInfo, queue: dispatchQueue, block)
-    }
-}*/

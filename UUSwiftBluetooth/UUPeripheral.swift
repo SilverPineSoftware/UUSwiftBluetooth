@@ -36,29 +36,10 @@ public class UUPeripheral
 
     // Reference to the underlying CBPeripheral
     public var underlyingPeripheral: CBPeripheral
-    {
-        didSet
-        {
-            underlyingPeripheral.delegate = delegate
-        }
-    }
-    
+
     private(set) public var advertisements: [UUBluetoothAdvertisement] = []
     
-    // The most recent advertisement data
-    //public var advertisementData: [String: Any] = [:]
-    
-    // Timestamp of when this peripheral was first seen
-    //private(set) public var firstAdvertisementTime: Date = Date()
-    
-    // Timestamp of when the last advertisement was seen
-    //private(set) public var lastAdvertisementTime: Date = Date()
-    
-    // Most recent signal strength
-    //private(set) public var rssi: Int = 0
-    
-    // Timestamp of when the RSSI was last updated
-    //private(set) public var lastRssiUpdateTime: Date = Date()
+    internal(set) public var range: UUPeripheralRange = .undetermined
     
     public var timeSinceLastUpdate: TimeInterval
     {
@@ -78,6 +59,7 @@ public class UUPeripheral
         self.dispatchQueue = dispatchQueue
         self.centralManager = centralManager
         self.underlyingPeripheral = peripheral
+        self.underlyingPeripheral.delegate = delegate
         self.timerPool = UUTimerPool.getPool("UUPeripheral_\(peripheral.identifier)", queue: centralManager.dispatchQueue)
     }
     
@@ -128,86 +110,6 @@ public class UUPeripheral
     {
         return lastAdvertisement?.rssi ?? UUBluetoothConstants.noRssi
     }
-    
-    /*
-    public var isConnectable: Bool
-    {
-        return lastAdvertisement?.isConnectable ?? false
-    }*/
-    
-//
-//    ///
-//    /// Returns the value of CBAdvertisementDataLocalNameKey from the advertisement data.
-//    public var localName: String?
-//    {
-//        return lastAdvertisement?.localName
-//    }
-//    
-//    // Returns value of CBAdvertisementDataIsConnectable from advertisement data.  Default
-//    // value is NO if value is not present. Per the CoreBluetooth documentation, this
-//    // value indicates if the peripheral is connectable "right now", which implies
-//    // it may change in the future.
-//    public var isConnectable: Bool?
-//    {
-//        return lastAdvertisement?.isConnectable
-//    }
-//    
-//    // Returns value of CBAdvertisementDataManufacturerDataKey from advertisement data.
-//    public var manufacturingData: Data?
-//    {
-//        return lastAdvertisement?.manufacturingData
-//    }
-//    
-//    ///
-//    ///Returns the value of CBAdvertisementDataTxPowerLevelKey from the advertisement data.
-//    public var transmitPower: Int?
-//    {
-//        return lastAdvertisement?.transmitPower
-//    }
-//    
-//    /**
-//     * Returns the value of kCBAdvDataRxPrimaryPHY from the advertisment data.  This is an undocumented value that represents
-//     * the Primary Phy value for the peripheral
-//     */
-//    public var primaryPhy: Int?
-//    {
-//        return advertisementData.uuGetInt(UUBluetoothConstants.AdvertisementDataKeys.rxPrimaryPHY)
-//    }
-//    
-//    /**
-//     * Returns the value of kCBAdvDataRxSecondaryPHY from the advertisment data.  This is an undocumented value that represents
-//     * the secondary Phy value for the peripheral
-//     */
-//    public var secondaryPhy: Int?
-//    {
-//        return advertisementData.uuGetInt(UUBluetoothConstants.AdvertisementDataKeys.rxSecondaryPHY)
-//    }
-//    
-//    /**
-//     * Returns the value of kCBAdvDataTimestamp from the advertisment data.  This is an undocumented value that represents
-//     * the timestamp of when the operating system received the advertisement.
-//     */
-//    public var timestamp: Date?
-//    {
-//        guard let num = advertisementData.uuGetDouble(UUBluetoothConstants.AdvertisementDataKeys.timestamp) else
-//        {
-//            return nil
-//        }
-//        
-//        return Date(timeIntervalSinceReferenceDate: num)
-//    }
-    
-    /*func updateFromScan(
-        _ peripheral: CBPeripheral,
-        _ updatedAdvertisement: [String:Any],
-        _ rssi: Int)
-    {
-        underlyingPeripheral = peripheral
-        //advertisementData = updatedAdvertisement
-        //lastAdvertisementTime = Date()
-        advertisements.append(UUBluetoothAdvertisement(peripheral, updatedAdvertisement, rssi))
-        updateRssi(rssi)
-    }*/
     
     func appendAdvertisement(_ advertisement: UUBluetoothAdvertisement)
     {

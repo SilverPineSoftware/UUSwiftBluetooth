@@ -110,6 +110,22 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             
         }))
         
+        alert.addAction(UIAlertAction(title: "Connect", style: .default, handler:
+        { action in
+            
+            //let vc = L2CapClientController()
+            //vc.peripheral = peripheral
+            //self.navigationController?.pushViewController(vc, animated: true)
+            peripheral.connect {
+                NSLog("Connected to \(peripheral.friendlyName)")
+            } disconnected: { error in
+                NSLog("Disconnected from \(peripheral.friendlyName)")
+            }
+
+            
+            
+        }))
+        
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler:
         { action in
             alert.dismiss(animated: true, completion: nil)
@@ -167,8 +183,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     @IBAction func onLeftNavBarButtonTapped(_ sender: Any)
     {
-        self.navigationController?.pushViewController(L2CapServerController(), animated: true)
+       self.navigationController?.pushViewController(L2CapServerController(), animated: true)
         
+//        let connected = UUCentralManager.shared.retrieveConnectedPeripherals(withServices: [])
+//        NSLog("Connected Peripherals: \(connected.count)")
+//        for p in connected
+//        {
+//            NSLog("Connected Peripheral: \(p.identifier) - \(p.name ?? "No Name")")
+//        }
         
 //        performSegue(withIdentifier: "showSettings", sender: nil)
     }
@@ -187,9 +209,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             self.tableData.removeAll()
             self.tableView.reloadData()
             
-            let settings = UUBluetoothScanSettings(
-                discoveryFilters: filters,
-                outOfRangeFilters: outOfRangeFilters)
+            var settings = UUBluetoothScanSettings()
+            settings.discoveryFilters = filters
+            settings.outOfRangeFilters = outOfRangeFilters
             
             scanner.startScan(settings, callback: self.handleNearbyPeripheralsChanged)
             rightNavBarItem.title = "Stop"
@@ -225,7 +247,7 @@ class PeripheralFilter: UUPeripheralFilter
 
 class OutOfRangePeripheralFilter: UUOutOfRangePeripheralFilter
 {
-    func checkPeripheralRange(_ peripheral: UUPeripheral) -> UUOutOfRangePeripheralFilterResult
+    func checkPeripheralRange(_ peripheral: UUPeripheral) -> UUPeripheralRange
     {
         if (peripheral.timeSinceLastUpdate > 5.0)
         {

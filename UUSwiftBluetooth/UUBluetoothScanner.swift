@@ -11,8 +11,8 @@ import UUSwiftCore
 
 public class UUBluetoothScanner //: ObservableObject
 {
-    private let outOfRangeFilterEvaluationFrequencyTimerId = "UUBluetoothScanner_outOfRangeFilterEvaluationFrequency"
-    private let scanWatchdogTimerId = "UUBluetoothScanner_scanWatchdogTimer"
+    private let kOutOfRangeFilterEvaluationFrequencyTimerId = "UUBluetoothScanner_outOfRangeFilterEvaluationFrequency"
+    private let kSimulatedRangingWatchdogTimerId = "UUBluetoothScanner_simulatedRangingWatchdogTimer"
     
     private let centralManager: UUCentralManager
     private var nearbyPeripheralMap: [UUID: UUPeripheral] = [:]
@@ -39,12 +39,11 @@ public class UUBluetoothScanner //: ObservableObject
         self.centralManager.startScan(
             serviceUuids: settings.serviceUUIDs,
             allowDuplicates: settings.allowDuplicates,
-            filters: settings.discoveryFilters,
             peripheralFoundCallback: handlePeripheralFound,
             willRestoreCallback: handleWillRestoreState)
         
         self.startOutOfRangeEvaluationTimer()
-        self.startScanWatchdogTimer()
+        self.startSimulatedRangingWatchdogTimer()
     }
     
     public var isScanning: Bool
@@ -56,7 +55,7 @@ public class UUBluetoothScanner //: ObservableObject
     {
         self.centralManager.stopScan()
         self.stopOutOfRangeEvaluationTimer()
-        self.stopScanWatchdogTimer()
+        self.stopSimulatedRangingWatchdogTimer()
     }
     
     private func handlePeripheralFound(peripheral: UUPeripheral)
@@ -64,8 +63,22 @@ public class UUBluetoothScanner //: ObservableObject
         defer { nearbyPeripheralMapLock.unlock() }
         nearbyPeripheralMapLock.lock()
         
-        startScanWatchdogTimer()
+        startSimulatedRangingWatchdogTimer()
         
+        // If this is the first advertisement from this peripheral, determine its in range / out of range status
+        if (peripheral.range == .undetermined)
+        {
+            if (shouldDiscoverPeripheral(peripheral))
+            {
+                peripheral.range = .inRange
+            }
+            else
+            {
+                peripheral.range = .outOfRange
+            }
+        }
+        
+        // Always update
         nearbyPeripheralMap[peripheral.identifier] = peripheral
         
         let sorted = sortedPeripherals()
@@ -85,21 +98,53 @@ public class UUBluetoothScanner //: ObservableObject
         }
     }
     
+    private func shouldDiscoverPeripheral(_ peripheral: UUPeripheral) -> Bool
+    {
+        guard let filters = scanSettings.discoveryFilters else
+        {
+            return true
+        }
+        
+        for f in filters
+        {
+            if (!f.shouldDiscover(peripheral))
+            {
+                return false
+            }
+        }
+        
+        return true
+    }
+    
     private func handleWillRestoreState(arg: [String:Any]?)
     {
         
+    }
+    
+    private func shouldEvaluateOutOfRangeFilters() -> Bool
+    {
+        // Out of range filters will only be evaluated while scanning is active and there are filters defined
+        return
+            isScanning &&
+            scanSettings.outOfRangeFilterEvaluationFrequency > 0 &&
+            scanSettings.outOfRangeFilters?.isEmpty == false
     }
     
     private func startOutOfRangeEvaluationTimer()
     {
         stopOutOfRangeEvaluationTimer()
         
+        guard shouldEvaluateOutOfRangeFilters() else
+        {
+            return
+        }
+        
         guard let filters = scanSettings.outOfRangeFilters else
         {
             return
         }
 
-        let t = UUTimer(identifier: outOfRangeFilterEvaluationFrequencyTimerId, interval: scanSettings.outOfRangeFilterEvaluationFrequency, userInfo: nil, shouldRepeat: true, pool: UUTimerPool.shared)
+        let t = UUTimer(identifier: kOutOfRangeFilterEvaluationFrequencyTimerId, interval: scanSettings.outOfRangeFilterEvaluationFrequency, userInfo: nil, shouldRepeat: true, pool: UUTimerPool.shared)
         { t in
             
             defer { self.nearbyPeripheralMapLock.unlock() }
@@ -139,7 +184,6 @@ public class UUBluetoothScanner //: ObservableObject
             if (didChange)
             {
                 let sorted = self.sortedPeripherals()
-                //self.nearbyPeripherals = sorted
                 self.nearbyPeripheralCallback(sorted)
             }
         }
@@ -149,10 +193,10 @@ public class UUBluetoothScanner //: ObservableObject
 
     private func stopOutOfRangeEvaluationTimer()
     {
-        UUTimerPool.shared.cancel(by: outOfRangeFilterEvaluationFrequencyTimerId)
+        UUTimerPool.shared.cancel(by: kOutOfRangeFilterEvaluationFrequencyTimerId)
     }
     
-    private func shouldUseScanWatchdog() -> Bool
+    private func shouldSimulateRanging() -> Bool
     {
         // The scan watchdog serves as a way to collect more real time advertisements from the app.  By default Core Bluetooth
         // will aggregate and only deliver advertisements once per scan api call.  The allow duplicates flag can be used when
@@ -160,19 +204,20 @@ public class UUBluetoothScanner //: ObservableObject
         // need for this ranging behavior.  Similarly, if the calling app hasn't configured any out of range filters, there is no
         // need for this.  The main purpose of 'ranging' is to monitor the advertisement data over time and potentially make
         // decisions like in or out of range.
-        return (scanSettings.scanWatchdogTimeout > 0 &&
+        return (scanSettings.simulatedRanging == true &&
+                scanSettings.simulatedRangingWatchdogTimeout > 0 &&
                 scanSettings.allowDuplicates == false &&
                 scanSettings.outOfRangeFilters != nil &&
                 scanSettings.outOfRangeFilters?.isEmpty == false)
     }
     
-    private func startScanWatchdogTimer()
+    private func startSimulatedRangingWatchdogTimer()
     {
-        stopScanWatchdogTimer()
+        stopSimulatedRangingWatchdogTimer()
         
-        if (shouldUseScanWatchdog())
+        if (shouldSimulateRanging())
         {
-            let t = UUTimer(identifier: scanWatchdogTimerId, interval: scanSettings.scanWatchdogTimeout, userInfo: nil, shouldRepeat: true, pool: UUTimerPool.shared)
+            let t = UUTimer(identifier: kSimulatedRangingWatchdogTimerId, interval: scanSettings.simulatedRangingWatchdogTimeout, userInfo: nil, shouldRepeat: true, pool: UUTimerPool.shared)
             { t in
                 
                 if (self.isScanning)
@@ -190,8 +235,8 @@ public class UUBluetoothScanner //: ObservableObject
         }
     }
     
-    private func stopScanWatchdogTimer()
+    private func stopSimulatedRangingWatchdogTimer()
     {
-        UUTimerPool.shared.cancel(by: scanWatchdogTimerId)
+        UUTimerPool.shared.cancel(by: kSimulatedRangingWatchdogTimerId)
     }
 }
