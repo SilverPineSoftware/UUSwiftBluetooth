@@ -55,6 +55,8 @@ public class UUBluetoothScanner //: ObservableObject
         let peripheral = UUPeripheral(centralManager: centralManager,
                                       peripheral: advertisement.peripheral)
         
+        peripheral.updateAdvertisement(advertisement)
+        
         handlePeripheralFound(peripheral: peripheral)
     }
     
