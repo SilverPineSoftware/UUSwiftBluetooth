@@ -12,7 +12,7 @@ import UUSwiftCore
 // MARK:- Common Type Alias Definitions
 
 public typealias UUCentralStateChangedBlock = ((CBManagerState)->())
-public typealias UUPeripheralFoundBlock = ((CBPeripheral, [String:Any], Int)->())
+//public typealias UUPeripheralFoundBlock = ((CBPeripheral, [String:Any], Int)->())
 public typealias UUBluetoothAdvertisementBlock = ((UUBluetoothAdvertisement)->())
 public typealias UUWillRestoreStateBlock = (([String:Any])->())
 public typealias UUPeripheralListBlock = (([UUPeripheral])->())
@@ -22,6 +22,13 @@ public typealias UUPeripheralListBlock = (([UUPeripheral])->())
  
  UUCentralManager is a wrapper for CBCentralManager.   It provides a block based interface to CoreBluetooth operations.
  
+ */
+
+/**
+ *  @class CBCentralManager
+ *
+ *  @discussion Entry point to the central role. Commands should only be issued when its state is <code>CBCentralManagerStatePoweredOn</code>.
+ *
  */
 public class UUCentralManager
 {

@@ -195,7 +195,14 @@ public class UUPeripheral
             disconnected(err)
         }
         
-        centralManager.connect(self, nil)
+        var options: [String: Any] = [:]
+        /*if #available(iOS 17.0, *) {
+            options[CBConnectPeripheralOptionEnableAutoReconnect] = true
+        } else {
+            // Fallback on earlier versions
+        }*/
+        
+        centralManager.connect(self, options)
     }
     
     // Wrapper around CBCentralManager cancelPeripheralConnection.  After calling this
