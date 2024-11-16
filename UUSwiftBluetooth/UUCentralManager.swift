@@ -25,14 +25,14 @@ public typealias UUPeripheralListBlock = (([UUPeripheral])->())
  */
 public class UUCentralManager
 {
-    private(set) public var dispatchQueue = DispatchQueue(label: "UUCentralManagerQueue", qos: .userInitiated, attributes: [], autoreleaseFrequency: .inherit, target: nil)
+    private(set) internal var dispatchQueue = DispatchQueue(label: "UUCentralManagerQueue", qos: .userInitiated, attributes: [], autoreleaseFrequency: .inherit, target: nil)
     
     private var delegate: UUCentralManagerDelegate
     var centralManager: CBCentralManager
     
     // Keep track of connected peripherals
-    private var peripherals: [UUID: UUPeripheral] = [:]
-    private var peripheralsMutex = NSRecursiveLock()
+    //private var peripherals: [UUID: UUPeripheral] = [:]
+    //private var peripheralsMutex = NSRecursiveLock()
     
     private var scanUuidList: [CBUUID]? = nil
     private var scanOptions: [String:Any]? = nil
@@ -42,7 +42,7 @@ public class UUCentralManager
     
     private var centralStateChangedBlock: UUCentralStateChangedBlock? = nil
     private var rssiPollingBlocks: [String:UUPeripheralBlock] = [:]
-    private var peripheralFoundBlock: UUPeripheralBlock? = nil
+    //private var peripheralFoundBlock: UUPeripheralBlock? = nil
     private var willRestoreStateBlock: UUWillRestoreStateBlock? = nil
     private var options: [String:Any]? = nil
     
@@ -84,7 +84,7 @@ public class UUCentralManager
     
     private func handleCentralStateChanged(_ state: CBManagerState)
     {
-        defer { peripheralsMutex.unlock() }
+        /*defer { peripheralsMutex.unlock() }
         peripheralsMutex.lock()
         
         peripherals.values.forEach
@@ -96,7 +96,7 @@ public class UUCentralManager
             {
                 self.notifyDisconnect(p, nil)
             }
-        }
+        }*/
         
         switch (state)
         {
@@ -134,11 +134,11 @@ public class UUCentralManager
     public func startScan(
         serviceUuids: [CBUUID]?,
         allowDuplicates: Bool,
-        peripheralFoundCallback: @escaping UUPeripheralBlock,
+        advertisementHandler: @escaping UUBluetoothAdvertisementBlock,
         willRestoreCallback: UUWillRestoreStateBlock? = nil)
     {
-        NSLog("Clearing nearby peripherals")
-        clearNearbyPeripherals()
+        //NSLog("Clearing nearby peripherals")
+        //clearNearbyPeripherals()
         
         NSLog("starting scan")
         
@@ -150,11 +150,12 @@ public class UUCentralManager
         isScanning = true
         NSLog("isScanning: \(isScanning)")
         willRestoreStateBlock = willRestoreCallback
-        peripheralFoundBlock = peripheralFoundCallback
-        delegate.peripheralFoundBlock = handleAdvertisement
+        //peripheralFoundBlock = peripheralFoundCallback
+        delegate.didDiscoverPeripheralBlock = advertisementHandler
         resumeScanning()
     }
     
+    /*
     private func handleAdvertisement(_ advertisement: UUBluetoothAdvertisement)
     {
         defer { peripheralsMutex.unlock() }
@@ -203,7 +204,7 @@ public class UUCentralManager
             //p.clearAdvertisements()
             peripherals[p.identifier] = p
         }
-    }
+    }*/
 
     private func resumeScanning()
     {
@@ -248,7 +249,7 @@ public class UUCentralManager
         NSLog("isScanning: \(isScanning)")
         //peripheralFoundBlock = nil
         //handlePeripheralFound = nil
-        delegate.peripheralFoundBlock = nil
+        delegate.didDiscoverPeripheralBlock = nil
         centralManager.stopScan()
     }
     
@@ -340,13 +341,13 @@ public class UUCentralManager
         peripherals[peripheral.identifier] = peripheral
     }*/
     
-    private func removePeripheral(_ peripheral: UUPeripheral)
+    /*private func removePeripheral(_ peripheral: UUPeripheral)
     {
         defer { peripheralsMutex.unlock() }
         peripheralsMutex.lock()
         
         peripherals.removeValue(forKey: peripheral.identifier)
-    }
+    }*/
 }
 
 // MARK:- Global Helper functions

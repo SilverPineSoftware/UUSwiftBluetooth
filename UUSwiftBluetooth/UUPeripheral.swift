@@ -49,13 +49,12 @@ public class UUPeripheral
     
         return Date.timeIntervalSinceReferenceDate - lastBeaconTime.timeIntervalSinceReferenceDate
     }
-    
+    	
     public required init(
-        dispatchQueue: DispatchQueue,
         centralManager: UUCentralManager,
         peripheral: CBPeripheral)
     {
-        self.dispatchQueue = dispatchQueue
+        self.dispatchQueue = centralManager.dispatchQueue
         self.centralManager = centralManager
         self.underlyingPeripheral = peripheral
         self.underlyingPeripheral.delegate = delegate

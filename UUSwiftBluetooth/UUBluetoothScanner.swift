@@ -36,7 +36,7 @@ public class UUBluetoothScanner //: ObservableObject
         self.centralManager.startScan(
             serviceUuids: settings.serviceUUIDs,
             allowDuplicates: settings.allowDuplicates,
-            peripheralFoundCallback: handlePeripheralFound,
+            advertisementHandler: handleAdvertisement,
             willRestoreCallback: handleWillRestoreState)
     }
     
@@ -48,6 +48,14 @@ public class UUBluetoothScanner //: ObservableObject
     public func stopScan()
     {
         self.centralManager.stopScan()
+    }
+    
+    private func handleAdvertisement(advertisement: UUBluetoothAdvertisement)
+    {
+        let peripheral = UUPeripheral(centralManager: centralManager,
+                                      peripheral: advertisement.peripheral)
+        
+        handlePeripheralFound(peripheral: peripheral)
     }
     
     private func handlePeripheralFound(peripheral: UUPeripheral)
