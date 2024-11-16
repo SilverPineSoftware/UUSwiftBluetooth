@@ -174,7 +174,8 @@ public class UUCentralManager
             return
         }
         
-        p.appendAdvertisement(advertisement)
+        //p.appendAdvertisement(advertisement)
+        p.updateAdvertisement(advertisement)
         peripherals[uuid] = p
         
         guard let block = peripheralFoundBlock else
@@ -199,7 +200,7 @@ public class UUCentralManager
         
         for p in keep
         {
-            p.clearAdvertisements()
+            //p.clearAdvertisements()
             peripherals[p.identifier] = p
         }
     }

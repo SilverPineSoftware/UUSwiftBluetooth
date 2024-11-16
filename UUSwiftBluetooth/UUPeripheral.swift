@@ -37,11 +37,12 @@ public class UUPeripheral
     // Reference to the underlying CBPeripheral
     public var underlyingPeripheral: CBPeripheral
 
-    private(set) public var advertisements: [UUBluetoothAdvertisement] = []
+    private(set) public var advertisement: UUBluetoothAdvertisement? = nil
+    private(set) public var rssi: Int? = nil
     
     public var timeSinceLastUpdate: TimeInterval
     {
-        guard let lastBeaconTime = lastAdvertisement?.timestamp else
+        guard let lastBeaconTime = advertisement?.timestamp else
         {
             return 0
         }
@@ -61,10 +62,10 @@ public class UUPeripheral
         self.timerPool = UUTimerPool.getPool("UUPeripheral_\(peripheral.identifier)", queue: centralManager.dispatchQueue)
     }
     
-    public func clearAdvertisements()
-    {
-        advertisements.removeAll()
-    }
+//    public func clearAdvertisements()
+//    {
+//        advertisements.removeAll()
+//    }
     
     // Passthrough properties to read values directly from CBPeripheral
     
@@ -81,7 +82,7 @@ public class UUPeripheral
     public var friendlyName: String
     {
         
-        if let val = lastAdvertisement?.localName, val.isEmpty == false
+        if let val = advertisement?.localName, val.isEmpty == false
         {
             return val
         }
@@ -99,19 +100,25 @@ public class UUPeripheral
         return underlyingPeripheral.services
     }
     
-    public var lastAdvertisement: UUBluetoothAdvertisement?
-    {
-        return advertisements.last
-    }
+//    public var lastAdvertisement: UUBluetoothAdvertisement?
+//    {
+//        return advertisements.last
+//    }
     
-    public var rssi: Int
-    {
-        return lastAdvertisement?.rssi ?? UUBluetoothConstants.noRssi
-    }
+//    public var rssi: Int
+//    {
+//        return advertisement?.rssi ?? UUBluetoothConstants.noRssi
+//    }
     
-    func appendAdvertisement(_ advertisement: UUBluetoothAdvertisement)
+//    func appendAdvertisement(_ advertisement: UUBluetoothAdvertisement)
+//    {
+//        advertisements.append(advertisement)
+//    }
+    
+    func updateAdvertisement(_ advertisement: UUBluetoothAdvertisement)
     {
-        advertisements.append(advertisement)
+        self.advertisement = advertisement
+        self.rssi = advertisement.rssi
     }
     
     func updateRssi(_ rssi: Int)

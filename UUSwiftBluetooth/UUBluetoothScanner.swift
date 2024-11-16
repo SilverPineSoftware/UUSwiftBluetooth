@@ -71,7 +71,7 @@ public class UUBluetoothScanner //: ObservableObject
     {
         return nearbyPeripheralMap.values.sorted
         { lhs, rhs in
-            return lhs.rssi > rhs.rssi
+            return (lhs.rssi ?? 0) > (rhs.rssi ?? 0)
         }
     }
     
