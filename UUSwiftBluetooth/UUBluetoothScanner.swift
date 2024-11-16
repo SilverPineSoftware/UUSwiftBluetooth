@@ -29,7 +29,6 @@ public class UUBluetoothScanner
         self.centralManager = centralManager
     }
     
-    private var callbackTime: TimeInterval = 0
     public func startScan(
         _ settings: UUBluetoothScanSettings,
         callback: @escaping ([UUPeripheral])->())
@@ -46,10 +45,6 @@ public class UUBluetoothScanner
                 .sink
                 { peripheralList in
                     
-                    let delta = self.callbackTime - Date.timeIntervalSinceReferenceDate
-                    self.callbackTime = Date.timeIntervalSinceReferenceDate
-                    
-                    NSLog("Notifying nearby devices callback with \(peripheralList.count) devices, callback time delta: \(delta)")
                     self.nearbyPeripheralCallback(peripheralList)
                 }
         }
@@ -60,10 +55,6 @@ public class UUBluetoothScanner
                 .sink
                 { peripheralList in
                     
-                    let delta = self.callbackTime - Date.timeIntervalSinceReferenceDate
-                    self.callbackTime = Date.timeIntervalSinceReferenceDate
-                    
-                    NSLog("Notifying nearby devices callback with \(peripheralList.count) devices, callback time delta: \(delta)")
                     self.nearbyPeripheralCallback(peripheralList)
                 }
         }
@@ -103,19 +94,25 @@ public class UUBluetoothScanner
         // Always update
         nearbyPeripheralMap[peripheral.identifier] = peripheral
         
-        let sorted = sortedPeripherals()
-        self.nearbyPeripherals = sorted
+        self.nearbyPeripherals = nearbyPeripheralMap.values
+            .filter(shouldDiscoverPeripheral)
+            .sorted(by: { lhs, rhs in
+                return (lhs.rssi ?? 0) > (rhs.rssi ?? 0)
+            })
         
-        NSLog("There are \(sorted.count) peripherals nearby")
+        //let sorted = sortedPeripherals()
+        //self.nearbyPeripherals = sorted
+        
+        NSLog("There are \(self.nearbyPeripherals.count) peripherals nearby")
     }
     
-    private func sortedPeripherals() -> [UUPeripheral]
+    /*private func sortedPeripherals() -> [UUPeripheral]
     {
         return nearbyPeripheralMap.values.sorted
         { lhs, rhs in
             return (lhs.rssi ?? 0) > (rhs.rssi ?? 0)
         }
-    }
+    }*/
     
     private func shouldDiscoverPeripheral(_ peripheral: UUPeripheral) -> Bool
     {
