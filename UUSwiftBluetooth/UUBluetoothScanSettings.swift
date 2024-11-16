@@ -39,22 +39,4 @@ public struct UUBluetoothScanSettings
      are processed.  A peripheral can only be removed from the 'nearby' list by meeting one or more of the out of range filters.
      */
     public var discoveryFilters: [UUPeripheralFilter]? = nil
-
-    /**
-     Simulated ranging makes UUSwiftBluetooth stop and re-start the BLE scan under the hood as a way attempt to collect
-     real time advertisements from BLE peripherals.  When allowDuplicates is false, a normal CoreBluetooth scan will aggregate
-     BLE advertisements, so each invocation of scanForPeripherals might only report a single advertisement per peripheral.
-     
-     Note: when allowDuplicates is true, simulatedRanging is ignored
-     */
-    public var simulatedRanging: Bool = false
-    
-    /**
-     Simulated ranging involves stopping and restarting the CoreBluetooth scan.  This watchdog timeout value controls how often that
-     restart occurs.  Each time a peripheral is discovered, this watchdog timer is kicked.  If the timer fires, then the scan is stopped and
-     restarted.  If this value is less than or equal to zero, simulated ranging is ignored.
-     
-     Note: when allowDuplicates is true, simulatedRanging is ignored
-     */
-    public var simulatedRangingWatchdogTimeout: TimeInterval = 0.0
 }
