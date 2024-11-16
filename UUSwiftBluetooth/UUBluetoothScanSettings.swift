@@ -39,4 +39,9 @@ public struct UUBluetoothScanSettings
      are processed.  A peripheral can only be removed from the 'nearby' list by meeting one or more of the out of range filters.
      */
     public var discoveryFilters: [UUPeripheralFilter]? = nil
+    
+    /**
+     TimeInterval used to throttle scanning callbacks
+     */
+    public var callbackThrottle: TimeInterval = 0.5
 }
