@@ -135,7 +135,7 @@ public class UUCentralManager
         serviceUuids: [CBUUID]?,
         allowDuplicates: Bool,
         peripheralFoundCallback: @escaping UUPeripheralBlock,
-        willRestoreCallback: @escaping UUWillRestoreStateBlock)
+        willRestoreCallback: UUWillRestoreStateBlock? = nil)
     {
         NSLog("Clearing nearby peripherals")
         clearNearbyPeripherals()
@@ -209,11 +209,11 @@ public class UUCentralManager
         centralManager.scanForPeripherals(withServices: scanUuidList, options: scanOptions)
     }
     
-    internal func restartScanning()
-    {
-        pauseScanning()
-        resumeScanning()
-    }
+//    internal func restartScanning()
+//    {
+//        pauseScanning()
+//        resumeScanning()
+//    }
     
     private func handleWillRestoreState(_ options: [String:Any])
     {
