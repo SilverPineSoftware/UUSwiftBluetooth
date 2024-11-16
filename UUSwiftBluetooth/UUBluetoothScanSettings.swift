@@ -39,20 +39,7 @@ public struct UUBluetoothScanSettings
      are processed.  A peripheral can only be removed from the 'nearby' list by meeting one or more of the out of range filters.
      */
     public var discoveryFilters: [UUPeripheralFilter]? = nil
-    
-    /**
-     List of optional filters to apply when determining if a peripheral is 'out of range'.  These are often related to the discovery filters.  These filters are evaluated
-     on a timer while scanning.  If any peripherals change from in range to out of range, the nearby devices callback is invoked with the updated list.
-     */
-    public var outOfRangeFilters: [UUOutOfRangePeripheralFilter]? = nil
-    
-    /**
-     Frequency (in seconds) at which the out of range filters are evaluated
-     
-     Note: if this value is less than or equal to zero, the out of range filter logic is disabled.
-     */
-    public var outOfRangeFilterEvaluationFrequency: TimeInterval = 0.5
-    
+
     /**
      Simulated ranging makes UUSwiftBluetooth stop and re-start the BLE scan under the hood as a way attempt to collect
      real time advertisements from BLE peripherals.  When allowDuplicates is false, a normal CoreBluetooth scan will aggregate

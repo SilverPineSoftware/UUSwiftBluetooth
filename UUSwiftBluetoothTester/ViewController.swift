@@ -205,13 +205,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         else
         {
             let filters = [PeripheralFilter()]
-            let outOfRangeFilters:[UUOutOfRangePeripheralFilter] = [] //[OutOfRangePeripheralFilter()]
             self.tableData.removeAll()
             self.tableView.reloadData()
             
             var settings = UUBluetoothScanSettings()
             settings.discoveryFilters = filters
-            settings.outOfRangeFilters = outOfRangeFilters
             
             scanner.startScan(settings, callback: self.handleNearbyPeripheralsChanged)
             rightNavBarItem.title = "Stop"
@@ -242,20 +240,5 @@ class PeripheralFilter: UUPeripheralFilter
         }
         
         return true
-    }
-}
-
-class OutOfRangePeripheralFilter: UUOutOfRangePeripheralFilter
-{
-    func checkPeripheralRange(_ peripheral: UUPeripheral) -> UUPeripheralRange
-    {
-        if (peripheral.timeSinceLastUpdate > 5.0)
-        {
-            return .outOfRange
-        }
-        else
-        {
-            return .inRange
-        }
     }
 }

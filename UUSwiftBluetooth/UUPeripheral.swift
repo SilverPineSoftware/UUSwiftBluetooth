@@ -39,8 +39,6 @@ public class UUPeripheral
 
     private(set) public var advertisements: [UUBluetoothAdvertisement] = []
     
-    internal(set) public var range: UUPeripheralRange = .undetermined
-    
     public var timeSinceLastUpdate: TimeInterval
     {
         guard let lastBeaconTime = lastAdvertisement?.timestamp else
