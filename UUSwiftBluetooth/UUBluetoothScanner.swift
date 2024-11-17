@@ -103,6 +103,7 @@ public class UUBluetoothScanner
         //let sorted = sortedPeripherals()
         //self.nearbyPeripherals = sorted
         
+        
         NSLog("There are \(self.nearbyPeripherals.count) peripherals nearby")
     }
     
