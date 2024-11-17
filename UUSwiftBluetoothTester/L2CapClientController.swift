@@ -109,8 +109,9 @@ class L2CapClientController:L2CapController
     
     func ping()
     {
-        let tx = "4747474747"
-        let command = UUL2CapCommand.createToSend(.echo, Data(tx.uuToHexData() ?? NSData()))
+        guard let tx = "4747474747".uuToHexData() else { return }
+        
+        let command = UUL2CapCommand.createToSend(.echo, tx)
         
         let commandAsData = command.toData()
         let totalBytesToSend = commandAsData.count

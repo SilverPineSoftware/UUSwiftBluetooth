@@ -104,7 +104,10 @@ class L2CapServerController:L2CapController
                 self.addOutputLine("Couldn't parse image!")
             }
             
-            self.sendCommand(.ackImage, Data("ABCD".uuToHexData() ?? NSData()))
+            if let data = "ABCD".uuToHexData()
+            {
+                self.sendCommand(.ackImage, data)
+            }
             
         default:
             self.addOutputLine("Received command with unhandled id!")
