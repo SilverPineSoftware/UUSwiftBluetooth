@@ -251,6 +251,7 @@ public class UUPeripheral
         delegate.discoverServicesBlock =
         { peripheral, errOpt in
             
+            self.underlyingPeripheral = peripheral
             self.finishDiscoverServices(timerId, errOpt, completion)
         }
         
@@ -292,6 +293,7 @@ public class UUPeripheral
         delegate.discoverCharacteristicsBlock =
         { peripheral, service, error in
             
+            self.underlyingPeripheral = peripheral
             self.finishDiscoverCharacteristics(timerId, error, service, completion)
         }
         
@@ -333,6 +335,7 @@ public class UUPeripheral
         delegate.discoverIncludedServicesBlock =
         { peripheral, service, error in
             
+            self.underlyingPeripheral = peripheral
             self.finishOperation(timerId, peripheral, error, completion)
         }
         
@@ -373,6 +376,7 @@ public class UUPeripheral
         delegate.discoverDescriptorsBlock =
         { peripheral, characteristic, error in
             
+            self.underlyingPeripheral = peripheral
             self.finishOperation(timerId, peripheral, characteristic, error, completion)
         }
         
