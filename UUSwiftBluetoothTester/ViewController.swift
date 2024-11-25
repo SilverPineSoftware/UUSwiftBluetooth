@@ -131,6 +131,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             alert.dismiss(animated: true, completion: nil)
         }))
         
+        alert.addAction(UIAlertAction(title: "Discover All", style: .default, handler:
+        { action in
+            peripheral.discoverAllServicesAndCharacteristics
+            { updatedPeripheral, err in
+                
+            }
+        }))
+        
         present(alert, animated: true, completion: nil)
     }
     

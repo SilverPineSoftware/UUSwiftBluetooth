@@ -399,6 +399,64 @@ public class UUPeripheral
         }
     }
     
+    
+    private func discoverNextCharacteristics(
+        _ services: [CBService], timeout: TimeInterval, completion: @escaping UUPeripheralErrorBlock)
+    {
+        var tmpServices = services
+        
+        guard let nextService = tmpServices.popLast() else
+        {
+            completion(self, nil)
+            return
+        }
+        
+        discover(characteristics: nil, for: nextService.uuid, timeout: timeout) { _, error in
+            
+            if let err = error
+            {
+                completion(self, err)
+                return
+            }
+            
+            self.discoverNextCharacteristics(tmpServices, timeout: timeout, completion: completion)
+        }
+    }
+    
+    public func discoverAllServicesAndCharacteristics(timeout: TimeInterval = Defaults.operationTimeout, completion: @escaping UUPeripheralErrorBlock)
+    {
+        connect(timeout: timeout)
+        {
+            self.discoverServices
+            { services, discoverServicesError in
+                
+                if let err = discoverServicesError
+                {
+                    completion(self, err)
+                    return
+                }
+                
+                guard let actualServices = services else
+                {
+                    completion(self, nil)
+                    return
+                }
+                
+                self.discoverNextCharacteristics(actualServices, timeout: timeout)
+                { _, error in
+                    
+                    self.disconnect()
+                }
+            }
+        }
+        disconnected:
+        { disconnectError in
+            
+            completion(self, disconnectError)
+        }
+    }
+    
+    
     // Block based wrapper around CBPeripheral setNotifyValue, with an optional
     // timeout value.  A negative timeout value will disable the timeout.
     public func setNotifyValue(
