@@ -9,7 +9,14 @@ import UIKit
 import CoreBluetooth
 import UUSwiftBluetooth
 
-class ReadDeviceInfoOperation: UUPeripheralOperation
+/*
+class ReadDeviceInfoResult
+{
+    var manufacturerName: String = ""
+    var systemId: String = ""
+}*/
+
+class ReadDeviceInfoOperation: UUPeripheralOperation<Any>
 {
     var manufacturerName: String = ""
     var systemId: String = ""
@@ -29,7 +36,7 @@ class ReadDeviceInfoOperation: UUPeripheralOperation
         return [ UUBluetoothConstants.Characteristics.manufacturerNameString, UUBluetoothConstants.Characteristics.systemID ]
     }
     
-    override func execute(_ completion: @escaping (Error?) -> ())
+    override func execute(_ completion: @escaping (Any, Error?) -> ())
     {
         readSystemId
         { systemIdResult in
@@ -39,7 +46,7 @@ class ReadDeviceInfoOperation: UUPeripheralOperation
             { manufacturerNameResult in
                 self.manufacturerName = manufacturerNameResult
                 
-                completion(nil)
+                completion(0, nil)
             }
         }
     }

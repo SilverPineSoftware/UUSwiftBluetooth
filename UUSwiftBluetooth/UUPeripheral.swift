@@ -16,6 +16,7 @@ public typealias UUPeripheralDescriptorErrorBlock = ((UUPeripheral, CBDescriptor
 public typealias UUPeripheralIntegerErrorBlock = ((UUPeripheral, Int, Error?)->())
 public typealias UUDiscoverServicesCompletionBlock = (([CBService]?, Error?)->())
 public typealias UUDiscoverCharacteristicsCompletionBlock = (([CBCharacteristic]?, Error?)->())
+public typealias UUDiscoverDescriptorsCompletionBlock = (([CBDescriptor]?, Error?)->())
 
 // UUPeripheral is a convenience class that wraps a CBPeripheral and it's
 // advertisement data into one object.
@@ -367,7 +368,7 @@ public class UUPeripheral
     public func discoverDescriptorsForCharacteristic(
         for characteristic: CBCharacteristic,
         timeout: TimeInterval = Defaults.operationTimeout,
-        completion: @escaping UUPeripheralCharacteristicErrorBlock)
+        completion: @escaping UUDiscoverDescriptorsCompletionBlock)
     {
         NSLog("Discovering descriptors for \(self.debugName), timeout: \(timeout), characteristic: \(characteristic)")
         
@@ -377,7 +378,7 @@ public class UUPeripheral
         { peripheral, characteristic, error in
             
             self.underlyingPeripheral = peripheral
-            self.finishOperation(timerId, peripheral, characteristic, error, completion)
+            self.finishDiscoverDescriptors(timerId, error, characteristic, completion)
         }
         
         if let err = canAttemptOperation
@@ -847,6 +848,16 @@ public class UUPeripheral
     {
         let err = prepareToFinishOperation(timerBucket, error)
         completion(service.characteristics, err)
+    }
+    
+    private func finishDiscoverDescriptors(
+        _ timerBucket: TimerId,
+        _ error: Error?,
+        _ characteristic: CBCharacteristic,
+        _ completion: @escaping UUDiscoverDescriptorsCompletionBlock)
+    {
+        let err = prepareToFinishOperation(timerBucket, error)
+        completion(characteristic.descriptors, err)
     }
     
     

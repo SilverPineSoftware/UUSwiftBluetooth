@@ -74,7 +74,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             
             self.readInfoOperation = ReadDeviceInfoOperation(peripheral)
             self.readInfoOperation?.start()
-            { error in
+            { _, error in
                 
                 if let e = error
                 {
@@ -131,12 +131,18 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             alert.dismiss(animated: true, completion: nil)
         }))
         
-        alert.addAction(UIAlertAction(title: "Discover All", style: .default, handler:
+        alert.addAction(UIAlertAction(title: "Explore", style: .default, handler:
         { action in
-            peripheral.discoverAllServicesAndCharacteristics
-            { updatedPeripheral, err in
-                
+//            peripheral.discoverAllServicesAndCharacteristics
+//            { updatedPeripheral, err in
+//                
+//            }
+            
+            let op = UUExportPeripheralOperation(peripheral)
+            op.start { result, err in
+                print("op is done")
             }
+            
         }))
         
         present(alert, animated: true, completion: nil)
