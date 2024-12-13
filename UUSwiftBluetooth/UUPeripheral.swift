@@ -41,6 +41,8 @@ public class UUPeripheral
     private(set) public var advertisement: UUBluetoothAdvertisement? = nil
     private(set) public var rssi: Int? = nil
     
+    private(set) public var firstDiscoveryTime: Date
+    
     public var timeSinceLastUpdate: TimeInterval
     {
         guard let lastBeaconTime = advertisement?.timestamp else
@@ -60,6 +62,7 @@ public class UUPeripheral
         self.underlyingPeripheral = peripheral
         self.underlyingPeripheral.delegate = delegate
         self.timerPool = UUTimerPool.getPool("UUPeripheral_\(peripheral.identifier)", queue: centralManager.dispatchQueue)
+        self.firstDiscoveryTime = Date()
     }
     
 //    public func clearAdvertisements()
@@ -99,21 +102,6 @@ public class UUPeripheral
     {
         return underlyingPeripheral.services
     }
-    
-//    public var lastAdvertisement: UUBluetoothAdvertisement?
-//    {
-//        return advertisements.last
-//    }
-    
-//    public var rssi: Int
-//    {
-//        return advertisement?.rssi ?? UUBluetoothConstants.noRssi
-//    }
-    
-//    func appendAdvertisement(_ advertisement: UUBluetoothAdvertisement)
-//    {
-//        advertisements.append(advertisement)
-//    }
     
     func updateAdvertisement(_ advertisement: UUBluetoothAdvertisement)
     {
