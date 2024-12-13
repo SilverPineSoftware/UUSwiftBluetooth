@@ -66,4 +66,20 @@ final class UUSwiftBluetoothTests: XCTestCase
             }
         }
     }
+    
+    func testIntSorting()
+    {
+        let input: [Int?] = [5, nil, 8, 3, 19, 4]
+        
+        //let sorted = input.sorted(using: OptionalIntComparator())
+        let sortedBy = input.sorted(by: { lhs, rhs in
+            return (lhs ?? Int.max) < (rhs ?? Int.max)
+        })
+        
+        print("sorted by: \(sortedBy)")
+        
+        //let sortedUsing = input.sorted(using: OptionalIntComparator())
+        
+        //print("sorted using: \(sortedUsing)")
+    }
 }

@@ -40,22 +40,22 @@ public class UUBluetoothScanner
         if (settings.callbackThrottle > 0)
         {
             nearbyPeripheralSubscription = self.$nearbyPeripherals
-                .throttle(for: .seconds(scanSettings.callbackThrottle), scheduler: RunLoop.main, latest: true)
-                .receive(on: DispatchQueue.global(qos: .userInitiated))
+                .throttle(for: .seconds(scanSettings.callbackThrottle), scheduler: centralManager.dispatchQueue, latest: true)
+                .receive(on: centralManager.dispatchQueue)
                 .sink
                 { peripheralList in
                     
-                    self.nearbyPeripheralCallback(peripheralList)
+                    self.notifyNearbyPeripherals(peripheralList)
                 }
         }
         else
         {
             nearbyPeripheralSubscription = self.$nearbyPeripherals
-                .receive(on: DispatchQueue.global(qos: .userInitiated))
+                .receive(on: centralManager.dispatchQueue)
                 .sink
                 { peripheralList in
                     
-                    self.nearbyPeripheralCallback(peripheralList)
+                    self.notifyNearbyPeripherals(peripheralList)
                 }
         }
         
@@ -64,6 +64,16 @@ public class UUBluetoothScanner
             allowDuplicates: settings.allowDuplicates,
             advertisementHandler: handleAdvertisement,
             willRestoreCallback: handleWillRestoreState)
+    }
+    
+    private func notifyNearbyPeripherals(_ list: [UUPeripheral])
+    {
+        let sorted = scanSettings.peripheralSorting.map { list.sorted(using: $0) } ?? list
+        
+        DispatchQueue.main.async
+        {
+            self.nearbyPeripheralCallback(sorted)
+        }
     }
     
     public var isScanning: Bool
@@ -78,42 +88,19 @@ public class UUBluetoothScanner
     
     private func handleAdvertisement(advertisement: UUBluetoothAdvertisement)
     {
-        let peripheral = UUPeripheral(centralManager: centralManager,
-                                      peripheral: advertisement.peripheral)
-        
-        peripheral.updateAdvertisement(advertisement)
-        
-        handlePeripheralFound(peripheral: peripheral)
-    }
-    
-    private func handlePeripheralFound(peripheral: UUPeripheral)
-    {
         defer { nearbyPeripheralMapLock.unlock() }
         nearbyPeripheralMapLock.lock()
         
-        // Always update
+        let peripheral = nearbyPeripheralMap[advertisement.peripheral.identifier] ?? UUPeripheral(centralManager: centralManager, peripheral: advertisement.peripheral)
+        peripheral.updateAdvertisement(advertisement)
+        
         nearbyPeripheralMap[peripheral.identifier] = peripheral
         
         self.nearbyPeripherals = nearbyPeripheralMap.values
             .filter(shouldDiscoverPeripheral)
-            .sorted(by: { lhs, rhs in
-                return (lhs.rssi ?? 0) > (rhs.rssi ?? 0)
-            })
-        
-        //let sorted = sortedPeripherals()
-        //self.nearbyPeripherals = sorted
-        
         
         NSLog("There are \(self.nearbyPeripherals.count) peripherals nearby")
     }
-    
-    /*private func sortedPeripherals() -> [UUPeripheral]
-    {
-        return nearbyPeripheralMap.values.sorted
-        { lhs, rhs in
-            return (lhs.rssi ?? 0) > (rhs.rssi ?? 0)
-        }
-    }*/
     
     private func shouldDiscoverPeripheral(_ peripheral: UUPeripheral) -> Bool
     {

@@ -65,11 +65,6 @@ public class UUPeripheral
         self.firstDiscoveryTime = Date()
     }
     
-//    public func clearAdvertisements()
-//    {
-//        advertisements.removeAll()
-//    }
-    
     // Passthrough properties to read values directly from CBPeripheral
     
     public var identifier: UUID

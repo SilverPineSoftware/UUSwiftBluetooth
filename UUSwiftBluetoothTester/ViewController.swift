@@ -224,7 +224,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             
             var settings = UUBluetoothScanSettings()
             settings.discoveryFilters = filters
-            settings.allowDuplicates = false
+            settings.allowDuplicates = true
+            settings.peripheralSorting = UUPeripheralRssiSortComparator(order: .reverse)
+            //settings.peripheralSorting = UUPeripheralFirstDiscoveryTimeComparator(order: .reverse)
+            //settings.peripheralSorting = UUPeripheralFriendlyNameComparator(order: .reverse)
+        
             
             scanner.startScan(settings, callback: self.handleNearbyPeripheralsChanged)
             rightNavBarItem.title = "Stop"

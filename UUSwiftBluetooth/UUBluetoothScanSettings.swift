@@ -44,4 +44,9 @@ public struct UUBluetoothScanSettings
      TimeInterval used to throttle scanning callbacks
      */
     public var callbackThrottle: TimeInterval = 0.5
+    
+    /**
+     Sorting method used.  Common sorting comparators are provided by UUSwiftBluetooth.  See UUPeripheralRssiSortComparator, UUPeripheralFirstDiscoveryTimeComparator, and UUPeripheralFriendlyNameComparator
+     */
+    public var peripheralSorting: (any SortComparator<UUPeripheral>)? = nil
 }
