@@ -21,13 +21,13 @@ open class UUPeripheralOperation<Result>
     private var servicesNeedingCharacteristicDiscovery: [CBService] = []
     private var characteristicsNeedingDescriptorDiscovery: [CBCharacteristic] = []
     
-    public var connectTimeout: TimeInterval = UUPeripheral.Defaults.connectTimeout
-    public var disconnectTimeout: TimeInterval = UUPeripheral.Defaults.disconnectTimeout
-    public var serviceDiscoveryTimeout: TimeInterval = UUPeripheral.Defaults.operationTimeout
-    public var characteristicDiscoveryTimeout: TimeInterval = UUPeripheral.Defaults.operationTimeout
-    public var descriptorDiscoveryTimeout: TimeInterval = UUPeripheral.Defaults.operationTimeout
-    public var readTimeout: TimeInterval = UUPeripheral.Defaults.operationTimeout
-    public var writeTimeout: TimeInterval = UUPeripheral.Defaults.operationTimeout
+    public var connectTimeout: TimeInterval = UUCoreBluetooth.Defaults.connectTimeout
+    public var disconnectTimeout: TimeInterval = UUCoreBluetooth.Defaults.disconnectTimeout
+    public var serviceDiscoveryTimeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout
+    public var characteristicDiscoveryTimeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout
+    public var descriptorDiscoveryTimeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout
+    public var readTimeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout
+    public var writeTimeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout
     
     private(set) public var operationResult: Result? = nil
     

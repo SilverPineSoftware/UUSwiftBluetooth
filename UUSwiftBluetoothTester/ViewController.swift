@@ -18,7 +18,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     private var tableData: [UUPeripheral] = []
     
-    private var scanner = UUBluetoothScanner()
+    private var scanner = UUCoreBluetooth.defaultScanner
     
     private var lastTableUpdate: TimeInterval = 0
     
@@ -116,7 +116,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             //let vc = L2CapClientController()
             //vc.peripheral = peripheral
             //self.navigationController?.pushViewController(vc, animated: true)
-            peripheral.connect {
+            peripheral.connect(timeout: 30) {
                 NSLog("Connected to \(peripheral.friendlyName)")
             } disconnected: { error in
                 NSLog("Disconnected from \(peripheral.friendlyName)")

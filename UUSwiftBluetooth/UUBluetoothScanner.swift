@@ -10,10 +10,10 @@ import CoreBluetooth
 import UUSwiftCore
 import Combine
 
-public class UUBluetoothScanner
+internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
 {
     private let centralManager: UUCentralManager
-    private var nearbyPeripheralMap: [UUID: UUPeripheral] = [:]
+    private var nearbyPeripheralMap: [UUID: (UUPeripheral & UUPeripheralInternal)] = [:]
     private var nearbyPeripheralMapLock = NSRecursiveLock()
     
     private var scanSettings = UUBluetoothScanSettings()
@@ -91,8 +91,8 @@ public class UUBluetoothScanner
         defer { nearbyPeripheralMapLock.unlock() }
         nearbyPeripheralMapLock.lock()
         
-        let peripheral = nearbyPeripheralMap[advertisement.peripheral.identifier] ?? UUPeripheral(centralManager: centralManager, peripheral: advertisement.peripheral)
-        peripheral.updateAdvertisement(advertisement)
+        let peripheral = nearbyPeripheralMap[advertisement.peripheral.identifier] ?? UUCoreBluetoothPeripheral(centralManager: centralManager, peripheral: advertisement.peripheral)
+        peripheral.update(advertisement: advertisement)
         
         nearbyPeripheralMap[peripheral.identifier] = peripheral
         

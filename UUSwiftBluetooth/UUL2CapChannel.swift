@@ -9,8 +9,7 @@ import Foundation
 import CoreBluetooth
 import UUSwiftCore
 
-
-public class UUL2CapChannel:NSObject//, StreamDelegate
+public class UUL2CapChannel: NSObject
 {
     private var channel:CBL2CAPChannel? = nil
     private let peripheral: UUPeripheral

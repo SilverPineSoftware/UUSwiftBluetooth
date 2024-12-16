@@ -23,6 +23,14 @@ class PeripheralTableRow: UITableViewCell
         rssiLabel.text = "\(peripheral.rssi ?? 0)"
         connectionStateLabel.text = UUCBPeripheralStateToString(peripheral.peripheralState)
         timeSinceLastUpdateLabel.text = String(format: "%.3f", peripheral.timeSinceLastUpdate)
+        
+        if let current = peripheral.advertisement?.timestamp
+        {
+            let fmt = "yyyy-MM-dd'T'HH:mm:ss.SSS"
+            idLabel.text = "\(peripheral.firstDiscoveryTime.uuFormat(fmt, timeZone: .current))\n\(current.uuFormat(fmt, timeZone: .current))"
+            
+        }
+        
 
     }
 }

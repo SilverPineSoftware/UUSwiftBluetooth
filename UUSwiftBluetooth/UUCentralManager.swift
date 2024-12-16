@@ -283,16 +283,34 @@ public class UUCentralManager
     
     func connect(_ peripheral: UUPeripheral, _ options: [String:Any]?)
     {
-        centralManager.connect(peripheral.underlyingPeripheral, options: options)
+        guard let cbPeripheral = centralManager.retrievePeripherals(withIdentifiers: [peripheral.identifier]).first else
+        {
+            NSLog("Unable to find CBPeripheral for \(peripheral.identifier)")
+            return
+        }
+        
+        centralManager.connect(cbPeripheral, options: options)
     }
     
     func cancelPeripheralConnection(_ peripheral: UUPeripheral)
     {
-        centralManager.cancelPeripheralConnection(peripheral.underlyingPeripheral)
+        guard let cbPeripheral = centralManager.retrievePeripherals(withIdentifiers: [peripheral.identifier]).first else
+        {
+            NSLog("Unable to find CBPeripheral for \(peripheral.identifier)")
+            return
+        }
+        
+        centralManager.cancelPeripheralConnection(cbPeripheral)
     }
     
     func notifyDisconnect(_ peripheral: UUPeripheral, _ error: Error?)
     {
+        guard let cbPeripheral = centralManager.retrievePeripherals(withIdentifiers: [peripheral.identifier]).first else
+        {
+            NSLog("Unable to find CBPeripheral for \(peripheral.identifier)")
+            return
+        }
+        
        let key = peripheral.identifier
        let disconnectBlock = delegate.disconnectBlocks[key]
        delegate.disconnectBlocks.removeValue(forKey: key)
@@ -300,7 +318,7 @@ public class UUCentralManager
        
        if let block = disconnectBlock
        {
-            block(peripheral.underlyingPeripheral, error)
+            block(cbPeripheral, error)
        }
        else
        {
