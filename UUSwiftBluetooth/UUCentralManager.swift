@@ -215,7 +215,14 @@ public class UUCentralManager
 
     private func resumeScanning()
     {
-        centralManager.scanForPeripherals(withServices: scanUuidList, options: scanOptions)
+        if (self.centralManager.uuCanStartScanning)
+        {
+            centralManager.scanForPeripherals(withServices: scanUuidList, options: scanOptions)
+        }
+        else
+        {
+            NSLog("Unable to start scanning because bluetooth central is not ready.  Scan will resume when powered on.")
+        }
     }
     
 //    internal func restartScanning()

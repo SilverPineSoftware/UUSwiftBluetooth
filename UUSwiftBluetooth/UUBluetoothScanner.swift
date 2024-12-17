@@ -36,7 +36,6 @@ internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
         self.scanSettings = settings
         self.nearbyPeripheralCallback = callback
         
-        
         if (settings.callbackThrottle > 0)
         {
             nearbyPeripheralSubscription = self.$nearbyPeripherals
