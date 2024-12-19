@@ -416,7 +416,7 @@ open class UUPeripheralOperation<Result>
                 return
             }
             
-            print("Finished characteristic discovery for \(service.uuid.uuidString), found \(characteristics?.count ?? 0) characteristics. Characteristics: \(characteristics?.map(\.uuid.uuidString) ?? []).")
+            UUDebugLog("Finished characteristic discovery for \(service.uuid.uuidString), found \(characteristics?.count ?? 0) characteristics. Characteristics: \(characteristics?.map(\.uuid.uuidString) ?? []).")
             if let characteristics = characteristics
             {
                 self.discoveredCharacteristics.append(contentsOf: characteristics)
@@ -447,12 +447,12 @@ open class UUPeripheralOperation<Result>
             
             if let err = error
             {
-                NSLog("Descriptor Discovery Failed, ending operation with error: \(err)")
+                UUDebugLog("Descriptor Discovery Failed, ending operation with error: \(err)")
                 self.end(result: nil, error: err)
                 return
             }
             
-            print("Finished descriptor discovery for \(characteristic.uuid.uuidString), found \(characteristic.descriptors?.count ?? 0) descriptors. Descriptors: \(descriptors?.map(\.uuid.uuidString) ?? []).")
+            UUDebugLog("Finished descriptor discovery for \(characteristic.uuid.uuidString), found \(characteristic.descriptors?.count ?? 0) descriptors. Descriptors: \(descriptors?.map(\.uuid.uuidString) ?? []).")
             if let descriptors = descriptors
             {
                 self.discoveredDescriptors.append(contentsOf: descriptors)
@@ -491,10 +491,10 @@ open class UUPeripheralOperation<Result>
     
     private func internalExecute()
     {
-        print(connectTimeMeasurement)
-        print(serviceDiscoveryTimeMeasurement)
-        print(characteristicDiscoveryTimeMeasurement)
-        print(descriptorDiscoveryTimeMeasurement)
+        UUDebugLog(connectTimeMeasurement)
+        UUDebugLog(serviceDiscoveryTimeMeasurement)
+        UUDebugLog(characteristicDiscoveryTimeMeasurement)
+        UUDebugLog(descriptorDiscoveryTimeMeasurement)
         
         execute
         { result, err in

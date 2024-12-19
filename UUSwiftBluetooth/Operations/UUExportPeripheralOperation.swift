@@ -7,6 +7,7 @@
 
 import UIKit
 import CoreBluetooth
+import UUSwiftCore
 
 public class UUExportPeripheralOperation: UUPeripheralOperation<UUPeripheralExport>
 {
@@ -23,7 +24,7 @@ public class UUExportPeripheralOperation: UUPeripheralOperation<UUPeripheralExpo
         peripheralJson.services = services
         
         let json = peripheralJson.uuToJsonString(true)
-        print("Peripheral JSON: \(json)")
+        UUDebugLog("Peripheral JSON: \(json)")
         
         completion(peripheralJson, nil)
     }

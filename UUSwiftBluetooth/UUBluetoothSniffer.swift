@@ -199,9 +199,9 @@ public class UUSnifferSessionSummary
         let header = UUSnifferResult.csvHeader()
         let lines = results.map { $0.csvLine() }
         
-        NSLog(header.joined(separator: ","))
+        UUDebugLog(header.joined(separator: ","))
         lines.forEach { parts in
-            NSLog(parts.joined(separator: ","))
+            UUDebugLog(parts.joined(separator: ","))
         }
     }
     
