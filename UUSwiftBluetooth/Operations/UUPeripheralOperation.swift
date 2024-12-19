@@ -491,10 +491,10 @@ open class UUPeripheralOperation<Result>
     
     private func internalExecute()
     {
-        UUDebugLog(connectTimeMeasurement)
-        UUDebugLog(serviceDiscoveryTimeMeasurement)
-        UUDebugLog(characteristicDiscoveryTimeMeasurement)
-        UUDebugLog(descriptorDiscoveryTimeMeasurement)
+        UUDebugLog("\(connectTimeMeasurement)")
+        UUDebugLog("\(serviceDiscoveryTimeMeasurement)")
+        UUDebugLog("\(characteristicDiscoveryTimeMeasurement)")
+        UUDebugLog("\(descriptorDiscoveryTimeMeasurement)")
         
         execute
         { result, err in
