@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreBluetooth
+import UUSwiftCore
 import UUSwiftBluetooth
 
 class CharacteristicRowViewModel: ObservableObject
@@ -19,7 +20,7 @@ class CharacteristicRowViewModel: ObservableObject
 //    {
 //        willSet
 //        {
-//            NSLog("isNotifying changing to: \(newValue)")
+//            UUDebugLog("isNotifying changing to: \(newValue)")
 //        }
 //    }
     
@@ -89,7 +90,7 @@ class CharacteristicRowViewModel: ObservableObject
         peripheral.setNotifyValue(enabled: !characteristic.isNotifying, for: characteristic, timeout: 20.0)
         { updatedPeripheral, updatedCharacteristic, errOpt in
             
-            NSLog("Characteristic \(updatedCharacteristic.uuid.uuidString) value changed to \(updatedCharacteristic.value?.uuToHexString() ?? "<nil>")")
+            UUDebugLog("Characteristic \(updatedCharacteristic.uuid.uuidString) value changed to \(updatedCharacteristic.value?.uuToHexString() ?? "<nil>")")
             DispatchQueue.main.async
             {
                 self.peripheral = updatedPeripheral

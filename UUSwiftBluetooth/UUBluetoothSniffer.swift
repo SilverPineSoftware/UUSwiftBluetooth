@@ -272,7 +272,7 @@ public class UUBluetoothSniffer
     
     private func handleAdvertisement(_ peripheral: CBPeripheral, _ advertisementData: [String : Any], _ rssi: NSNumber)
     {
-        //NSLog("\n\n\(advertisementData)\n\n")
+        //UUDebugLog("\n\n\(advertisementData)\n\n")
         
         workingSummary.addResult(peripheral, advertisementData, rssi)
     }

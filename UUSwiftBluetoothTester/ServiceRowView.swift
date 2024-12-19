@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreBluetooth
+import UUSwiftCore
 import UUSwiftBluetooth
 
 class ServiceRowViewModel: ObservableObject
@@ -24,7 +25,7 @@ class ServiceRowViewModel: ObservableObject
     
     func onTap()
     {
-        NSLog("Tapped on service: \(service.uuid.uuidString)")
+        UUDebugLog("Tapped on service: \(service.uuid.uuidString)")
         tapHandler?(service)
     }
     

@@ -52,7 +52,7 @@ open class UUPeripheralOperation<Result>
     
     public func end(result: Result?, error: Error?)
     {
-        NSLog("**** Ending Operation with result: \(String(describing: result)),  error: \(error?.localizedDescription ?? "nil")")
+        UUDebugLog("**** Ending Operation with result: \(String(describing: result)),  error: \(error?.localizedDescription ?? "nil")")
         self.operationResult = result
         self.operationError = error
         peripheral.disconnect(timeout: disconnectTimeout)
@@ -73,7 +73,7 @@ open class UUPeripheralOperation<Result>
                 
                 if let err = error
                 {
-                    NSLog("write failed, ending operation with error: \(err)")
+                    UUDebugLog("write failed, ending operation with error: \(err)")
                     self.end(result: nil, error: err)
                     return
                 }
@@ -93,7 +93,7 @@ open class UUPeripheralOperation<Result>
                 
                 if let err = error
                  {
-                    NSLog("WWOR failed, ending operation with error: \(err)")
+                    UUDebugLog("WWOR failed, ending operation with error: \(err)")
                     self.end(result: nil, error: err)
                     return
                 }
@@ -113,7 +113,7 @@ open class UUPeripheralOperation<Result>
                 
                 if let err = error
                 {
-                    NSLog("read failed, ending operation with error: \(err)")
+                    UUDebugLog("read failed, ending operation with error: \(err)")
                     self.end(result: nil, error: err)
                     return
                 }
@@ -317,7 +317,7 @@ open class UUPeripheralOperation<Result>
         guard let discovered = findDiscoveredService(for: uuid) else
         {
             let err = NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Required service \(uuid.uuidString) not found"])
-            NSLog("Required Service not found, ending operation with error: \(err)")
+            UUDebugLog("Required Service not found, ending operation with error: \(err)")
             self.end(result: nil, error: err)
             return
         }
@@ -330,7 +330,7 @@ open class UUPeripheralOperation<Result>
         guard let discovered = findDiscoveredCharacteristic(for: uuid) else
         {
             let err = NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Required characteristic \(uuid.uuidString) not found"])
-            NSLog("Required Characteristic not found, ending operation with error: \(err)")
+            UUDebugLog("Required Characteristic not found, ending operation with error: \(err)")
             self.end(result: nil, error: err)
             return
         }
@@ -355,7 +355,7 @@ open class UUPeripheralOperation<Result>
             
             if let err = error
             {
-                NSLog("Service Discovery Failed, ending operation with error: \(err)")
+                UUDebugLog("Service Discovery Failed, ending operation with error: \(err)")
                 self.end(result: nil, error: err)
                 return
             }
@@ -367,7 +367,7 @@ open class UUPeripheralOperation<Result>
             guard let services = services else
             {
                 let err = NSError(domain: "Err", code: -1, userInfo: [NSLocalizedDescriptionKey: "No services were discovered"])
-                NSLog("Service Discovery Failed to discover any services, ending operation with error: \(err)")
+                UUDebugLog("Service Discovery Failed to discover any services, ending operation with error: \(err)")
                 self.end(result: nil, error: err)
                 return
             }
@@ -411,7 +411,7 @@ open class UUPeripheralOperation<Result>
             
             if let err = error
             {
-                NSLog("Characteristic Discovery Failed, ending operation with error: \(err)")
+                UUDebugLog("Characteristic Discovery Failed, ending operation with error: \(err)")
                 self.end(result: nil, error: err)
                 return
             }

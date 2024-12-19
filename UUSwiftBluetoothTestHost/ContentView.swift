@@ -14,7 +14,7 @@ struct ContentView: View
         //NotificationCenter.default.post(name: Notification.Name(rawValue: "SaveFile"), object: data)
         NotificationCenter.default.addObserver(forName: Notification.Name(rawValue: "SaveFile"), object: nil, queue: nil)
         { notification in
-            NSLog("Handled notification!")
+            UUDebugLog("Handled notification!")
             
             if let data = notification.object as? Data
             {

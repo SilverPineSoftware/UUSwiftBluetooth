@@ -98,7 +98,7 @@ internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
         self.nearbyPeripherals = nearbyPeripheralMap.values
             .filter(shouldDiscoverPeripheral)
         
-        NSLog("There are \(self.nearbyPeripherals.count) peripherals nearby")
+        UUDebugLog("There are \(self.nearbyPeripherals.count) peripherals nearby")
     }
     
     private func shouldDiscoverPeripheral(_ peripheral: UUPeripheral) -> Bool

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreBluetooth
+import UUSwiftCore
 import UUSwiftBluetooth
 
 class ServiceViewModel: ObservableObject
@@ -44,14 +45,14 @@ class ServiceViewModel: ObservableObject
         peripheral.discoverCharacteristics(characteristicUUIDs: nil, for: service, timeout: 20.0)
         { characteristics, errOpt in
             
-            NSLog("Characteristic discovery complete, found \(characteristics?.count ?? 0) characteristics")
+            UUDebugLog("Characteristic discovery complete, found \(characteristics?.count ?? 0) characteristics")
             
             characteristics?.forEach(
             { characteristic in
-                NSLog("Found Characteristic: \(characteristic.uuid) - \(characteristic.uuid.uuCommonName)")
+                UUDebugLog("Found Characteristic: \(characteristic.uuid) - \(characteristic.uuid.uuCommonName)")
             })
             
-            NSLog("Characteristic discovery complete")
+            UUDebugLog("Characteristic discovery complete")
             
             DispatchQueue.main.async
             {

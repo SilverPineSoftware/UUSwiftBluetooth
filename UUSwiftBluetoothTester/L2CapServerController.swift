@@ -49,7 +49,7 @@ class L2CapServerController:L2CapController
             if (self.command == nil)
             {
                 self.command = UUL2CapCommand.createToReceive(data)
-                NSLog("Setting command on server controller!")
+                UUDebugLog("Setting command on server controller!")
 
                 if let cmd = self.command
                 {

@@ -7,6 +7,7 @@
 
 import UIKit
 import CoreBluetooth
+import UUSwiftCore
 import UUSwiftBluetooth
 
 class L2CapClientController:L2CapController
@@ -131,7 +132,7 @@ class L2CapClientController:L2CapController
                 self.updateProgressRow(percent)
 
                 let remaining = UInt32(totalBytesToSend) - progressBytesSent
-                NSLog("Send Progress: (\(progressBytesSent)/\(totalBytesToSend))  \(remaining) Remaining")
+                UUDebugLog("Send Progress: (\(progressBytesSent)/\(totalBytesToSend))  \(remaining) Remaining")
                 
             }
             
@@ -201,7 +202,7 @@ class L2CapClientController:L2CapController
                 let percent:Float = Float(progress)/Float(totalBytesToSend)
                 self.updateProgressRow(percent)
                 let remaining = UInt32(totalBytesToSend) - progress
-                NSLog("Send Progress: (\(progress)/\(totalBytesToSend))  \(remaining) Remaining")
+                UUDebugLog("Send Progress: (\(progress)/\(totalBytesToSend))  \(remaining) Remaining")
             }
             
         },

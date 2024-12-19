@@ -63,7 +63,7 @@ class L2CapController:UIViewController, UITableViewDelegate, UITableViewDataSour
     
     func log(_ method:String, _ text:String)
     {
-        NSLog("\(method) - \(text)")
+        UUDebugLog("\(method) - \(text)")
     }
     
     ///Clears all tableview lines
@@ -226,7 +226,7 @@ class UUL2CapCommand:NSObject
     {
         guard (!self.haveReceivedAllData()) else
         {
-            NSLog("Tried to append \(incomingData.count) bytes but already have \(self.data.count) bytes of expected \(totalExpectedBytes)")
+            UUDebugLog("Tried to append \(incomingData.count) bytes but already have \(self.data.count) bytes of expected \(totalExpectedBytes)")
             return
         }
         
@@ -247,7 +247,7 @@ class UUL2CapCommand:NSObject
             if let loppedData = data.uuData(at: indexToStart, count: remainingBytes)
             {
                 adjustedData = loppedData
-                NSLog("Adjusting last chunk of data! Included only \(adjustedData.count) of \(data.count) bytes! (lopped chunk size: \(loppedData.count))")
+                UUDebugLog("Adjusting last chunk of data! Included only \(adjustedData.count) of \(data.count) bytes! (lopped chunk size: \(loppedData.count))")
             }
         }
         */
@@ -264,8 +264,8 @@ class UUL2CapCommand:NSObject
         let complete:Float = percentageComplete()*100
         
         
-        //NSLog("Recieved more data! (\(bytesRecieved)/\(totalExpectedBytes)) \(complete) :: AdjustedCount (\(incomingData.count)) : previousBytes (\(previous)) : updated: (\(bytesRecieved))")
-        NSLog("Recieved more data! (\(bytesRecieved)/\(totalExpectedBytes)) \(complete)")
+        //UUDebugLog("Recieved more data! (\(bytesRecieved)/\(totalExpectedBytes)) \(complete) :: AdjustedCount (\(incomingData.count)) : previousBytes (\(previous)) : updated: (\(bytesRecieved))")
+        UUDebugLog("Recieved more data! (\(bytesRecieved)/\(totalExpectedBytes)) \(complete)")
     }
     
     func haveReceivedAllData() -> Bool
@@ -317,7 +317,7 @@ class UUL2CapCommand:NSObject
         let headerText = data.uuString(at: 0, count: 11, with: .utf8)
         guard (headerText == "UUBluetooth") else
         {
-            NSLog("Header isn't for UUBluetooth, bailing!")
+            UUDebugLog("Header isn't for UUBluetooth, bailing!")
             return nil
         }
         
@@ -336,7 +336,7 @@ class UUL2CapCommand:NSObject
         index += MemoryLayout<UInt32>.size
 
         let capacity = Int(commandLength ?? 0)
-        NSLog("Creating L2CapCommand of size: \(capacity)")
+        UUDebugLog("Creating L2CapCommand of size: \(capacity)")
         
 //        let totalBytesExpectedWithHeader = capacity + UUL2CapCommand.headerSize
         

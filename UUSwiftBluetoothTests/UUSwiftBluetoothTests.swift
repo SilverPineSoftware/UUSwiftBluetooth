@@ -45,7 +45,7 @@ final class UUSwiftBluetoothTests: XCTestCase
         
         if let data = fileContents
         {
-            NSLog("\n\n\n\n\(String(data: data, encoding: .utf8) ?? "null")\n\n\n\n")
+            UUDebugLog("\n\n\n\n\(String(data: data, encoding: .utf8) ?? "null")\n\n\n\n")
             
             //NotificationCenter.default.post(name: Notification.Name(rawValue: "SaveFile"), object: data)
 

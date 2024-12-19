@@ -45,7 +45,7 @@ class UUCentralManagerFactory
             let incomingRestoreId = options?.uuSafeGetString(CBCentralManagerOptionRestoreIdentifierKey) ?? ""
             if (existingRestoreId != incomingRestoreId)
             {
-                NSLog("UUCoreBluetooth init options have changed! Setting theSharedInstance to nil");
+                UUDebugLog("UUCoreBluetooth init options have changed! Setting theSharedInstance to nil");
                 _sharedCentralManager = nil
             }
         }

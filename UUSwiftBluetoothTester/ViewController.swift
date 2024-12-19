@@ -8,6 +8,7 @@
 import UIKit
 import SwiftUI
 import CoreBluetooth
+import UUSwiftCore
 import UUSwiftBluetooth
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource
@@ -117,9 +118,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             //vc.peripheral = peripheral
             //self.navigationController?.pushViewController(vc, animated: true)
             peripheral.connect(timeout: 30) {
-                NSLog("Connected to \(peripheral.friendlyName)")
+                UUDebugLog("Connected to \(peripheral.friendlyName)")
             } disconnected: { error in
-                NSLog("Disconnected from \(peripheral.friendlyName)")
+                UUDebugLog("Disconnected from \(peripheral.friendlyName)")
             }
 
             
@@ -200,10 +201,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
        self.navigationController?.pushViewController(L2CapServerController(), animated: true)
         
 //        let connected = UUCentralManager.shared.retrieveConnectedPeripherals(withServices: [])
-//        NSLog("Connected Peripherals: \(connected.count)")
+//        UUDebugLog("Connected Peripherals: \(connected.count)")
 //        for p in connected
 //        {
-//            NSLog("Connected Peripheral: \(p.identifier) - \(p.name ?? "No Name")")
+//            UUDebugLog("Connected Peripheral: \(p.identifier) - \(p.name ?? "No Name")")
 //        }
         
 //        performSegue(withIdentifier: "showSettings", sender: nil)

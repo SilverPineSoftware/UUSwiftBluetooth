@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreBluetooth
+import UUSwiftCore
 import UUSwiftBluetooth
 
 class PeripheralViewModel: ObservableObject
@@ -49,11 +50,11 @@ class PeripheralViewModel: ObservableObject
         peripheral.discoverServices(serviceUUIDs: [], timeout: 20.0)
         { services, errOpt in
             
-            NSLog("Service discovery complete, found \(services?.count ?? 0) services")
+            UUDebugLog("Service discovery complete, found \(services?.count ?? 0) services")
             
             services?.forEach(
             { service in
-                NSLog("Found Service: \(service.uuid) - \(service.uuid.uuCommonName)")
+                UUDebugLog("Found Service: \(service.uuid) - \(service.uuid.uuCommonName)")
             })
             
             DispatchQueue.main.async

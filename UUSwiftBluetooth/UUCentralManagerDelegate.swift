@@ -39,7 +39,7 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
     
     func centralManagerDidUpdateState(_ central: CBCentralManager)
     {
-        NSLog("Central state changed to \(UUCBManagerStateToString(central.state)) (\(central.state))")
+        UUDebugLog("Central state changed to \(UUCBManagerStateToString(central.state)) (\(central.state))")
         centralStateChangedBlock?(central.state)
     }
     
@@ -67,11 +67,11 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
     {
         guard let block = didDiscoverPeripheralBlock else
         {
-            NSLog("No callback defined, Skipping peripheral: \(peripheral), RSSI: \(RSSI), advertisement: \(advertisementData)")
+            UUDebugLog("No callback defined, Skipping peripheral: \(peripheral), RSSI: \(RSSI), advertisement: \(advertisementData)")
             return
         }
         
-        NSLog("peripheral: %@, RSSI: %@, advertisement: %@", peripheral, RSSI, advertisementData)
+        UUDebugLog("peripheral: %@, RSSI: %@, advertisement: %@", peripheral, RSSI, advertisementData)
         block(UUBluetoothAdvertisement(peripheral, advertisementData, RSSI.intValue))
         //peripheralFoundBlock?(peripheral, advertisementData, RSSI.intValue)
     }
@@ -90,7 +90,7 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral)
     {
-        NSLog("didConnect, peripheral: \(peripheral)")
+        UUDebugLog("didConnect, peripheral: \(peripheral)")
         
         let key = peripheral.identifier
         let block = connectBlocks[key]
@@ -115,7 +115,7 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
     
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?)
     {
-        NSLog("didFailToConnect, peripheral: \(peripheral), error: \(String(describing: error?.localizedDescription))")
+        UUDebugLog("didFailToConnect, peripheral: \(peripheral), error: \(String(describing: error?.localizedDescription))")
               
         let key = peripheral.identifier
         let block = disconnectBlocks[key]
@@ -142,7 +142,7 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
     /*
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?)
     {
-        NSLog("didDisconnectPeripheral, peripheral: \(peripheral), error: \(String(describing: error))")
+        UUDebugLog("didDisconnectPeripheral, peripheral: \(peripheral), error: \(String(describing: error))")
         
         let key = peripheral.identifier
         let block = disconnectBlocks[key]
@@ -173,11 +173,11 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, timestamp: CFAbsoluteTime, isReconnecting: Bool, error: (any Error)?)
     {
-        NSLog("didDisconnectPeripheral, peripheral: \(peripheral), timestamp: \(timestamp), isReconnecting: \(isReconnecting), error: \(String(describing: error))")
+        UUDebugLog("didDisconnectPeripheral, peripheral: \(peripheral), timestamp: \(timestamp), isReconnecting: \(isReconnecting), error: \(String(describing: error))")
         
         if (isReconnecting)
         {
-            NSLog("peripheral \(peripheral) is reconnecting, do not notify disconnect")
+            UUDebugLog("peripheral \(peripheral) is reconnecting, do not notify disconnect")
             return
         }
         
@@ -203,7 +203,7 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
     
     func centralManager(_ central: CBCentralManager, connectionEventDidOccur event: CBConnectionEvent, for peripheral: CBPeripheral)
     {
-        NSLog("Connection event - peripheral: \(peripheral), event: \(event)")
+        UUDebugLog("Connection event - peripheral: \(peripheral), event: \(event)")
     }
 
     /**
@@ -220,7 +220,7 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
     
     func centralManager(_ central: CBCentralManager, didUpdateANCSAuthorizationFor peripheral: CBPeripheral)
     {
-        NSLog("didUpdateANCSAuthorizationFor - peripheral: \(peripheral)")
+        UUDebugLog("didUpdateANCSAuthorizationFor - peripheral: \(peripheral)")
     }
 }
 
@@ -248,7 +248,7 @@ class UUCentralManagerRestoringDelegate: UUCentralManagerDelegate
     
     func centralManager(_ central: CBCentralManager, willRestoreState dict: [String : Any])
     {
-        NSLog("Restoring state, dict: \(dict)")
+        UUDebugLog("Restoring state, dict: \(dict)")
         willRestoreBlock?(dict)
     }
 }

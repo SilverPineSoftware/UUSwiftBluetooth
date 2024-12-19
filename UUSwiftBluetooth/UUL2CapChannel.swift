@@ -45,7 +45,7 @@ public class UUL2CapChannel: NSObject
             self.peripheral.setDidOpenL2ChannelCallback(callback: nil)
             self.cancelTimer(timerId)
             
-            NSLog("Open L2CapChannel with psm:\(psm) succeeded for peripheral:\(self.peripheral.identifier)")
+            UUDebugLog("Open L2CapChannel with psm:\(psm) succeeded for peripheral:\(self.peripheral.identifier)")
             self.channel = l2CapChannel
             self.openStreams()
             
@@ -57,7 +57,7 @@ public class UUL2CapChannel: NSObject
             self.peripheral.setDidOpenL2ChannelCallback(callback: nil)
             self.cancelTimer(timerId)
 
-            NSLog("Open L2CapChannel with psm:\(psm) timeout for peripheral:\(self.peripheral.identifier)")
+            UUDebugLog("Open L2CapChannel with psm:\(psm) timeout for peripheral:\(self.peripheral.identifier)")
             let err = NSError.uuCoreBluetoothError(.timeout)
             
             completion(err)
@@ -129,25 +129,25 @@ public class UUL2CapChannel: NSObject
         {
             self.cancelTimer(timerId)
 
-            NSLog("sendMessage timeout for peripheral:\(self.peripheral.identifier)")
+            UUDebugLog("sendMessage timeout for peripheral:\(self.peripheral.identifier)")
             let err = NSError.uuCoreBluetoothError(.timeout)
             
             completion(nil, nil, err)
         }
         
         
-        NSLog("Sending message...")
+        UUDebugLog("Sending message...")
         self.uuWriteAllData(outputStream:outputStream, data:data, queue: dispatchQueue, progress: sendProgress)
         { numberOfBytesSent in
             
-            NSLog("Message fully sent, waiting for data response...")
+            UUDebugLog("Message fully sent, waiting for data response...")
             
             self.dataReceivedCallback =
             { bytesReceived in
                 
                 self.cancelTimer(timerId)
                 
-                NSLog("Received Response for message")
+                UUDebugLog("Received Response for message")
                 completion(numberOfBytesSent, bytesReceived, nil)
                 
                 self.dataReceivedCallback = nil
@@ -163,7 +163,7 @@ public class UUL2CapChannel: NSObject
     private func readAvailableData(_ stream:InputStream)
     {
         let dataRead = stream.uuReadData(10240)
-        NSLog("Requested 10240 bytes read, actually read \(dataRead?.count ?? 0)")
+        UUDebugLog("Requested 10240 bytes read, actually read \(dataRead?.count ?? 0)")
         self.handleRxFrameReceived(dataRead)
         
         
@@ -177,7 +177,7 @@ public class UUL2CapChannel: NSObject
 //            }
 //            else
 //            {
-//                NSLog("Received data in stream but do not have anywhere to show it!")
+//                UUDebugLog("Received data in stream but do not have anywhere to show it!")
 //            }
 //        }
 
@@ -192,7 +192,7 @@ public class UUL2CapChannel: NSObject
 //            }
 //            else
 //            {
-//                NSLog("Received data in stream but do not have anywhere to show it!")
+//                UUDebugLog("Received data in stream but do not have anywhere to show it!")
 //            }
 //            
 //        }
@@ -258,7 +258,7 @@ public class UUL2CapChannel: NSObject
         }
         else
         {
-            NSLog("Stream is not InputStream, cannot read data!")
+            UUDebugLog("Stream is not InputStream, cannot read data!")
         }
     }
     
@@ -278,7 +278,7 @@ public class UUL2CapChannel: NSObject
      */
     func uuReadAllData(inputStream:InputStream, bufferLength:Int, queue:DispatchQueue = .main, completion: @escaping ((Data?) -> Void))
     {
-        NSLog("Called uuReadData")
+        UUDebugLog("Called uuReadData")
         queue.async
         {
             self.uuReadAllDataChunks(inputStream:inputStream, bufferLength:bufferLength, data: nil, completion: completion)
@@ -291,7 +291,7 @@ public class UUL2CapChannel: NSObject
         
         let dataRead = inputStream.uuReadData(bufferLength)
 
-        NSLog("Read a chunk of data!")
+        UUDebugLog("Read a chunk of data!")
         if let data = dataRead
         {
             if (workingData == nil)
@@ -303,12 +303,12 @@ public class UUL2CapChannel: NSObject
         
         if (inputStream.hasBytesAvailable)
         {
-            NSLog("Have more data to read, trying again!")
+            UUDebugLog("Have more data to read, trying again!")
             self.uuReadAllDataChunks(inputStream:inputStream, bufferLength:bufferLength, data: workingData, completion: completion)
         }
         else
         {
-            NSLog("No more data to read, calling completion!")
+            UUDebugLog("No more data to read, calling completion!")
             completion(workingData)
         }
     }
@@ -318,11 +318,11 @@ public class UUL2CapChannel: NSObject
      */
     func uuWriteAllData(outputStream:OutputStream, data:Data?, queue:DispatchQueue = .main, progress:((UInt32) -> Void)?, completion: @escaping ((Int?) -> Void))
     {
-        NSLog("Called uuWriteData")
+        UUDebugLog("Called uuWriteData")
 
         guard let d = data, !d.isEmpty else
         {
-            NSLog("Data is nil or empty, cannot write!")
+            UUDebugLog("Data is nil or empty, cannot write!")
             completion(nil)
             return
         }
@@ -330,7 +330,7 @@ public class UUL2CapChannel: NSObject
         guard outputStream.hasSpaceAvailable else
         {
             //if no space available, sleep and retry
-            NSLog("No space available! (try again later?)")
+            UUDebugLog("No space available! (try again later?)")
             completion(nil)
             return
         }
@@ -359,7 +359,7 @@ public class UUL2CapChannel: NSObject
     private func startTimer(_ timerBucket: TimerId, _ timeout: TimeInterval, _ block: @escaping ()->())
     {
         let timerId = formatTimerId(timerBucket)
-        NSLog("Starting bucket timer \(timerId) with timeout: \(timeout)")
+        UUDebugLog("Starting bucket timer \(timerId) with timeout: \(timeout)")
         
         timerPool.start(identifier: timerId, timeout: timeout, userInfo: nil)
         { _ in
@@ -385,26 +385,26 @@ extension UUL2CapChannel:StreamDelegate
         {
         case Stream.Event.openCompleted:
             self.handleStreamOpened(stream: stream)
-            NSLog("Stream Opened: \(stream.debugDescription)")
+            UUDebugLog("Stream Opened: \(stream.debugDescription)")
 
         case Stream.Event.endEncountered:
             self.handleStreameEndEncountered(stream: stream)
-            NSLog("Stream End Encountered: \(stream.debugDescription)")
+            UUDebugLog("Stream End Encountered: \(stream.debugDescription)")
 
         case Stream.Event.hasBytesAvailable:
             self.handleStreamHasBytesAvailable(stream: stream)
-            NSLog("Stream HasBytesAvailable: \(stream.debugDescription)")
+            UUDebugLog("Stream HasBytesAvailable: \(stream.debugDescription)")
 
         case Stream.Event.hasSpaceAvailable:
             self.handleStreamHasSpaceAvailable(stream: stream)
-            NSLog("Stream Has Space Available: \(stream.debugDescription)")
+            UUDebugLog("Stream Has Space Available: \(stream.debugDescription)")
 
         case Stream.Event.errorOccurred:
             self.handleStreamErrorOccurred(stream: stream)
-            NSLog("Stream Error Occurred: \(stream.debugDescription)")
+            UUDebugLog("Stream Error Occurred: \(stream.debugDescription)")
 
         default:
-            NSLog("Unhandled Stream event code: \(eventCode)")
+            UUDebugLog("Unhandled Stream event code: \(eventCode)")
         }
     }
 }
@@ -459,7 +459,7 @@ public extension OutputStream
                 
         while (totalBytesSent < totalExpectedBytesToSend)
         {
-            NSLog("Grabbing chunk of data at \(totalBytesSent) of size \(dataChunkSize)")
+            UUDebugLog("Grabbing chunk of data at \(totalBytesSent) of size \(dataChunkSize)")
             if let dataChunk = data.uuData(at: totalBytesSent, count: dataChunkSize)
             {
                 let actualBytesSent = dataChunk.withUnsafeBytes({ (unsafeRawBufferPointer:UnsafeRawBufferPointer) -> Int in
@@ -476,7 +476,7 @@ public extension OutputStream
                     }
                 })
                 
-                NSLog("Wrote \(actualBytesSent) bytes!")
+                UUDebugLog("Wrote \(actualBytesSent) bytes!")
                 
                 if (actualBytesSent <= 0) //If it couldn't send any, bail?
                 {

@@ -55,7 +55,7 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         {
             self.cancelStart(timerId)
 
-            NSLog("start timeout for uul2capserver:\(self.uuid)")
+            UUDebugLog("start timeout for uul2capserver:\(self.uuid)")
             let err = NSError.uuCoreBluetoothError(.timeout)
             
             completion(nil, err)
@@ -195,7 +195,7 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
             
             if let err = error
             {
-                NSLog("Publish Service Error! \(err)")
+                UUDebugLog("Publish Service Error! \(err)")
                 self.cancelStart(timerId)
                 completion(nil, err)
             }
@@ -306,7 +306,7 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
     private func startTimer(_ timerBucket: TimerId, _ timeout: TimeInterval, _ block: @escaping ()->())
     {
         let timerId = formatTimerId(timerBucket)
-        NSLog("Starting bucket timer \(timerId) with timeout: \(timeout)")
+        UUDebugLog("Starting bucket timer \(timerId) with timeout: \(timeout)")
         
         timerPool.start(identifier: timerId, timeout: timeout, userInfo: nil)
         { _ in
@@ -317,7 +317,7 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
     private func cancelTimer(_ timerBucket: TimerId)
     {
         let timerId = formatTimerId(timerBucket)
-        NSLog("Cancelling bucket timer \(timerId)")
+        UUDebugLog("Cancelling bucket timer \(timerId)")
         timerPool.cancel(by: timerId)
     }
     
@@ -383,30 +383,30 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         switch eventCode
         {
         case Stream.Event.openCompleted:
-            NSLog("Stream Opened")
+            UUDebugLog("Stream Opened")
 
         case Stream.Event.endEncountered:
-            NSLog("Stream End Encountered")
+            UUDebugLog("Stream End Encountered")
 
         case Stream.Event.hasBytesAvailable:
-            NSLog("Stream HasBytesAvailable")
+            UUDebugLog("Stream HasBytesAvailable")
         
             if let inputStream = stream as? InputStream
             {
                 let dataRead = inputStream.uuReadData(10240)
-                NSLog("Requested 10240 bytes read, actually read \(dataRead?.count ?? 0)")
+                UUDebugLog("Requested 10240 bytes read, actually read \(dataRead?.count ?? 0)")
                 self.didReceiveDataCallback?(dataRead)
             }
             
 
         case Stream.Event.hasSpaceAvailable:
-            NSLog("Stream Has Space Available")
+            UUDebugLog("Stream Has Space Available")
 
         case Stream.Event.errorOccurred:
-            NSLog("Stream Error Occurred")
+            UUDebugLog("Stream Error Occurred")
 
         default:
-            NSLog("Unhandled Stream event code")
+            UUDebugLog("Unhandled Stream event code")
         }
     }
     
@@ -456,7 +456,7 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
 //    
 //    private func readAvailableData(inputStream:InputStream, data:Data?, completion:((Data?) -> Void))
 //    {
-//        NSLog("Setting amReadingData to true!")
+//        UUDebugLog("Setting amReadingData to true!")
 //
 //        amReadingData = true
 //        var workingData:Data? = data
@@ -474,13 +474,13 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
 //        
 //        if (inputStream.hasBytesAvailable)
 //        {
-//            NSLog("Reading Data, still have bytes available.... calling again")
+//            UUDebugLog("Reading Data, still have bytes available.... calling again")
 //
 //            self.readAvailableData(inputStream:inputStream, data: workingData, completion: completion)
 //        }
 //        else
 //        {
-//            NSLog("Reading Data, no more bytes available, returning!")
+//            UUDebugLog("Reading Data, no more bytes available, returning!")
 //
 //            completion(workingData)
 //        }
