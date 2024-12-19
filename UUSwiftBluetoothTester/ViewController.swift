@@ -173,6 +173,13 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     private func handleNearbyPeripheralsChanged(_ list: [UUPeripheral])
     {
+        
+        let logLine = list.compactMap { p in
+            "\(p.friendlyName), \(p.rssi ?? -200), \(p.firstDiscoveryTime)"
+        }.joined(separator: "\n")
+        
+        NSLog("Scan Results:\n\n\(logLine)\n\n")
+        
         let now = Date().timeIntervalSinceReferenceDate
         let diff = now - lastTableUpdate
         if (diff > 1.0)
@@ -231,6 +238,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             //settings.peripheralSorting = UUPeripheralFriendlyNameComparator(order: .reverse)
         
             
+            NSLog("Starting scan")
             scanner.startScan(settings, callback: self.handleNearbyPeripheralsChanged)
             rightNavBarItem.title = "Stop"
         }

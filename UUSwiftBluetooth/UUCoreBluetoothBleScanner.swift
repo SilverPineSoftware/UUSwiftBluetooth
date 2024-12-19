@@ -36,6 +36,8 @@ internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
         self.scanSettings = settings
         self.nearbyPeripheralCallback = callback
         
+        clearNearbyPeripherals()
+        
         if (settings.callbackThrottle > 0)
         {
             nearbyPeripheralSubscription = self.$nearbyPeripherals
@@ -58,7 +60,7 @@ internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
                 }
         }
         
-        self.centralManager.startScan(
+        centralManager.startScan(
             serviceUuids: settings.serviceUUIDs,
             allowDuplicates: settings.allowDuplicates,
             advertisementHandler: handleAdvertisement,
@@ -83,6 +85,15 @@ internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
     public func stopScan()
     {
         self.centralManager.stopScan()
+    }
+    
+    private func clearNearbyPeripherals()
+    {
+        defer { nearbyPeripheralMapLock.unlock() }
+        nearbyPeripheralMapLock.lock()
+        
+        nearbyPeripheralMap.removeAll()
+        nearbyPeripherals = []
     }
     
     private func handleAdvertisement(advertisement: UUBluetoothAdvertisement)
