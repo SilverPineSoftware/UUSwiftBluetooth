@@ -1095,15 +1095,15 @@
 			repositoryURL = "https://github.com/SilverPineSoftware/UUSwiftTestCore.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.0.3;
+				minimumVersion = 0.0.4;
 			};
 		};
 		C5C67CCE26C60A0E004DF50D /* XCRemoteSwiftPackageReference "UUSwiftCore" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SilverPineSoftware/UUSwiftCore";
 			requirement = {
-				branch = logging;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
