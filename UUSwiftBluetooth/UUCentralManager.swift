@@ -9,6 +9,8 @@ import UIKit
 import CoreBluetooth
 import UUSwiftCore
 
+fileprivate let LOG_TAG = "UUCentralManager"
+
 // MARK:- Common Type Alias Definitions
 
 public typealias UUCentralStateChangedBlock = ((CBManagerState)->())
@@ -60,7 +62,7 @@ public class UUCentralManager
     
     required init(_ opts: [String:Any]?)
     {
-        UUDebugLog("Initializing UUCoreBluetooth with options: \(String(describing: opts))")
+        UULog.debug(tag: LOG_TAG, message: "Initializing UUCoreBluetooth with options: \(String(describing: opts))")
         
         options = opts
         isConfiguredForStateRestoration = (options?.uuGetString(CBCentralManagerOptionRestoreIdentifierKey) != nil)
@@ -130,7 +132,7 @@ public class UUCentralManager
     
     private func handleCentralReset()
     {
-        UUDebugLog("Central is resetting")
+        UULog.debug(tag: LOG_TAG, message: "Central is resetting")
     }
     
     public func retrieveConnectedPeripherals(withServices services: [CBUUID]) -> [CBPeripheral]
@@ -147,7 +149,7 @@ public class UUCentralManager
         //UUDebugLog("Clearing nearby peripherals")
         //clearNearbyPeripherals()
         
-        UUDebugLog("starting scan")
+        UULog.debug(tag: LOG_TAG, message: "starting scan")
         
         var opts: [String:Any] = [:]
         opts[CBCentralManagerScanOptionAllowDuplicatesKey] = allowDuplicates
@@ -155,7 +157,7 @@ public class UUCentralManager
         scanUuidList = serviceUuids
         scanOptions = opts
         isScanning = true
-        UUDebugLog("isScanning: \(isScanning)")
+        UULog.debug(tag: LOG_TAG, message: "isScanning: \(isScanning)")
         willRestoreStateBlock = willRestoreCallback
         //peripheralFoundBlock = peripheralFoundCallback
         delegate.didDiscoverPeripheralBlock = advertisementHandler
@@ -221,7 +223,7 @@ public class UUCentralManager
         }
         else
         {
-            UUDebugLog("Unable to start scanning because bluetooth central is not ready.  Scan will resume when powered on.")
+            UULog.info(tag: LOG_TAG, message: "Unable to start scanning because bluetooth central is not ready.  Scan will resume when powered on.")
         }
     }
     
@@ -257,10 +259,10 @@ public class UUCentralManager
     
     public func stopScan()
     {
-        UUDebugLog("stopping scan, isScanning: \(isScanning)")
+        UULog.debug(tag: LOG_TAG, message: "stopping scan, isScanning: \(isScanning)")
         
         isScanning = false
-        UUDebugLog("isScanning: \(isScanning)")
+        UULog.debug(tag: LOG_TAG, message: "isScanning: \(isScanning)")
         //peripheralFoundBlock = nil
         //handlePeripheralFound = nil
         delegate.didDiscoverPeripheralBlock = nil
@@ -269,7 +271,7 @@ public class UUCentralManager
     
     private func pauseScanning()
     {
-        UUDebugLog("pausing scan, isScanning: \(isScanning)")
+        UULog.debug(tag: LOG_TAG, message: "pausing scan, isScanning: \(isScanning)")
         centralManager.stopScan()
     }
     
@@ -292,7 +294,7 @@ public class UUCentralManager
     {
         guard let cbPeripheral = centralManager.retrievePeripherals(withIdentifiers: [peripheral.identifier]).first else
         {
-            UUDebugLog("Unable to find CBPeripheral for \(peripheral.identifier)")
+            UULog.debug(tag: LOG_TAG, message: "Unable to find CBPeripheral for \(peripheral.identifier)")
             return
         }
         
@@ -303,7 +305,7 @@ public class UUCentralManager
     {
         guard let cbPeripheral = centralManager.retrievePeripherals(withIdentifiers: [peripheral.identifier]).first else
         {
-            UUDebugLog("Unable to find CBPeripheral for \(peripheral.identifier)")
+            UULog.debug(tag: LOG_TAG, message: "Unable to find CBPeripheral for \(peripheral.identifier)")
             return
         }
         
@@ -314,7 +316,7 @@ public class UUCentralManager
     {
         guard let cbPeripheral = centralManager.retrievePeripherals(withIdentifiers: [peripheral.identifier]).first else
         {
-            UUDebugLog("Unable to find CBPeripheral for \(peripheral.identifier)")
+            UULog.debug(tag: LOG_TAG, message: "Unable to find CBPeripheral for \(peripheral.identifier)")
             return
         }
         
@@ -329,7 +331,7 @@ public class UUCentralManager
        }
        else
        {
-           UUDebugLog("No delegate to notify disconnected")
+           UULog.debug(tag: LOG_TAG, message: "No delegate to notify disconnected")
        }
     }
     

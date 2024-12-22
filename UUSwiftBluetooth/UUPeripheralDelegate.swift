@@ -9,6 +9,8 @@ import UIKit
 import CoreBluetooth
 import UUSwiftCore
 
+fileprivate let LOG_TAG = "UUPeripheralDelegate"
+
 typealias UUCBPeripheralBlock = ((CBPeripheral)->())
 typealias UUCBPeripheralErrorBlock = ((CBPeripheral, Error?)->())
 typealias UUCBPeripheralServiceErrorBlock = ((CBPeripheral, CBService, Error?)->())
@@ -59,44 +61,44 @@ class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
     
     public func logBlocks()
     {
-        UUDebugLog("peripheralNameUpdatedBlock: \(String(describing: peripheralNameUpdatedBlock))")
-        UUDebugLog("didModifyServicesBlock: \(String(describing: didModifyServicesBlock))")
-        UUDebugLog("didReadRssiBlock: \(String(describing: didReadRssiBlock))")
-        UUDebugLog("discoverServicesBlock: \(String(describing: discoverServicesBlock))")
-        UUDebugLog("discoverIncludedServicesBlock: \(String(describing: discoverIncludedServicesBlock))")
-        UUDebugLog("discoverCharacteristicsBlock: \(String(describing: discoverCharacteristicsBlock))")
-        UUDebugLog("updateValueForCharacteristicBlocks: \(String(describing: updateValueForCharacteristicBlocks))")
-        UUDebugLog("readValueForCharacteristicBlocks: \(String(describing: readValueForCharacteristicBlocks))")
-        UUDebugLog("writeValueForCharacteristicBlocks: \(String(describing: writeValueForCharacteristicBlocks))")
-        UUDebugLog("updateValueForDescriptorBlocks: \(String(describing: updateValueForDescriptorBlocks))")
-        UUDebugLog("readValueForDescriptorBlocks: \(String(describing: readValueForDescriptorBlocks))")
-        UUDebugLog("writeValueForDescriptorBlocks: \(String(describing: writeValueForDescriptorBlocks))")
-        UUDebugLog("setNotifyValueForCharacteristicBlock: \(String(describing: setNotifyValueForCharacteristicBlock))")
-        UUDebugLog("discoverDescriptorsBlock: \(String(describing: discoverDescriptorsBlock))")
-        UUDebugLog("didOpenL2ChannelBlock: \(String(describing: didOpenL2ChannelBlock))")
+        UULog.debug(tag: LOG_TAG, message: "peripheralNameUpdatedBlock: \(String(describing: peripheralNameUpdatedBlock))")
+        UULog.debug(tag: LOG_TAG, message: "didModifyServicesBlock: \(String(describing: didModifyServicesBlock))")
+        UULog.debug(tag: LOG_TAG, message: "didReadRssiBlock: \(String(describing: didReadRssiBlock))")
+        UULog.debug(tag: LOG_TAG, message: "discoverServicesBlock: \(String(describing: discoverServicesBlock))")
+        UULog.debug(tag: LOG_TAG, message: "discoverIncludedServicesBlock: \(String(describing: discoverIncludedServicesBlock))")
+        UULog.debug(tag: LOG_TAG, message: "discoverCharacteristicsBlock: \(String(describing: discoverCharacteristicsBlock))")
+        UULog.debug(tag: LOG_TAG, message: "updateValueForCharacteristicBlocks: \(String(describing: updateValueForCharacteristicBlocks))")
+        UULog.debug(tag: LOG_TAG, message: "readValueForCharacteristicBlocks: \(String(describing: readValueForCharacteristicBlocks))")
+        UULog.debug(tag: LOG_TAG, message: "writeValueForCharacteristicBlocks: \(String(describing: writeValueForCharacteristicBlocks))")
+        UULog.debug(tag: LOG_TAG, message: "updateValueForDescriptorBlocks: \(String(describing: updateValueForDescriptorBlocks))")
+        UULog.debug(tag: LOG_TAG, message: "readValueForDescriptorBlocks: \(String(describing: readValueForDescriptorBlocks))")
+        UULog.debug(tag: LOG_TAG, message: "writeValueForDescriptorBlocks: \(String(describing: writeValueForDescriptorBlocks))")
+        UULog.debug(tag: LOG_TAG, message: "setNotifyValueForCharacteristicBlock: \(String(describing: setNotifyValueForCharacteristicBlock))")
+        UULog.debug(tag: LOG_TAG, message: "discoverDescriptorsBlock: \(String(describing: discoverDescriptorsBlock))")
+        UULog.debug(tag: LOG_TAG, message: "didOpenL2ChannelBlock: \(String(describing: didOpenL2ChannelBlock))")
     }
 
     func registerUpdateHandler(_ handler: UUCBPeripheralCharacteristicErrorBlock?, _ characteristic: CBCharacteristic)
     {
-        UUDebugLog("Adding Update Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
+        UULog.verbose(tag: LOG_TAG, message: "Adding Update Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
         updateValueForCharacteristicBlocks[characteristic.uuid.uuidString] = handler
     }
 
     func removeUpdateHandlerForCharacteristic(_ characteristic: CBCharacteristic)
     {
-        UUDebugLog("Removing Update Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
+        UULog.verbose(tag: LOG_TAG, message: "Removing Update Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
         updateValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuid.uuidString)
     }
 
     func registerReadHandler(_ handler: UUCBPeripheralCharacteristicErrorBlock?, _ characteristic: CBCharacteristic)
     {
-        UUDebugLog("Adding Read Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
+        UULog.verbose(tag: LOG_TAG, message: "Adding Read Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
         readValueForCharacteristicBlocks[characteristic.uuid.uuidString] = handler
     }
 
     func removeReadHandler(_ characteristic: CBCharacteristic)
     {
-        UUDebugLog("Removing Read Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
+        UULog.verbose(tag: LOG_TAG, message: "Removing Read Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
         readValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuid.uuidString)
     }
 
@@ -183,13 +185,13 @@ class UUPeripheralDelegate: NSObject, CBPeripheralDelegate
         let key = characteristic.uuid.uuidString
         if let updateBlock = updateValueForCharacteristicBlocks[key]
         {
-            UUDebugLog("Invoking Update Block for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
+            UULog.verbose(tag: LOG_TAG, message: "Invoking Update Block for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
             updateBlock(peripheral, characteristic, error)
         }
         
         if let readBlock = readValueForCharacteristicBlocks[key]
         {
-            UUDebugLog("Invoking Read Block for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
+            UULog.verbose(tag: LOG_TAG, message: "Invoking Read Block for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
             readBlock(peripheral, characteristic, error)
         }
     }

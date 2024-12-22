@@ -11,6 +11,8 @@ import CoreBluetooth
 import UUSwiftCore
 import UUSwiftBluetooth
 
+fileprivate let LOG_TAG = "UUSwiftBluetoothTester"
+
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource
 {
     @IBOutlet weak var tableView: UITableView!
@@ -118,9 +120,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             //vc.peripheral = peripheral
             //self.navigationController?.pushViewController(vc, animated: true)
             peripheral.connect(timeout: 30) {
-                UUDebugLog("Connected to \(peripheral.friendlyName)")
+                UULog.debug(tag: LOG_TAG, message: "Connected to \(peripheral.friendlyName)")
             } disconnected: { error in
-                UUDebugLog("Disconnected from \(peripheral.friendlyName)")
+                UULog.debug(tag: LOG_TAG, message: "Disconnected from \(peripheral.friendlyName)")
             }
 
             
@@ -141,7 +143,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             
             let op = UUExportPeripheralOperation(peripheral)
             op.start { result, err in
-                print("op is done")
+                UULog.debug(tag: LOG_TAG, message: "op is done")
             }
             
         }))
@@ -178,7 +180,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             "\(p.friendlyName), \(p.rssi ?? -200), \(p.firstDiscoveryTime)"
         }.joined(separator: "\n")
         
-        NSLog("Scan Results:\n\n\(logLine)\n\n")
+        UULog.debug(tag: LOG_TAG, message: "Scan Results:\n\n\(logLine)\n\n")
         
         let now = Date().timeIntervalSinceReferenceDate
         let diff = now - lastTableUpdate
@@ -238,7 +240,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             //settings.peripheralSorting = UUPeripheralFriendlyNameComparator(order: .reverse)
         
             
-            NSLog("Starting scan")
+            UULog.debug(tag: LOG_TAG, message: "Starting scan")
             scanner.startScan(settings, callback: self.handleNearbyPeripheralsChanged)
             rightNavBarItem.title = "Stop"
         }

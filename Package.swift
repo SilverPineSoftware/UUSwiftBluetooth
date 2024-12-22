@@ -22,7 +22,7 @@ let package = Package(
 		// and from where they can be fetched:
 		.package(
 			url: "https://github.com/SilverPineSoftware/UUSwiftCore.git",
-            .upToNextMajor(from: "1.1.10")
+            .upToNextMajor(from: "1.2.0")
 		)
 	],
 

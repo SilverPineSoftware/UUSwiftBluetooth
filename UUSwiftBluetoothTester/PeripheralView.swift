@@ -10,6 +10,8 @@ import CoreBluetooth
 import UUSwiftCore
 import UUSwiftBluetooth
 
+fileprivate let LOG_TAG = "PeripheralViewModel"
+
 class PeripheralViewModel: ObservableObject
 {
     @Published var peripheral: UUPeripheral
@@ -50,11 +52,11 @@ class PeripheralViewModel: ObservableObject
         peripheral.discoverServices(serviceUUIDs: [], timeout: 20.0)
         { services, errOpt in
             
-            UUDebugLog("Service discovery complete, found \(services?.count ?? 0) services")
+            UULog.debug(tag: LOG_TAG, message: "Service discovery complete, found \(services?.count ?? 0) services")
             
             services?.forEach(
             { service in
-                UUDebugLog("Found Service: \(service.uuid) - \(service.uuid.uuCommonName)")
+                UULog.debug(tag: LOG_TAG, message: "Found Service: \(service.uuid) - \(service.uuid.uuCommonName)")
             })
             
             DispatchQueue.main.async

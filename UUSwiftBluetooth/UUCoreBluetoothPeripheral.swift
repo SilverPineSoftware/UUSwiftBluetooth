@@ -9,6 +9,8 @@ import UIKit
 import CoreBluetooth
 import UUSwiftCore
 
+fileprivate let LOG_TAG = "UUCoreBluetoothPeripheral"
+
 // UUPeripheral is a convenience class that wraps a CBPeripheral and it's
 // advertisement data into one object.
 //
@@ -116,16 +118,12 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         let connectedBlock: UUCBPeripheralBlock =
         { p in
             
-            //UUDebugLog("Connected to \(peripheral.uuIdentifier) - \(peripheral.uuName)")
-            
             self.cancelTimer(timerId)
             connected()
         };
         
         let disconnectedBlock: UUCBPeripheralErrorBlock =
         { p, error in
-            
-            //UUDebugLog("Disconnected from \(peripheral.uuIdentifier) - \(peripheral.uuName), error: \(String(describing: error))")
             
             self.cleanupAfterDisconnect()
             
@@ -137,7 +135,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         startTimer(timerId, timeout)
         {
             
-            UUDebugLog("Connect timeout for \(self.debugName)")
+            UULog.debug(tag: LOG_TAG, message: "Connect timeout for \(self.debugName)")
             
             self.centralManager.removeConnectionBlocks(self)
             
@@ -168,7 +166,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     {
         guard centralManager.isPoweredOn else
         {
-            UUDebugLog("Central is not powered on, cannot cancel a connection!")
+            UULog.debug(tag: LOG_TAG, message: "Central is not powered on, cannot cancel a connection!")
             let err = NSError.uuCoreBluetoothError(.centralNotReady)
             centralManager.notifyDisconnect(self, err)
             return
@@ -176,10 +174,10 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         let timerId = TimerId.disconnect
         
-        UUDebugLog("Starting disconnect timeout")
+        UULog.debug(tag: LOG_TAG, message: "Starting disconnect timeout")
         startTimer(timerId, timeout)
         {
-            UUDebugLog("Disconnect timeout for \(self.debugName)")
+            UULog.debug(tag: LOG_TAG, message: "Disconnect timeout for \(self.debugName)")
             
             self.cancelTimer(timerId)
             self.centralManager.notifyDisconnect(self, NSError.uuCoreBluetoothError(.timeout))
@@ -190,7 +188,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         }
         
         
-        UUDebugLog("Cancelling peripheral connection for \(self.debugName)")
+        UULog.debug(tag: LOG_TAG, message: "Cancelling peripheral connection for \(self.debugName)")
         centralManager.cancelPeripheralConnection(self)
     }
     
@@ -201,7 +199,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
         completion: @escaping UUDiscoverServicesCompletionBlock)
     {
-        UUDebugLog("Discovering services for \(self.debugName), timeout: \(timeout), service list: \(String(describing: serviceUUIDs))")
+        UULog.debug(tag: LOG_TAG, message: "Discovering services for \(self.debugName), timeout: \(timeout), service list: \(String(describing: serviceUUIDs))")
         
         let timerId = TimerId.serviceDiscovery
         
@@ -243,7 +241,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
         completion: @escaping UUDiscoverCharacteristicsCompletionBlock)
     {
-        UUDebugLog("Discovering characteristics for \(self.debugName), timeout: \(timeout), service: \(service), characteristic list: \(String(describing: characteristicUUIDs))")
+        UULog.debug(tag: LOG_TAG, message: "Discovering characteristics for \(self.debugName), timeout: \(timeout), service: \(service), characteristic list: \(String(describing: characteristicUUIDs))")
         
         let timerId = TimerId.characteristicDiscovery
         
@@ -285,7 +283,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
         completion: @escaping UUPeripheralErrorBlock)
     {
-        UUDebugLog("Discovering included services for \(self.debugName), timeout: \(timeout), service: \(service), service list: \(String(describing: includedServiceUUIDs))")
+        UULog.debug(tag: LOG_TAG, message: "Discovering included services for \(self.debugName), timeout: \(timeout), service: \(service), service list: \(String(describing: includedServiceUUIDs))")
         
         let timerId = TimerId.includedServicesDiscovery
         
@@ -326,7 +324,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
         completion: @escaping UUDiscoverDescriptorsCompletionBlock)
     {
-        UUDebugLog("Discovering descriptors for \(self.debugName), timeout: \(timeout), characteristic: \(characteristic)")
+        UULog.debug(tag: LOG_TAG, message: "Discovering descriptors for \(self.debugName), timeout: \(timeout), characteristic: \(characteristic)")
         
         let timerId = TimerId.descriptorDiscovery
         
@@ -429,7 +427,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         notifyHandler: UUPeripheralCharacteristicErrorBlock?,
         completion: @escaping UUPeripheralCharacteristicErrorBlock)
     {
-        UUDebugLog("Set Notify State for \(self.debugName), enabled: \(enabled), timeout: \(timeout), characateristic: \(characteristic)")
+        UULog.debug(tag: LOG_TAG, message: "Set Notify State for \(self.debugName), enabled: \(enabled), timeout: \(timeout), characateristic: \(characteristic)")
         
         let timerId = TimerId.characteristicNotifyState
         
@@ -483,7 +481,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
         completion: @escaping UUPeripheralCharacteristicErrorBlock)
     {
-        UUDebugLog("Read value for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
+        UULog.debug(tag: LOG_TAG, message: "Read value for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
         
         let timerId = TimerId.readCharacteristic
         
@@ -527,7 +525,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
         completion: @escaping UUPeripheralDescriptorErrorBlock)
     {
-        UUDebugLog("Read value for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
+        UULog.debug(tag: LOG_TAG, message: "Read value for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
         
         let timerId = TimerId.readDescriptor
         
@@ -572,7 +570,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
         completion: @escaping UUPeripheralCharacteristicErrorBlock)
     {
-        UUDebugLog("Write value \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
+        UULog.debug(tag: LOG_TAG, message: "Write value \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
         
         let timerId = TimerId.writeCharacteristic
         
@@ -616,7 +614,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         for characteristic: CBCharacteristic,
         completion: @escaping UUPeripheralCharacteristicErrorBlock)
     {
-        UUDebugLog("Write value without response \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic)")
+        UULog.debug(tag: LOG_TAG, message: "Write value without response \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic)")
         
         if let err = canAttemptOperation
         {
@@ -640,7 +638,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
         completion: @escaping UUPeripheralDescriptorErrorBlock)
     {
-        UUDebugLog("Write value \(data.uuToHexString()), for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
+        UULog.debug(tag: LOG_TAG, message: "Write value \(data.uuToHexString()), for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
         
         let timerId = TimerId.writeDescriptor
         
@@ -683,7 +681,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
         completion: @escaping UUPeripheralIntegerErrorBlock)
     {
-        UUDebugLog("Reading RSSI for \(self.debugName), timeout: \(timeout)")
+        UULog.debug(tag: LOG_TAG, message: "Reading RSSI for \(self.debugName), timeout: \(timeout)")
         
         let timerId = TimerId.readRssi
         
@@ -762,7 +760,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     {
         let err = NSError.uuOperationCompleteError(error as NSError?)
         
-        UUDebugLog("Finished \(timerBucket) for \(debugName), error: \(String(describing: err))")
+        UULog.debug(tag: LOG_TAG, message: "Finished \(timerBucket) for \(debugName), error: \(String(describing: err))")
         
         cancelTimer(timerBucket)
         return err
@@ -849,17 +847,17 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     
     private func cleanupAfterDisconnect()
     {
-        UUDebugLog("Cancelling all timers")
+        UULog.debug(tag: LOG_TAG, message: "Cancelling all timers")
         timerPool.cancelAllTimers()
         
-        UUDebugLog("Clearing all delegate callbacks")
+        UULog.debug(tag: LOG_TAG, message: "Clearing all delegate callbacks")
         delegate.clearBlocks()
     }
     
     private func startTimer(_ timerBucket: TimerId, _ timeout: TimeInterval, _ block: @escaping ()->())
     {
         let timerId = formatTimerId(timerBucket)
-        UUDebugLog("Starting bucket timer \(timerId) with timeout: \(timeout)")
+        UULog.debug(tag: LOG_TAG, message: "Starting bucket timer \(timerId) with timeout: \(timeout)")
         
         timerPool.start(identifier: timerId, timeout: timeout, userInfo: nil)
         { _ in

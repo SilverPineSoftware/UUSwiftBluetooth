@@ -10,6 +10,8 @@ import CoreBluetooth
 import UUSwiftCore
 import Combine
 
+fileprivate let LOG_TAG = "UUCoreBluetoothBleScanner"
+
 internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
 {
     private let centralManager: UUCentralManager
@@ -109,7 +111,7 @@ internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
         self.nearbyPeripherals = nearbyPeripheralMap.values
             .filter(shouldDiscoverPeripheral)
         
-        UUDebugLog("There are \(self.nearbyPeripherals.count) peripherals nearby")
+        UULog.verbose(tag: LOG_TAG, message: "There are \(self.nearbyPeripherals.count) peripherals nearby")
     }
     
     private func shouldDiscoverPeripheral(_ peripheral: UUPeripheral) -> Bool
