@@ -10,6 +10,8 @@ import CoreBluetooth
 import UUSwiftCore
 import UUSwiftBluetooth
 
+fileprivate let LOG_TAG = "ServiceRowView"
+
 class ServiceRowViewModel: ObservableObject
 {
     @Published var service: CBService
@@ -25,7 +27,7 @@ class ServiceRowViewModel: ObservableObject
     
     func onTap()
     {
-        UUDebugLog("Tapped on service: \(service.uuid.uuidString)")
+        UULog.debug(tag: LOG_TAG, message: "Tapped on service: \(service.uuid.uuidString)")
         tapHandler?(service)
     }
     

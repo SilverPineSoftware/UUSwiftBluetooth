@@ -8,6 +8,8 @@
 import UIKit
 import UUSwiftCore
 
+fileprivate let LOG_TAG = "L2CapController"
+
 class L2CapController:UIViewController, UITableViewDelegate, UITableViewDataSource
 {
     var rightButton:UIBarButtonItem = UIBarButtonItem(title: "Action", image: nil, primaryAction: nil, menu: nil)
@@ -63,7 +65,7 @@ class L2CapController:UIViewController, UITableViewDelegate, UITableViewDataSour
     
     func log(_ method:String, _ text:String)
     {
-        UUDebugLog("\(method) - \(text)")
+        UULog.debug(tag: LOG_TAG, message: "\(method) - \(text)")
     }
     
     ///Clears all tableview lines
@@ -226,7 +228,7 @@ class UUL2CapCommand:NSObject
     {
         guard (!self.haveReceivedAllData()) else
         {
-            UUDebugLog("Tried to append \(incomingData.count) bytes but already have \(self.data.count) bytes of expected \(totalExpectedBytes)")
+            UULog.debug(tag: LOG_TAG, message: "Tried to append \(incomingData.count) bytes but already have \(self.data.count) bytes of expected \(totalExpectedBytes)")
             return
         }
         
@@ -265,7 +267,7 @@ class UUL2CapCommand:NSObject
         
         
         //UUDebugLog("Recieved more data! (\(bytesRecieved)/\(totalExpectedBytes)) \(complete) :: AdjustedCount (\(incomingData.count)) : previousBytes (\(previous)) : updated: (\(bytesRecieved))")
-        UUDebugLog("Recieved more data! (\(bytesRecieved)/\(totalExpectedBytes)) \(complete)")
+        UULog.debug(tag: LOG_TAG, message: "Recieved more data! (\(bytesRecieved)/\(totalExpectedBytes)) \(complete)")
     }
     
     func haveReceivedAllData() -> Bool
@@ -317,7 +319,7 @@ class UUL2CapCommand:NSObject
         let headerText = data.uuString(at: 0, count: 11, with: .utf8)
         guard (headerText == "UUBluetooth") else
         {
-            UUDebugLog("Header isn't for UUBluetooth, bailing!")
+            UULog.debug(tag: LOG_TAG, message: "Header isn't for UUBluetooth, bailing!")
             return nil
         }
         
@@ -336,7 +338,7 @@ class UUL2CapCommand:NSObject
         index += MemoryLayout<UInt32>.size
 
         let capacity = Int(commandLength ?? 0)
-        UUDebugLog("Creating L2CapCommand of size: \(capacity)")
+        UULog.debug(tag: LOG_TAG, message: "Creating L2CapCommand of size: \(capacity)")
         
 //        let totalBytesExpectedWithHeader = capacity + UUL2CapCommand.headerSize
         

@@ -10,6 +10,8 @@ import CoreBluetooth
 import UUSwiftCore
 import UUSwiftBluetooth
 
+fileprivate let LOG_TAG = "L2CapClientController"
+
 class L2CapClientController:L2CapController
 {
     var peripheral: (UUPeripheral)? = nil
@@ -132,7 +134,7 @@ class L2CapClientController:L2CapController
                 self.updateProgressRow(percent)
 
                 let remaining = UInt32(totalBytesToSend) - progressBytesSent
-                UUDebugLog("Send Progress: (\(progressBytesSent)/\(totalBytesToSend))  \(remaining) Remaining")
+                UULog.debug(tag: LOG_TAG, message: "Send Progress: (\(progressBytesSent)/\(totalBytesToSend))  \(remaining) Remaining")
                 
             }
             
@@ -202,7 +204,7 @@ class L2CapClientController:L2CapController
                 let percent:Float = Float(progress)/Float(totalBytesToSend)
                 self.updateProgressRow(percent)
                 let remaining = UInt32(totalBytesToSend) - progress
-                UUDebugLog("Send Progress: (\(progress)/\(totalBytesToSend))  \(remaining) Remaining")
+                UULog.debug(tag: LOG_TAG, message: "Send Progress: (\(progress)/\(totalBytesToSend))  \(remaining) Remaining")
             }
             
         },

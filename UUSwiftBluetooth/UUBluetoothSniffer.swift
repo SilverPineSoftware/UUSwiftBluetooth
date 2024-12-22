@@ -9,6 +9,8 @@ import Foundation
 import CoreBluetooth
 import UUSwiftCore
 
+fileprivate let LOG_TAG = "UUBluetoothSniffer"
+
 class UUSnifferResult
 {
     private let peripheral: CBPeripheral
@@ -199,9 +201,9 @@ public class UUSnifferSessionSummary
         let header = UUSnifferResult.csvHeader()
         let lines = results.map { $0.csvLine() }
         
-        UUDebugLog(header.joined(separator: ","))
+        UULog.debug(tag: LOG_TAG, message: header.joined(separator: ","))
         lines.forEach { parts in
-            UUDebugLog(parts.joined(separator: ","))
+            UULog.debug(tag: LOG_TAG, message: parts.joined(separator: ","))
         }
     }
     

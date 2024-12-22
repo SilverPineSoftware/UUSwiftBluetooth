@@ -9,6 +9,8 @@ import UIKit
 import CoreBluetooth
 import UUSwiftCore
 
+fileprivate let LOG_TAG = "UUCentralManagerFactory"
+
 class UUCentralManagerFactory
 {
     private static var _sharedCentralManager: UUCentralManager? = nil
@@ -45,7 +47,7 @@ class UUCentralManagerFactory
             let incomingRestoreId = options?.uuSafeGetString(CBCentralManagerOptionRestoreIdentifierKey) ?? ""
             if (existingRestoreId != incomingRestoreId)
             {
-                UUDebugLog("UUCoreBluetooth init options have changed! Setting theSharedInstance to nil");
+                UULog.debug(tag: LOG_TAG, message: "UUCoreBluetooth init options have changed! Setting theSharedInstance to nil")
                 _sharedCentralManager = nil
             }
         }

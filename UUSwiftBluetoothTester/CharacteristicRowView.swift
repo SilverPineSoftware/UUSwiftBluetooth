@@ -10,6 +10,8 @@ import CoreBluetooth
 import UUSwiftCore
 import UUSwiftBluetooth
 
+fileprivate let LOG_TAG = "CharacteristicRowViewModel"
+
 class CharacteristicRowViewModel: ObservableObject
 {
     var peripheral: UUPeripheral
@@ -90,7 +92,7 @@ class CharacteristicRowViewModel: ObservableObject
         peripheral.setNotifyValue(enabled: !characteristic.isNotifying, for: characteristic, timeout: 20.0)
         { updatedPeripheral, updatedCharacteristic, errOpt in
             
-            UUDebugLog("Characteristic \(updatedCharacteristic.uuid.uuidString) value changed to \(updatedCharacteristic.value?.uuToHexString() ?? "<nil>")")
+            UULog.debug(tag: LOG_TAG, message: "Characteristic \(updatedCharacteristic.uuid.uuidString) value changed to \(updatedCharacteristic.value?.uuToHexString() ?? "<nil>")")
             DispatchQueue.main.async
             {
                 self.peripheral = updatedPeripheral

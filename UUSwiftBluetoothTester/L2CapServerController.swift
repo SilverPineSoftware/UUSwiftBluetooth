@@ -10,6 +10,8 @@ import CoreBluetooth
 import UUSwiftBluetooth
 import UUSwiftCore
 
+fileprivate let LOG_TAG = "L2CapServerController"
+
 class L2CapServerController:L2CapController
 {
     let server:UUL2CapServer = UUL2CapServer(uuid: CBUUID(string: "E3AAE22C-8E52-47E3-9E03-629C62C542B9"))
@@ -49,7 +51,7 @@ class L2CapServerController:L2CapController
             if (self.command == nil)
             {
                 self.command = UUL2CapCommand.createToReceive(data)
-                UUDebugLog("Setting command on server controller!")
+                UULog.debug(tag: LOG_TAG, message: "Setting command on server controller!")
 
                 if let cmd = self.command
                 {

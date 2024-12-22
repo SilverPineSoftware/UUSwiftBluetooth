@@ -8,6 +8,8 @@
 import CoreBluetooth
 import UUSwiftCore
 
+fileprivate let LOG_TAG = "UUL2CapServer"
+
 public class UUL2CapConstants
 {
     public static  let UU_L2CAP_SERVICE_UUID = CBUUID(string: "0EF98E22-A048-4B8E-892E-1FDBD97191D5")
@@ -55,7 +57,7 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         {
             self.cancelStart(timerId)
 
-            UUDebugLog("start timeout for uul2capserver:\(self.uuid)")
+            UULog.debug(tag: LOG_TAG, message: "start timeout for uul2capserver:\(self.uuid)")
             let err = NSError.uuCoreBluetoothError(.timeout)
             
             completion(nil, err)
@@ -195,7 +197,7 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
             
             if let err = error
             {
-                UUDebugLog("Publish Service Error! \(err)")
+                UULog.debug(tag: LOG_TAG, message: "Publish Service Error! \(err)")
                 self.cancelStart(timerId)
                 completion(nil, err)
             }
@@ -306,7 +308,7 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
     private func startTimer(_ timerBucket: TimerId, _ timeout: TimeInterval, _ block: @escaping ()->())
     {
         let timerId = formatTimerId(timerBucket)
-        UUDebugLog("Starting bucket timer \(timerId) with timeout: \(timeout)")
+        UULog.debug(tag: LOG_TAG, message: "Starting bucket timer \(timerId) with timeout: \(timeout)")
         
         timerPool.start(identifier: timerId, timeout: timeout, userInfo: nil)
         { _ in
@@ -317,7 +319,7 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
     private func cancelTimer(_ timerBucket: TimerId)
     {
         let timerId = formatTimerId(timerBucket)
-        UUDebugLog("Cancelling bucket timer \(timerId)")
+        UULog.debug(tag: LOG_TAG, message: "Cancelling bucket timer \(timerId)")
         timerPool.cancel(by: timerId)
     }
     
@@ -383,30 +385,30 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         switch eventCode
         {
         case Stream.Event.openCompleted:
-            UUDebugLog("Stream Opened")
+            UULog.debug(tag: LOG_TAG, message: "Stream Opened")
 
         case Stream.Event.endEncountered:
-            UUDebugLog("Stream End Encountered")
+            UULog.debug(tag: LOG_TAG, message: "Stream End Encountered")
 
         case Stream.Event.hasBytesAvailable:
-            UUDebugLog("Stream HasBytesAvailable")
+            UULog.debug(tag: LOG_TAG, message: "Stream HasBytesAvailable")
         
             if let inputStream = stream as? InputStream
             {
                 let dataRead = inputStream.uuReadData(10240)
-                UUDebugLog("Requested 10240 bytes read, actually read \(dataRead?.count ?? 0)")
+                UULog.debug(tag: LOG_TAG, message: "Requested 10240 bytes read, actually read \(dataRead?.count ?? 0)")
                 self.didReceiveDataCallback?(dataRead)
             }
             
 
         case Stream.Event.hasSpaceAvailable:
-            UUDebugLog("Stream Has Space Available")
+            UULog.debug(tag: LOG_TAG, message: "Stream Has Space Available")
 
         case Stream.Event.errorOccurred:
-            UUDebugLog("Stream Error Occurred")
+            UULog.debug(tag: LOG_TAG, message: "Stream Error Occurred")
 
         default:
-            UUDebugLog("Unhandled Stream event code")
+            UULog.debug(tag: LOG_TAG, message: "Unhandled Stream event code")
         }
     }
     
