@@ -213,16 +213,17 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     @IBAction func onLeftNavBarButtonTapped(_ sender: Any)
     {
-       self.navigationController?.pushViewController(L2CapServerController(), animated: true)
+        let alert = UIAlertController(title: "Choose Action", message: nil, preferredStyle: .actionSheet)
         
-//        let connected = UUCentralManager.shared.retrieveConnectedPeripherals(withServices: [])
-//        UUDebugLog("Connected Peripherals: \(connected.count)")
-//        for p in connected
-//        {
-//            UUDebugLog("Connected Peripheral: \(p.identifier) - \(p.name ?? "No Name")")
-//        }
+        alert.addAction(UIAlertAction(title: "L2Cap Server", style: .default, handler: { action in
+            self.navigationController?.pushViewController(L2CapServerController(), animated: true)
+        }))
         
-//        performSegue(withIdentifier: "showSettings", sender: nil)
+        alert.addAction(UIAlertAction(title: "Import Peripheral", style: .default, handler: { action in
+            self.showPickerForPeripheralImport()
+        }))
+                                      
+        self.present(alert, animated: true)
     }
     
     private func toggleScanning()
