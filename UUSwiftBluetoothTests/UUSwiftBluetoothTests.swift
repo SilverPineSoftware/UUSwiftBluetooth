@@ -45,7 +45,7 @@ final class UUSwiftBluetoothTests: XCTestCase
         
         if let data = fileContents
         {
-            UUDebugLog("\n\n\n\n\(String(data: data, encoding: .utf8) ?? "null")\n\n\n\n")
+            print("\n\n\n\n\(String(data: data, encoding: .utf8) ?? "null")\n\n\n\n")
             
             //NotificationCenter.default.post(name: Notification.Name(rawValue: "SaveFile"), object: data)
 
@@ -61,7 +61,7 @@ final class UUSwiftBluetoothTests: XCTestCase
                 }
                 catch (let err)
                 {
-                    UUDebugLog("Error saving sniff results: %@", String(describing: err))
+                    print("Error saving sniff results: %@", String(describing: err))
                 }
             }
         }
@@ -81,5 +81,14 @@ final class UUSwiftBluetoothTests: XCTestCase
         //let sortedUsing = input.sorted(using: OptionalIntComparator())
         
         //print("sorted using: \(sortedUsing)")
+    }
+    
+    func testBadCBUUID()
+    {
+        let input = "Bogus UUID String"
+        let cbuuid = CBUUID.uuCreate(from: input)
+        XCTAssertNil(cbuuid)
+        //let cbuuid = CBUUID(string: input)
+        
     }
 }

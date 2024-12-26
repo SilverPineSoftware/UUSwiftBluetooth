@@ -134,16 +134,22 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             alert.dismiss(animated: true, completion: nil)
         }))
         
-        alert.addAction(UIAlertAction(title: "Explore", style: .default, handler:
+        alert.addAction(UIAlertAction(title: "Export Peripheral", style: .default, handler:
         { action in
-//            peripheral.discoverAllServicesAndCharacteristics
-//            { updatedPeripheral, err in
-//                
-//            }
-            
             let op = UUExportPeripheralOperation(peripheral)
-            op.start { result, err in
-                UULog.debug(tag: LOG_TAG, message: "op is done")
+            op.start
+            { exportResult, err in
+                //UULog.debug(tag: LOG_TAG, message: "op is done")
+                
+                if let result = exportResult
+                {
+                    UULog.debug(tag: LOG_TAG, message: "Export: \(result.uuToJsonString(true))")
+                    self.saveExportedFile(peripheral, result)
+                }
+                else
+                {
+                    UULog.debug(tag: LOG_TAG, message: "Export failed: \(err?.localizedDescription ?? "")")
+                }
             }
             
         }))
@@ -243,6 +249,65 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             UULog.debug(tag: LOG_TAG, message: "Starting scan")
             scanner.startScan(settings, callback: self.handleNearbyPeripheralsChanged)
             rightNavBarItem.title = "Stop"
+        }
+    }
+    
+    /*
+    func exportService()
+    {
+        guard let p = model else { return }
+        
+        self.exportingPripheralProgressText = "Exporting\nPeripheral"
+        self.isExportingPeripheral = true
+        let op = UUExportPeripheralOperation(p)
+        op.start
+        { exportResult, exportError in
+            
+            if let result = exportResult
+            {
+                UULog.debug(tag: LOG_TAG, message: "Export: \(result.uuToJsonString(true))")
+                self.saveExportedFile(p, result)
+            }
+            else
+            {
+                DispatchQueue.main.async
+                {
+                    self.isExportingPeripheral = false
+                    self.exportError = exportError
+                    self.exportErrorVisible = true
+                }
+            }
+        }
+    }*/
+    
+    private func saveExportedFile(_ peripheral: UUPeripheral, _ result: UUPeripheralModel)
+    {
+        let fileContents = result.uuToJsonString(true).data(using: .utf8)
+        
+        if let data = fileContents
+        {
+            let tempDir = FileManager.default.temporaryDirectory
+            let timestamp = Date().uuFormat("yyyy_MM_dd_HH_mm_ss")
+            let file = tempDir.appendingPathComponent("peripheral_export_\(timestamp).json")
+            
+            do
+            {
+                try data.write(to: file)
+                
+                DispatchQueue.main.async
+                {
+                    let vc = UIActivityViewController(activityItems: [file], applicationActivities: nil)
+                    self.present(vc, animated: true)
+                    
+//                    self.isExportingPeripheral = false
+//                    self.exportedFileUrl = file
+//                    self.exportShareSheetVisible = true
+                }
+            }
+            catch (let err)
+            {
+                UULog.debug(tag: LOG_TAG, message: "Error saving export to temporary file: \(String(describing: err))")
+            }
         }
     }
 }

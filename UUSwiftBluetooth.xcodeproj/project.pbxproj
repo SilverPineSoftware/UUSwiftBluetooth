@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		082510732D1B04CE00E81CDE /* PeripheralImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082510722D1B04CE00E81CDE /* PeripheralImport.swift */; };
 		082A882226C753C900954A11 /* UUCoreBluetoothBleScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A882126C753C900954A11 /* UUCoreBluetoothBleScanner.swift */; };
 		082A882526C7542200954A11 /* UUCoreBluetoothPeripheral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A882426C7542200954A11 /* UUCoreBluetoothPeripheral.swift */; };
 		082A882726C756B400954A11 /* UUPeripheralFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A882626C756B400954A11 /* UUPeripheralFilter.swift */; };
@@ -133,6 +134,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		082510722D1B04CE00E81CDE /* PeripheralImport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralImport.swift; sourceTree = "<group>"; };
 		082A882126C753C900954A11 /* UUCoreBluetoothBleScanner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UUCoreBluetoothBleScanner.swift; sourceTree = "<group>"; };
 		082A882426C7542200954A11 /* UUCoreBluetoothPeripheral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUCoreBluetoothPeripheral.swift; sourceTree = "<group>"; };
 		082A882626C756B400954A11 /* UUPeripheralFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUPeripheralFilter.swift; sourceTree = "<group>"; };
@@ -285,6 +287,7 @@
 				0D5C78A22AB38666007C03D8 /* L2CapClientController.swift */,
 				0D5C78A42AB518A8007C03D8 /* L2CapServerController.swift */,
 				0DBFEE2C2AC5AFC80064031A /* L2CapController.swift */,
+				082510722D1B04CE00E81CDE /* PeripheralImport.swift */,
 			);
 			path = UUSwiftBluetoothTester;
 			sourceTree = "<group>";
@@ -591,6 +594,7 @@
 			files = (
 				08A7AADF26EA9A1800E7254A /* SectionHeaderView.swift in Sources */,
 				08A2092526C7092B008F3534 /* ViewController.swift in Sources */,
+				082510732D1B04CE00E81CDE /* PeripheralImport.swift in Sources */,
 				08A2092126C7092B008F3534 /* AppDelegate.swift in Sources */,
 				08A7AAE126EA9B9300E7254A /* ServiceView.swift in Sources */,
 				08A2092326C7092B008F3534 /* SceneDelegate.swift in Sources */,

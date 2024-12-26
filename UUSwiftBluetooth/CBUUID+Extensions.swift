@@ -9,9 +9,9 @@ import UIKit
 import CoreBluetooth
 import UUSwiftCore
 
-
 fileprivate var uuCommonNameMap: [String:String] = [:]
 fileprivate let uuCommonNameMapLock = NSRecursiveLock()
+fileprivate let kUnknownName = "Unknown"
 
 public extension CBUUID
 {
@@ -27,7 +27,7 @@ public extension CBUUID
                 return registeredName
             }
             
-            return "Unknown"
+            return kUnknownName
         }
         else
         {
@@ -35,20 +35,55 @@ public extension CBUUID
         }
     }
     
-    static func uuRegisterCommonName(_ name: String, _ uuid: CBUUID)
+    static func uuCreate(from uuidString: String?) -> CBUUID?
     {
-        defer { uuCommonNameMapLock.unlock() }
-        uuCommonNameMapLock.lock()
+        guard let uuid = uuidString else
+        {
+            return nil
+        }
         
-        uuCommonNameMap[uuid.uuidString] = name
+        guard UUID(uuidString: uuid) != nil else
+        {
+            return nil
+        }
+        
+        return CBUUID(string: uuid)
     }
-
+    
     fileprivate func uuGetMappedCommonName() -> String?
     {
         defer { uuCommonNameMapLock.unlock() }
         uuCommonNameMapLock.lock()
         
         return uuCommonNameMap[uuidString]
+    }
+}
+
+public extension UUCoreBluetooth
+{
+    static func register(commonName: String?, for uuidString: String?)
+    {
+        guard   let name = commonName,
+                let uuid = uuidString,
+                name != kUnknownName,
+                let cbuuid = CBUUID.uuCreate(from: uuid),
+                cbuuid.description != name else
+        {
+            return
+        }
+        
+        defer { uuCommonNameMapLock.unlock() }
+        uuCommonNameMapLock.lock()
+        
+        uuCommonNameMap[uuid] = name
+    }
+    
+    static var mappedCommonNames: [String:String]
+    {
+        defer { uuCommonNameMapLock.unlock() }
+        uuCommonNameMapLock.lock()
+        
+        return uuCommonNameMap
     }
 }
 
