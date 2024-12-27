@@ -32,7 +32,7 @@ extension ViewController: UIDocumentPickerDelegate
                 let contents = try Data(contentsOf: url)
                 
                 let decoder = JSONDecoder()
-                let peripheralData = try decoder.decode(UUPeripheralModel.self, from: contents)
+                let peripheralData = try decoder.decode(UUPeripheralRepresentation.self, from: contents)
                 
                 let check = peripheralData.uuToJsonString()
                 UULog.debug(tag: "Import", message: check)

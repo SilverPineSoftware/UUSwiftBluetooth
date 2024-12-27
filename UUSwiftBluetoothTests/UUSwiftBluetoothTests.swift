@@ -91,4 +91,66 @@ final class UUSwiftBluetoothTests: XCTestCase
         //let cbuuid = CBUUID(string: input)
         
     }
+    
+    func testJsonExport()
+    {
+        let attribute = UUAttributeRepresentation()
+        attribute.uuid = "2902"
+        attribute.name = "Client Characteristic Configuration"
+
+        let encoder = JSONEncoder()
+        if let jsonData = try? encoder.encode(attribute),
+        let jsonString = String(data: jsonData, encoding: .utf8)
+        {
+              NSLog(jsonString)
+        }
+        
+        encoder.outputFormatting = [.prettyPrinted]
+        if let jsonData = try? encoder.encode(attribute),
+        let jsonString = String(data: jsonData, encoding: .utf8)
+        {
+              NSLog(jsonString)
+        }
+        
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        if let jsonData = try? encoder.encode(attribute),
+        let jsonString = String(data: jsonData, encoding: .utf8)
+        {
+              NSLog(jsonString)
+        }
+        
+        let chr = UUCharacteristicRepresentation()
+        chr.uuid = "2902"
+        chr.name = "Client Characteristic Configuration"
+        chr.descriptors = [
+            UUDescriptorRepresentation(uuid: "2903", name: "Unit Test")
+        ]
+
+        encoder.outputFormatting = []
+        if let jsonData = try? encoder.encode(chr),
+        let jsonString = String(data: jsonData, encoding: .utf8)
+        {
+              NSLog(jsonString)
+        }
+        
+        encoder.outputFormatting = [.prettyPrinted]
+        if let jsonData = try? encoder.encode(chr),
+        let jsonString = String(data: jsonData, encoding: .utf8)
+        {
+              NSLog(jsonString)
+        }
+        
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        if let jsonData = try? encoder.encode(chr),
+        let jsonString = String(data: jsonData, encoding: .utf8)
+        {
+              NSLog(jsonString)
+        }
+        
+        // Example output:
+        // {
+        //    "uuid": "2902",
+        //    "name": "Client Characteristic Configuration"
+        // }
+    }
 }

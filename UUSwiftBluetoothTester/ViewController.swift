@@ -281,11 +281,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }
     }*/
     
-    private func saveExportedFile(_ peripheral: UUPeripheral, _ result: UUPeripheralModel)
+    private func saveExportedFile(_ peripheral: UUPeripheral, _ result: UUPeripheralRepresentation)
     {
-        let fileContents = result.uuToJsonString(true).data(using: .utf8)
-        
-        if let data = fileContents
+        if let data = result.uuToJson(true)
         {
             let tempDir = FileManager.default.temporaryDirectory
             let timestamp = Date().uuFormat("yyyy_MM_dd_HH_mm_ss")

@@ -11,22 +11,23 @@ import UUSwiftCore
 
 fileprivate let LOG_TAG = "UUExportPeripheralOperation"
 
-public class UUExportPeripheralOperation: UUPeripheralOperation<UUPeripheralModel>
+public class UUExportPeripheralOperation: UUPeripheralOperation<UUPeripheralRepresentation>
 {
-    public override func execute(_ completion: @escaping (UUPeripheralModel?, (any Error)?) -> ())
+    public override func execute(_ completion: @escaping (UUPeripheralRepresentation?, (any Error)?) -> ())
     {
         let services = self.discoveredServices.compactMap
         { service in
-            var obj = UUServiceModel()
-            obj.populate(from: service)
+            let obj = UUServiceRepresentation(from: service)
             return obj
         }
         
-        var peripheralJson = UUPeripheralModel()
+        let peripheralJson = UUPeripheralRepresentation()
         peripheralJson.services = services
         
-        let json = peripheralJson.uuToJsonString(true)
-        UULog.debug(tag: LOG_TAG, message: "Peripheral JSON: \(json)")
+        let encoder = JSONEncoder()
+        let jsonData = try? encoder.encode(peripheralJson)
+        let jsonString = jsonData?.uuToJsonString(true)
+        UULog.debug(tag: LOG_TAG, message: "Peripheral JSON: \(String(describing: jsonString))")
         
         completion(peripheralJson, nil)
     }
