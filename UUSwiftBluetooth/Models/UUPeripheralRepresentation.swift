@@ -20,6 +20,7 @@ import UUSwiftCore
 /// - Provides a method to register common names for services, characteristics, and descriptors.
 ///
 /// ## Properties
+/// - `name`: An optional string providing a human-readable name for the peripheral.
 /// - `services`: An optional array of `UUServiceRepresentation` objects representing the services available on the peripheral.
 ///
 /// ## Initializers
@@ -74,6 +75,9 @@ import UUSwiftCore
 /// - `UUServiceRepresentation`
 final public class UUPeripheralRepresentation: Codable
 {
+    /// An optional human-readable name for the peripheral.
+    public var name: String = ""
+    
     /// An optional array of services available on the peripheral.
     public var services: [UUServiceRepresentation]? = nil
 
@@ -98,7 +102,7 @@ final public class UUPeripheralRepresentation: Codable
     /// Internal keys used for encoding and decoding.
     private enum CodingKeys: String, CodingKey
     {
-        case services
+        case name, services
     }
 
     /// Encodes the peripheral representation into the given encoder.
@@ -107,6 +111,7 @@ final public class UUPeripheralRepresentation: Codable
     public func encode(to encoder: Encoder) throws
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
         try container.encode(services, forKey: .services)
     }
 
@@ -116,6 +121,7 @@ final public class UUPeripheralRepresentation: Codable
     required public init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decode(String.self, forKey: .name)
         services = try container.decodeIfPresent([UUServiceRepresentation].self, forKey: .services)
     }
 
