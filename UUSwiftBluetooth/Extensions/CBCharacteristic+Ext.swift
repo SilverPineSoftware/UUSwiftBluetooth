@@ -13,23 +13,22 @@ public extension CBCharacteristic
 {
     var uuCanToggleNotify: Bool
     {
-        return (UUIsCBCharacteristicPropertySet(properties, .notify) ||
-               UUIsCBCharacteristicPropertySet(properties, .indicate))
+        return (properties.contains(.notify) || properties.contains(.indicate))
     }
 
     var uuCanReadData: Bool
     {
-        return UUIsCBCharacteristicPropertySet(properties, .read)
+        return properties.contains(.read)
     }
 
     var uuCanWriteData: Bool
     {
-        return UUIsCBCharacteristicPropertySet(properties, .write)
+        return properties.contains(.write)
     }
 
     var uuCanWriteWithoutResponse: Bool
     {
-        return UUIsCBCharacteristicPropertySet(properties, .writeWithoutResponse)
+        return properties.contains(.writeWithoutResponse)
     }
 }
 

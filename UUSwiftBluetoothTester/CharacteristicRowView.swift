@@ -186,7 +186,7 @@ struct CharacteristicRowView: View
             
             HStack
             {
-                Text(UUCBCharacteristicPropertiesToString(viewModel.characteristic.properties))
+                Text(viewModel.characteristic.properties.uuDescription())
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
                 

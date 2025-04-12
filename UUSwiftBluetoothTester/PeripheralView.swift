@@ -106,7 +106,7 @@ struct PeripheralView: View
                 SectionHeaderView(label: "Info")
                 LabelValueRowView(label: "ID:", value: viewModel.peripheral.identifier.uuidString)
                 LabelValueRowView(label: "Name:", value: viewModel.peripheral.friendlyName)
-                LabelValueRowView(label: "State:", value: "\(UUCBPeripheralStateToString(viewModel.peripheral.peripheralState)) - (\(viewModel.peripheral.peripheralState.rawValue))")
+                LabelValueRowView(label: "State:", value: "\(viewModel.peripheral.peripheralState.uuName()) - (\(viewModel.peripheral.peripheralState.rawValue))")
                 LabelValueRowView(label: "RSSI:", value: "\(viewModel.peripheral.rssi)")
                                  
                 if let services = viewModel.peripheral.services, !services.isEmpty

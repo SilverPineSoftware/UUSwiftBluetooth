@@ -7,6 +7,7 @@
 
 import UIKit
 
+
 public enum UUCoreBluetoothErrorCode: Int
 {
     // A operation attempt was manually timed out by UUCoreBluetooth
@@ -41,7 +42,7 @@ public enum UUCoreBluetoothErrorCode: Int
     case characteristicNotDiscovered = 9
 }
 
-extension UUCoreBluetoothErrorCode
+internal extension UUCoreBluetoothErrorCode
 {
     var errorDescription: String
     {

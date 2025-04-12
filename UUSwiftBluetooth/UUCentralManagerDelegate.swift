@@ -41,7 +41,7 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
     
     func centralManagerDidUpdateState(_ central: CBCentralManager)
     {
-        UULog.info(tag: LOG_TAG, message: "Central state changed to \(UUCBManagerStateToString(central.state)) (\(central.state))")
+        UULog.info(tag: LOG_TAG, message: "Central state changed to \(central.state.uuName())) (\(central.state))")
         centralStateChangedBlock?(central.state)
     }
     

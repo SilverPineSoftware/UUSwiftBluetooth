@@ -107,7 +107,7 @@ final public class UUCharacteristicRepresentation: Codable
         self.init(
             uuid: characteristic.uuid.uuidString,
             name: characteristic.uuid.uuCommonName,
-            properties: characteristic.properties.uuSplitValues.compactMap(UUCBCharacteristicPropertiesToString)
+            properties: characteristic.properties.uuSplitValues.compactMap { $0.uuDescription() }
         )
         
         if let descriptors = characteristic.descriptors, !descriptors.isEmpty
