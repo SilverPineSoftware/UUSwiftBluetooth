@@ -106,7 +106,7 @@ public extension UUAdvertisementProtocol
     {
         guard let d = advertisementData else { return nil }
         
-        return d.uuGetInt(UUBluetoothConstants.AdvertisementDataKeys.rxPrimaryPHY)
+        return d.uuGetInt(UUCoreBluetooth.Constants.AdvertisementDataKeys.rxPrimaryPHY)
     }
     
     /**
@@ -117,7 +117,7 @@ public extension UUAdvertisementProtocol
     {
         guard let d = advertisementData else { return nil }
         
-        return d.uuGetInt(UUBluetoothConstants.AdvertisementDataKeys.rxSecondaryPHY)
+        return d.uuGetInt(UUCoreBluetooth.Constants.AdvertisementDataKeys.rxSecondaryPHY)
     }
     
     /**
@@ -128,7 +128,7 @@ public extension UUAdvertisementProtocol
     {
         guard let d = advertisementData else { return nil }
         
-        guard let num = d.uuGetDouble(UUBluetoothConstants.AdvertisementDataKeys.timestamp) else
+        guard let num = d.uuGetDouble(UUCoreBluetooth.Constants.AdvertisementDataKeys.timestamp) else
         {
             return nil
         }

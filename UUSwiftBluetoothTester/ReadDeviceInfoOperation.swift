@@ -19,10 +19,10 @@ class ReadDeviceInfoResult
 fileprivate func OperationConfig() -> UUPeripheralSessionConfiguration
 {
     return UUPeripheralSessionConfiguration(
-        servicesToDiscover: [ UUBluetoothConstants.Services.deviceInformation ],
+        servicesToDiscover: [ UUCoreBluetooth.Constants.Services.deviceInformation ],
         characteristicsToDiscover: [
-            UUBluetoothConstants.Services.deviceInformation :
-                [ UUBluetoothConstants.Characteristics.manufacturerNameString, UUBluetoothConstants.Characteristics.systemID ]
+            UUCoreBluetooth.Constants.Services.deviceInformation :
+                [ UUCoreBluetooth.Constants.Characteristics.manufacturerNameString, UUCoreBluetooth.Constants.Characteristics.systemID ]
         ])
 }
 
@@ -75,7 +75,7 @@ class ReadDeviceInfoOperation: UUPeripheralOperation<Any>
 
     private func readSystemId(_ completion: @escaping (String)->())
     {
-        session.readUtf8(from: UUBluetoothConstants.Characteristics.systemID)
+        session.readUtf8(from: UUCoreBluetooth.Constants.Characteristics.systemID)
         { result in
             completion(result ?? "")
         }
@@ -83,7 +83,7 @@ class ReadDeviceInfoOperation: UUPeripheralOperation<Any>
     
     private func readManufacturerName(_ completion: @escaping (String)->())
     {
-        session.readUtf8(from: UUBluetoothConstants.Characteristics.manufacturerNameString)
+        session.readUtf8(from: UUCoreBluetooth.Constants.Characteristics.manufacturerNameString)
         { result in
             completion(result ?? "")
         }

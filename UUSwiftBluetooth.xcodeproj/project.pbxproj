@@ -27,7 +27,7 @@
 		08A7AAE126EA9B9300E7254A /* ServiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AAE026EA9B9300E7254A /* ServiceView.swift */; };
 		08A7AAE326EAA48A00E7254A /* CharacteristicRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AAE226EAA48A00E7254A /* CharacteristicRowView.swift */; };
 		08ECB0A5275E728100502735 /* ReadDeviceInfoOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08ECB0A4275E728100502735 /* ReadDeviceInfoOperation.swift */; };
-		08ECB0A7275E744A00502735 /* UUBluetoothConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08ECB0A6275E744A00502735 /* UUBluetoothConstants.swift */; };
+		08ECB0A7275E744A00502735 /* UUCoreBluetooth+Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08ECB0A6275E744A00502735 /* UUCoreBluetooth+Constants.swift */; };
 		08F620292C27AAD900A93EDC /* UUSwiftBluetoothTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08F620282C27AAD900A93EDC /* UUSwiftBluetoothTests.swift */; };
 		08F620322C27B72500A93EDC /* UUSwiftTestCore in Frameworks */ = {isa = PBXBuildFile; productRef = 08F620312C27B72500A93EDC /* UUSwiftTestCore */; };
 		08F6203A2C27BB8D00A93EDC /* UUSwiftBluetoothTestHostApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08F620392C27BB8D00A93EDC /* UUSwiftBluetoothTestHostApp.swift */; };
@@ -144,7 +144,7 @@
 		08A7AAE026EA9B9300E7254A /* ServiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceView.swift; sourceTree = "<group>"; };
 		08A7AAE226EAA48A00E7254A /* CharacteristicRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacteristicRowView.swift; sourceTree = "<group>"; };
 		08ECB0A4275E728100502735 /* ReadDeviceInfoOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadDeviceInfoOperation.swift; sourceTree = "<group>"; };
-		08ECB0A6275E744A00502735 /* UUBluetoothConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUBluetoothConstants.swift; sourceTree = "<group>"; };
+		08ECB0A6275E744A00502735 /* UUCoreBluetooth+Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UUCoreBluetooth+Constants.swift"; sourceTree = "<group>"; };
 		08F620262C27AAD900A93EDC /* UUSwiftBluetoothTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UUSwiftBluetoothTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		08F620282C27AAD900A93EDC /* UUSwiftBluetoothTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUSwiftBluetoothTests.swift; sourceTree = "<group>"; };
 		08F620372C27BB8D00A93EDC /* UUSwiftBluetoothTestHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UUSwiftBluetoothTestHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -336,8 +336,8 @@
 			children = (
 				C5C67CC126C6098F004DF50D /* Info.plist */,
 				C5C67CC026C6098F004DF50D /* UUSwiftBluetooth.h */,
-				08ECB0A6275E744A00502735 /* UUBluetoothConstants.swift */,
 				0894C3AD2D1092C8009A6063 /* UUCoreBluetooth.swift */,
+				08ECB0A6275E744A00502735 /* UUCoreBluetooth+Constants.swift */,
 				086B7C4D2DAB1F37000CF9C8 /* Central */,
 				086B7C4B2DAB1F02000CF9C8 /* Delegates */,
 				086B7C222DAAE570000CF9C8 /* Enums */,
@@ -598,7 +598,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0894C3AE2D1092C8009A6063 /* UUCoreBluetooth.swift in Sources */,
-				08ECB0A7275E744A00502735 /* UUBluetoothConstants.swift in Sources */,
+				08ECB0A7275E744A00502735 /* UUCoreBluetooth+Constants.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

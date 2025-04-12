@@ -10,7 +10,7 @@ import CoreBluetooth
 
 public struct UUCoreBluetooth
 {
-    public class Defaults
+    public struct Defaults
     {
         public static var connectTimeout: TimeInterval = 10.0
         public static var disconnectTimeout: TimeInterval = 10.0
