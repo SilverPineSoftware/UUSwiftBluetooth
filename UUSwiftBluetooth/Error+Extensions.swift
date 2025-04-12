@@ -90,5 +90,14 @@ extension NSError
         let reason = "\(param) must not be nil."
         return uuInvalidParamError(param, reason)
     }
+    
+    static func uuRequiredCharacteristicNotFoundError(_ characteristic: CBUUID) -> NSError
+    {
+        var md: [String:AnyHashable] = [:]
+        md["characteristic"] = characteristic
+        md[NSLocalizedDescriptionKey] = "Characteristic \(characteristic) not discovered"
+        
+        return uuCoreBluetoothError(.characteristicNotDiscovered, userInfo: md)
+    }
 }
 

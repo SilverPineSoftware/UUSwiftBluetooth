@@ -33,6 +33,12 @@ public enum UUCoreBluetoothErrorCode: Int
     // An operation was attempted while CBCentralManager was in a state other
     // that 'On'
     case centralNotReady = 7
+    
+    // A service discovery operation did not discover any services
+    case noServicesDiscovered = 8
+    
+    // An attempt was made to read from a characterstic that has not been discovered
+    case characteristicNotDiscovered = 9
 }
 
 extension UUCoreBluetoothErrorCode
@@ -61,9 +67,12 @@ extension UUCoreBluetoothErrorCode
                 
             case .centralNotReady:
                 return "CentralNotReady"
-                
-            //default:
-            //    return "UUCoreBluetoothErrorCode-\(rawValue)"
+            
+            case .noServicesDiscovered:
+                return "NoServicesDiscovered"
+            
+            case .characteristicNotDiscovered:
+                return "CharacteristicNotDiscovered"
         }
     }
     
@@ -92,8 +101,11 @@ extension UUCoreBluetoothErrorCode
             case .centralNotReady:
                 return "Core Bluetooth is not ready to accept commands."
             
-            //default:
-            //    return ""
+            case .noServicesDiscovered:
+                return "No services were discovered on the peripheral."
+            
+            case .characteristicNotDiscovered:
+                return "A characteristic was not discovered on the peripheral."
         }
     }
 }

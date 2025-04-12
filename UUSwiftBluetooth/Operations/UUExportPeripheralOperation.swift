@@ -15,7 +15,7 @@ public class UUExportPeripheralOperation: UUPeripheralOperation<UUPeripheralRepr
 {
     public override func execute(_ completion: @escaping (UUPeripheralRepresentation?, (any Error)?) -> ())
     {
-        let services = self.discoveredServices.compactMap
+        let services = session.discoveredServices.compactMap
         { service in
             let obj = UUServiceRepresentation(from: service)
             return obj
