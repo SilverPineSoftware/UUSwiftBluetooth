@@ -116,6 +116,7 @@
 
 /* Begin PBXFileReference section */
 		082510722D1B04CE00E81CDE /* PeripheralImport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralImport.swift; sourceTree = "<group>"; };
+		082738092DAC98B800E99098 /* LiveTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = LiveTests.xctestplan; sourceTree = "<group>"; };
 		083F066926CF512B002780A1 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		0894C3AD2D1092C8009A6063 /* UUCoreBluetooth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUCoreBluetooth.swift; sourceTree = "<group>"; };
 		08A2090826C70780008F3534 /* UUTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UUTimer.m; sourceTree = "<group>"; };
@@ -307,6 +308,7 @@
 		C5C67CB326C6098E004DF50D = {
 			isa = PBXGroup;
 			children = (
+				082738092DAC98B800E99098 /* LiveTests.xctestplan */,
 				082A882326C753FD00954A11 /* UUCoreBluetooth_OLD */,
 				C5C67CC826C609D6004DF50D /* LICENSE */,
 				C5C67CCA26C609D6004DF50D /* Package.swift */,

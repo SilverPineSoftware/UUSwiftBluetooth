@@ -15,6 +15,37 @@ import CoreBluetooth
 final class UUSwiftBluetoothTests: XCTestCase 
 {
     private let sniffer = UUBluetoothSniffer()
+    
+    func test_scanner() throws
+    {
+        let exp = uuExpectationForMethod()
+        
+        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+        let scanner = UUCoreBluetooth.defaultScanner
+        
+        var settings = UUBluetoothScanSettings()
+        //settings.serviceUUIDs = []
+        
+        var discoveredPeripherals: [UUPeripheral] = []
+        scanner.startScan(settings)
+        { peripherals in
+            print("Scan callback: \(peripherals)")
+            
+            discoveredPeripherals.removeAll()
+            discoveredPeripherals.append(contentsOf: peripherals)
+        }
+        
+        UUTimerPool.shared.start(identifier: "test", timeout: 10, userInfo: nil, block:
+        { _ in
+            
+            exp.fulfill()
+            
+        })
+        
+        uuWaitForExpectations()
+                                 
+        print("Found \(discoveredPeripherals.count) peripherals")
+    }
 
     func test_bleSniffer() throws
     {
@@ -92,6 +123,7 @@ final class UUSwiftBluetoothTests: XCTestCase
         
     }
     
+    /*
     func testJsonExport()
     {
         let attribute = UUAttributeRepresentation()
@@ -152,5 +184,5 @@ final class UUSwiftBluetoothTests: XCTestCase
         //    "uuid": "2902",
         //    "name": "Client Characteristic Configuration"
         // }
-    }
+    }*/
 }

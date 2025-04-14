@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "4E65A97B-4534-4079-8FE3-3B29651E534E",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:UUSwiftBluetooth.xcodeproj",
+        "identifier" : "08F620252C27AAD900A93EDC",
+        "name" : "UUSwiftBluetoothTests"
+      }
+    }
+  ],
+  "version" : 1
+}
