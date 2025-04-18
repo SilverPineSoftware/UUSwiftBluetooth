@@ -21,8 +21,8 @@ let package = Package(
 		// Here we define our package's external dependencies
 		// and from where they can be fetched:
 		.package(
-			url: "https://github.com/SilverPineSoftware/UUSwiftCore.git",
-            .upToNextMajor(from: "1.2.0")
+            url: "https://github.com/SilverPineSoftware/UUSwiftCore.git",
+            branch: "main"
 		)
 	],
 
