@@ -42,6 +42,12 @@ public extension CBUUID
             return nil
         }
         
+        // If the input is a valid 4 digit hex string, return
+        if uuid.count == 4 && uuid.uuToHexData() != nil
+        {
+            return CBUUID(string: uuid)
+        }
+        
         guard UUID(uuidString: uuid) != nil else
         {
             return nil
