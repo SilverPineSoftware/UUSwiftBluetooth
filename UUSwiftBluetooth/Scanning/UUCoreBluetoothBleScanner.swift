@@ -86,6 +86,9 @@ internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
     
     public func stopScan()
     {
+        nearbyPeripheralSubscription?.cancel()
+        nearbyPeripheralSubscription = nil
+        
         self.centralManager.stopScan()
     }
     

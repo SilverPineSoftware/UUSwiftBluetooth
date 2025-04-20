@@ -1,5 +1,5 @@
 //
-//  UUAdvertisementProtocol.swift
+//  UUAdvertisement.swift
 //  UUSwiftBluetooth
 //
 //  Created by Ryan DeVore on 12/16/24.
@@ -8,7 +8,7 @@
 import UIKit
 import CoreBluetooth
 
-public protocol UUAdvertisementProtocol
+public protocol UUAdvertisement
 {
     var identifier: UUID { get }
     var advertisementData: [String:Any]? { get }
@@ -59,7 +59,7 @@ public protocol UUAdvertisementProtocol
 }
 
 
-public extension UUAdvertisementProtocol
+public extension UUAdvertisement
 {
     ///
     /// Returns the value of CBAdvertisementDataLocalNameKey from the advertisement data.

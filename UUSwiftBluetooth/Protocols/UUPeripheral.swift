@@ -21,7 +21,7 @@ public typealias UUDiscoverDescriptorsCompletionBlock = (([CBDescriptor]?, Error
 
 public protocol UUPeripheral
 {
-    var advertisement: UUAdvertisementProtocol?  { get }
+    var advertisement: UUAdvertisement?  { get }
     var rssi: Int?  { get }
     var firstDiscoveryTime: Date  { get }
     var timeSinceLastUpdate: TimeInterval { get }
