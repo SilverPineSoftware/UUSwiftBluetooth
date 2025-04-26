@@ -21,9 +21,9 @@ public typealias UUDiscoverDescriptorsCompletionBlock = (([CBDescriptor]?, Error
 
 public protocol UUPeripheral
 {
-    var advertisement: UUAdvertisement?  { get }
-    var rssi: Int?  { get }
-    var firstDiscoveryTime: Date  { get }
+    var advertisement: UUAdvertisement { get }
+    var rssi: Int { get }
+    var firstDiscoveryTime: Date { get }
     var timeSinceLastUpdate: TimeInterval { get }
     var identifier: UUID { get }
     var name: String { get }
@@ -112,19 +112,12 @@ public extension UUPeripheral
 {
     var timeSinceLastUpdate: TimeInterval
     {
-        guard let lastBeaconTime = advertisement?.timestamp else
-        {
-            return 0
-        }
-    
-        return Date.timeIntervalSinceReferenceDate - lastBeaconTime.timeIntervalSinceReferenceDate
+        return Date.timeIntervalSinceReferenceDate - advertisement.timestamp.timeIntervalSinceReferenceDate
     }
 }
 
 
 internal protocol UUPeripheralInternal
 {
-    //var underlyingPeripheral: CBPeripheral { get }
-    
     func update(advertisement: UUBluetoothAdvertisement)
 }

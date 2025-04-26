@@ -106,7 +106,7 @@ internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
         defer { nearbyPeripheralMapLock.unlock() }
         nearbyPeripheralMapLock.lock()
         
-        let peripheral = nearbyPeripheralMap[advertisement.peripheral.identifier] ?? UUCoreBluetoothPeripheral(centralManager: centralManager, peripheral: advertisement.peripheral)
+        let peripheral = nearbyPeripheralMap[advertisement.peripheral.identifier] ?? UUCoreBluetoothPeripheral(centralManager: centralManager, peripheral: advertisement.peripheral, advertisement: advertisement)
         peripheral.update(advertisement: advertisement)
         
         nearbyPeripheralMap[peripheral.identifier] = peripheral

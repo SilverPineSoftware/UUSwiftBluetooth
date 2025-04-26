@@ -24,20 +24,23 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     // Reference to the underlying CBPeripheral
     public var underlyingPeripheral: CBPeripheral
 
-    private(set) public var advertisement: UUAdvertisement? = nil
-    private(set) public var rssi: Int? = nil
+    private(set) public var advertisement: UUAdvertisement
+    private(set) public var rssi: Int
     private(set) public var firstDiscoveryTime: Date
     
     public required init(
         centralManager: UUCentralManager,
-        peripheral: CBPeripheral)
+        peripheral: CBPeripheral,
+        advertisement: UUAdvertisement)
     {
         self.dispatchQueue = centralManager.dispatchQueue
         self.centralManager = centralManager
         self.underlyingPeripheral = peripheral
         self.underlyingPeripheral.delegate = delegate
         self.timerPool = UUTimerPool.getPool("UUPeripheral_\(peripheral.identifier)", queue: centralManager.dispatchQueue)
-        self.firstDiscoveryTime = Date()
+        self.advertisement = advertisement
+        self.rssi = advertisement.rssi
+        self.firstDiscoveryTime = advertisement.timestamp
     }
     
     // Passthrough properties to read values directly from CBPeripheral
@@ -55,9 +58,9 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     public var friendlyName: String
     {
         
-        if let val = advertisement?.localName, val.isEmpty == false
+        if advertisement.localName.isEmpty == false
         {
-            return val
+            return advertisement.localName
         }
         
         return self.name

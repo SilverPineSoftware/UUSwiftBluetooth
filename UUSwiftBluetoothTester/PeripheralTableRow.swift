@@ -20,17 +20,13 @@ class PeripheralTableRow: UITableViewCell
     {
         friendlyNameLabel.text = peripheral.friendlyName
         idLabel.text = "\(peripheral.identifier)" //\nConnectable: \(peripheral.isConnectable)"
-        rssiLabel.text = "\(peripheral.rssi ?? 0)"
+        rssiLabel.text = "\(peripheral.rssi)"
         connectionStateLabel.text = peripheral.peripheralState.uuName()
         timeSinceLastUpdateLabel.text = String(format: "%.3f", peripheral.timeSinceLastUpdate)
         
-        if let current = peripheral.advertisement?.timestamp
-        {
-            let fmt = "yyyy-MM-dd'T'HH:mm:ss.SSS"
-            idLabel.text = "\(peripheral.firstDiscoveryTime.uuFormat(fmt, timeZone: .current))\n\(current.uuFormat(fmt, timeZone: .current))"
-            
-        }
+        let current = peripheral.advertisement.timestamp
         
-
+        let fmt = "yyyy-MM-dd'T'HH:mm:ss.SSS"
+        idLabel.text = "\(peripheral.firstDiscoveryTime.uuFormat(fmt, timeZone: .current))\n\(current.uuFormat(fmt, timeZone: .current))"
     }
 }
