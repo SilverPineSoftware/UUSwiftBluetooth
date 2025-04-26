@@ -24,7 +24,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     // Reference to the underlying CBPeripheral
     public var underlyingPeripheral: CBPeripheral
 
-    private(set) public var advertisement: UUAdvertisementProtocol? = nil
+    private(set) public var advertisement: UUAdvertisement? = nil
     private(set) public var rssi: Int? = nil
     private(set) public var firstDiscoveryTime: Date
     
@@ -81,6 +81,8 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     
     func updateRssi(_ rssi: Int)
     {
+        // TODO: Implement this
+        
         // Per CoreBluetooth documentation, a value of 127 indicates the RSSI
         // reading is not available
         /*if rssi != 127
