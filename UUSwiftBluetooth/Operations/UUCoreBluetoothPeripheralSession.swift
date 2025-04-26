@@ -500,7 +500,7 @@ fileprivate extension UUCoreBluetoothPeripheralSession
     private func logDiscoveredDescriptors()
     {
         discoveredDescriptors.forEach { characteristic, descriptors in
-            UULog.debug(tag: LOG_TAG, message: "Discovered \(descriptors.count) descriptors on characterstic \(characteristic)")
+            UULog.debug(tag: LOG_TAG, message: "Discovered \(descriptors.count) descriptors on characteristic \(characteristic)")
             
             descriptors.forEach { descriptor in
                 let descriptorDescription = UUDescriptorRepresentation(from: descriptor)
