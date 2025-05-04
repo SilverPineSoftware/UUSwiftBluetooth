@@ -95,6 +95,23 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         }*/
     }
     
+    public func startTimer(name: String, timeout: TimeInterval, block: @escaping ()->())
+    {
+        let timerId = formatTimerId(name)
+        UULog.debug(tag: LOG_TAG, message: "Starting bucket timer \(timerId) with timeout: \(timeout)")
+        
+        timerPool.start(identifier: timerId, timeout: timeout, userInfo: nil)
+        { _ in
+            block()
+        }
+    }
+    
+    public func cancelTimer(name: String)
+    {
+        let timerId = formatTimerId(name)
+        timerPool.cancel(by: timerId)
+    }
+    
     
     // Block based wrapper around CBCentralManager connectPeripheral:options with a
     // timeout value.  If a negative timeout is passed there will be no timeout used.
@@ -845,9 +862,9 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         case pollRssi
     }
     
-    private func formatTimerId(_ bucket: TimerId) -> String
+    private func formatTimerId(_ name: String) -> String
     {
-        return "\(identifier)__\(bucket.rawValue)"
+        return "\(identifier)__\(name)"
     }
     
     private func cleanupAfterDisconnect()
@@ -861,19 +878,12 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     
     private func startTimer(_ timerBucket: TimerId, _ timeout: TimeInterval, _ block: @escaping ()->())
     {
-        let timerId = formatTimerId(timerBucket)
-        UULog.debug(tag: LOG_TAG, message: "Starting bucket timer \(timerId) with timeout: \(timeout)")
-        
-        timerPool.start(identifier: timerId, timeout: timeout, userInfo: nil)
-        { _ in
-            block()
-        }
+        startTimer(name: timerBucket.rawValue, timeout: timeout, block: block)
     }
     
     private func cancelTimer(_ timerBucket: TimerId)
     {
-        let timerId = formatTimerId(timerBucket)
-        timerPool.cancel(by: timerId)
+        cancelTimer(name: timerBucket.rawValue)
     }
     
     

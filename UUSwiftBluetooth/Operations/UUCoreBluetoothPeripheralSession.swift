@@ -43,6 +43,16 @@ open class UUCoreBluetoothPeripheralSession: UUPeripheralSession
         disconnect()
     }
     
+    public func startTimer(name: String, timeout: TimeInterval, block: @escaping ()->())
+    {
+        peripheral.startTimer(name: name, timeout: timeout, block: block)
+    }
+    
+    public func cancelTimer(name: String)
+    {
+        peripheral.cancelTimer(name: name)
+    }
+    
     private func defaultErrorHandler(_ error: Error) -> Bool
     {
         UULog.debug(tag: LOG_TAG, message: "Error: \(error)")

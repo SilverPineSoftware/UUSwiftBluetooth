@@ -31,6 +31,9 @@ public protocol UUPeripheral
     var peripheralState: CBPeripheralState { get }
     var services: [CBService]? { get }
     
+    func startTimer(name: String, timeout: TimeInterval, block: @escaping ()->())
+    func cancelTimer(name: String)
+    
     func connect(timeout: TimeInterval,
                  connected: @escaping UUPeripheralConnectedBlock,
                  disconnected: @escaping UUPeripheralDisconnectedBlock)

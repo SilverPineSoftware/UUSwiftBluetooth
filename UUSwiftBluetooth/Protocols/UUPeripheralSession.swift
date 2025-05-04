@@ -27,6 +27,9 @@ public protocol UUPeripheralSession
     func start()
     func end(error: Error?)
     
+    func startTimer(name: String, timeout: TimeInterval, block: @escaping ()->())
+    func cancelTimer(name: String)
+    
     func read(
         from characteristic: CBUUID,
         completion: @escaping (Data?)->(),
