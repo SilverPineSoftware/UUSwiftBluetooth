@@ -8,7 +8,7 @@
 import Foundation
 import CoreBluetooth
 
-public struct UUPeripheralSessionConfiguration
+open class UUPeripheralSessionConfiguration
 {
     public var servicesToDiscover: [CBUUID]? = nil
     public var characteristicsToDiscover: [CBUUID:[CBUUID]?]? = nil
