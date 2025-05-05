@@ -9,6 +9,7 @@ import XCTest
 import UUSwiftCore
 @testable import UUSwiftBluetooth
 import UUSwiftTestCore
+import UUSwiftTestCoreUX
 import CoreBluetooth
 
 
@@ -18,6 +19,8 @@ final class UUSwiftBluetoothTests: XCTestCase
     
     func test_scanner() throws
     {
+        UUTestSetTitle("Scanner Test")
+        
         let exp = uuExpectationForMethod()
         
         // Write your test here and use APIs like `#expect(...)` to check expected conditions.
@@ -33,6 +36,8 @@ final class UUSwiftBluetoothTests: XCTestCase
             
             discoveredPeripherals.removeAll()
             discoveredPeripherals.append(contentsOf: peripherals)
+            
+            UUTestAddLine("Scan callback, got \(peripherals.count) peripherals")
         }
         
         UUTimerPool.shared.start(identifier: "test", timeout: 10, userInfo: nil, block:
@@ -112,15 +117,6 @@ final class UUSwiftBluetoothTests: XCTestCase
         //let sortedUsing = input.sorted(using: OptionalIntComparator())
         
         //print("sorted using: \(sortedUsing)")
-    }
-    
-    func testBadCBUUID()
-    {
-        let input = "Bogus UUID String"
-        let cbuuid = CBUUID.uuCreate(from: input)
-        XCTAssertNil(cbuuid)
-        //let cbuuid = CBUUID(string: input)
-        
     }
     
     /*
