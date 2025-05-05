@@ -15,7 +15,7 @@ open class UUPeripheralOperation<Result>
 {
     public let peripheral: UUPeripheral
     
-    public private(set) var session: UUPeripheralSession
+    public private(set) var session: any UUPeripheralSession
     
     private var operationCallback: ((Result?, Error?)->())? = nil
     
