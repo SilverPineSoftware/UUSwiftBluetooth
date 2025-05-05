@@ -172,14 +172,14 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             disconnected(err)
         }
         
-        var options: [String: Any] = [:]
+        //var options: [String: Any] = [:]
         /*if #available(iOS 17.0, *) {
             options[CBConnectPeripheralOptionEnableAutoReconnect] = true
         } else {
             // Fallback on earlier versions
         }*/
         
-        centralManager.connect(self, options)
+        centralManager.connect(self, nil)
     }
     
     // Wrapper around CBCentralManager cancelPeripheralConnection.  After calling this
