@@ -272,6 +272,12 @@ open class UUCoreBluetoothPeripheralSession: UUPeripheralSession
     {
         return discoveredCharacteristics.values.flatMap { $0 }.first { $0.uuid == uuid }
     }
+    
+    
+    open func finishSessionStart(_ completion: @escaping ()->())
+    {
+        completion()
+    }
 }
 
 // MARK: - Connection & Disconnection
@@ -285,7 +291,10 @@ fileprivate extension UUCoreBluetoothPeripheralSession
     
     func handleSessionStarted()
     {
-        sessionStarted?(self)
+        finishSessionStart
+        {
+            self.sessionStarted?(self)
+        }
     }
     
     func disconnect()
