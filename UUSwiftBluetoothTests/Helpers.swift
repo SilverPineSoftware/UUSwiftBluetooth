@@ -25,7 +25,7 @@ public extension UUPeripheralScanner
             startScan(scanSettings)
             { peripherals in
                 
-                NSLog("Discovered peripherals: \(peripherals)")
+                //NSLog("Discovered peripherals: \(peripherals)")
                 
                 if let p = peripherals.first
                 {
@@ -66,7 +66,7 @@ public func UUPeripheralNameFilter(_ name: String) -> ((UUPeripheral)->Bool)
 {
     return { peripheral in
         
-        NSLog("Peripheral: \(peripheral.identifier), \(peripheral.name), \(peripheral.rssi), \(peripheral.advertisement.localName)")
+        //NSLog("Peripheral: \(peripheral.identifier), \(peripheral.name), \(peripheral.rssi), \(peripheral.advertisement.localName)")
         
         return peripheral.advertisement.localName == name
     }
