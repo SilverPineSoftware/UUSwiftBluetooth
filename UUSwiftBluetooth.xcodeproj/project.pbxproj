@@ -170,7 +170,18 @@
 		C5C67CCA26C609D6004DF50D /* Package.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0811F5862DCA56200067E8E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				TiSensorTagSession.swift,
+			);
+			target = 08F620252C27AAD900A93EDC /* UUSwiftBluetoothTests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		0811F5812DC930510067E8E6 /* TiSensorTag */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (0811F5862DCA56200067E8E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = TiSensorTag; sourceTree = "<group>"; };
 		086B7C222DAAE570000CF9C8 /* Enums */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Enums; sourceTree = "<group>"; };
 		086B7C472DAB1BCE000CF9C8 /* Scanning */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Scanning; sourceTree = "<group>"; };
 		086B7C4A2DAB1E9B000CF9C8 /* L2Cap */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = L2Cap; sourceTree = "<group>"; };
@@ -242,6 +253,7 @@
 		08A2091F26C7092B008F3534 /* UUSwiftBluetoothTester */ = {
 			isa = PBXGroup;
 			children = (
+				0811F5812DC930510067E8E6 /* TiSensorTag */,
 				0DBFEE2E2AC644490064031A /* Resources */,
 				08A2092026C7092B008F3534 /* AppDelegate.swift */,
 				08A2092226C7092B008F3534 /* SceneDelegate.swift */,
@@ -381,6 +393,9 @@
 			);
 			dependencies = (
 				08A2093826C70E3D008F3534 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				0811F5812DC930510067E8E6 /* TiSensorTag */,
 			);
 			name = UUSwiftBluetoothTester;
 			productName = UUSwiftBluetoothTester;

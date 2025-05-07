@@ -14,9 +14,15 @@ import CoreBluetooth
 
 final class UUPeripheralSessionTests: XCTestCase
 {
-
     override func setUpWithError() throws
     {
+        let logger = UULogger.console
+        logger.logLevel = .debug
+        
+        UULog.setLogger(logger)
+        
+        TiSensorTag.addSpecNames()
+        
         // Put setup code here. This method is called before the invocation of each test method in the class.
     }
 
@@ -55,7 +61,8 @@ final class UUPeripheralSessionTests: XCTestCase
         let peripheral = try XCTUnwrap(peripheralOpt)
         
         UUTestAddLine("Found peripheral")
-        let session = UUCoreBluetoothPeripheralSession(peripheral: peripheral)
+        //let session = UUCoreBluetoothPeripheralSession(peripheral: peripheral)
+        let session = TiSensorTagCoreBluetoothSession(peripheral: peripheral)
         
         session.sessionStarted =
         { s in
@@ -65,7 +72,7 @@ final class UUPeripheralSessionTests: XCTestCase
         
         session.sessionEnded =
         { s, err in
-            UUTestAddLine("session ended")
+            UUTestAddLine("session ended, err: \(String(describing: err))")
             endExp.fulfill()
         }
         
@@ -75,7 +82,7 @@ final class UUPeripheralSessionTests: XCTestCase
         await fulfillment(of: [startExp], timeout: 30)
         
         UUTestAddLine("Waiting a while...")
-        session.startTimer(name: "test", timeout: 5.0)
+        session.startTimer(name: "test", timeout: 10.0)
         {
             UUTestAddLine("Ending session")
             session.end(error: nil)
