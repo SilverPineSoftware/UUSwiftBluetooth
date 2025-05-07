@@ -183,7 +183,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     {
         
         let logLine = list.compactMap { p in
-            "\(p.friendlyName), \(p.rssi ?? -200), \(p.firstDiscoveryTime)"
+            "\(p.friendlyName), \(p.rssi), \(p.firstDiscoveryTime)"
         }.joined(separator: "\n")
         
         UULog.debug(tag: LOG_TAG, message: "Scan Results:\n\n\(logLine)\n\n")
