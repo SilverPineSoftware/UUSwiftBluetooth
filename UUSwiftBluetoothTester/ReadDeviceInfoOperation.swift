@@ -76,7 +76,7 @@ class ReadDeviceInfoOperation: UUPeripheralOperation<Any>
     private func readSystemId(_ completion: @escaping (String)->())
     {
         session.readUtf8(from: UUCoreBluetooth.Constants.Characteristics.systemID)
-        { result in
+        { session, result, error in
             completion(result ?? "")
         }
     }
@@ -84,7 +84,7 @@ class ReadDeviceInfoOperation: UUPeripheralOperation<Any>
     private func readManufacturerName(_ completion: @escaping (String)->())
     {
         session.readUtf8(from: UUCoreBluetooth.Constants.Characteristics.manufacturerNameString)
-        { result in
+        { session, result, error in
             completion(result ?? "")
         }
     }

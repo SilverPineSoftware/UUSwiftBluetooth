@@ -22,20 +22,27 @@ open class UUCoreBluetoothPeripheralSession: UUPeripheralSession
     public private(set) var discoveredDescriptors: [CBUUID:[CBDescriptor]] = [:]
     public private(set) var sessionEndError: Error? = nil
     
-    public var sessionStarted: ((any UUPeripheralSession) -> Void)?
-    public var sessionEnded: ((any UUPeripheralSession, (any Error)?) -> Void)?
+    public var sessionStarted: UUPeripheralSessionStartedCallback =
+    { session in
+        UULog.fatal(tag: LOG_TAG, message: "Session started callback not implemented, session: \(session)")
+    }
+    
+    public var sessionEnded: UUPeripheralSessionEndedCallback =
+    { session, error in
+        UULog.fatal(tag: LOG_TAG, message: "Session ended callback not implemented, session: \(session), error: \(String(describing: error))")
+    }
     
     required public init(peripheral: UUPeripheral)
     {
         self.peripheral = peripheral
     }
     
-    public func start()
+    open func start()
     {
         connect()
     }
     
-    public func end(error: Error? = nil)
+    open func end(error: Error? = nil)
     {
         UULog.debug(tag: LOG_TAG, message: "Session ending with error: \(String(describing: error))")
         
@@ -61,42 +68,19 @@ open class UUCoreBluetoothPeripheralSession: UUPeripheralSession
     
     public func read(
         from characteristic: CBUUID,
-        completion: @escaping (Data?)->(),
-        errorHandler: ((Error)->Bool)?)
+        completion: @escaping UUPeripheralSessionObjectErrorCallback<Data>)
     {
-        let actualErrorHandler = errorHandler ?? defaultErrorHandler
-        
-        func internalHandleCompletion(_ data: Data?, _ error: Error?)
-        {
-            var invokeCompletion = true
-            
-            if let err = error
-            {
-                let endSession = actualErrorHandler(err)
-                if (endSession)
-                {
-                    invokeCompletion = false
-                    self.end(error: error)
-                }
-            }
-            
-            if (invokeCompletion)
-            {
-                completion(data)
-            }
-        }
-        
         guard let char = findDiscoveredCharacteristic(for: characteristic) else
         {
             let err = NSError.uuRequiredCharacteristicNotFoundError(characteristic)
-            internalHandleCompletion(nil, err)
+            completion(self, nil, err)
             return
         }
         
         peripheral.readValue(for: char, timeout: self.configuration.readTimeout)
         { p, char, error in
             
-            internalHandleCompletion(char.value, error)
+            completion(self, char.value, error)
         }
     }
     
@@ -293,7 +277,7 @@ fileprivate extension UUCoreBluetoothPeripheralSession
     {
         finishSessionStart
         {
-            self.sessionStarted?(self)
+            self.sessionStarted(self)
         }
     }
     
@@ -319,7 +303,7 @@ fileprivate extension UUCoreBluetoothPeripheralSession
             self.sessionEndError = disconnectError
         }
         
-        sessionEnded?(self, self.sessionEndError)
+        sessionEnded(self, self.sessionEndError)
     }
 }
 

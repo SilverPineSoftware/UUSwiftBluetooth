@@ -199,9 +199,37 @@ import UUSwiftBluetooth
 //}
 
 
+
+
 public protocol TiSensorTagSession: UUPeripheralSession
 {
-    func readButtonState(_ completion: @escaping (Int)->Void)
+    func readTemperature(_ completion: @escaping UUPeripheralSessionObjectErrorCallback<UInt8>)
+}
+
+public extension TiSensorTagSession // Async
+{
+    func readTemperature() async -> Result<UInt8, Error>
+    {
+        await withCheckedContinuation
+        { continuation in
+            self.readTemperature
+            { session, keyState, error in
+                
+                if let err = error
+                {
+                    continuation.resume(returning: .failure(err))
+                }
+                else if let result = keyState
+                {
+                    continuation.resume(returning: .success(result))
+                }
+                else
+                {
+                    continuation.resume(returning: .failure(NSError(domain: "TiSensorTagSession", code: -1)))
+                }
+            }
+        }
+    }
 }
 
 
@@ -246,12 +274,9 @@ public class TiSensorTagCoreBluetoothSession: UUCoreBluetoothPeripheralSession, 
         }
     }
     
-    public func readButtonState(_ completion: @escaping (Int)->Void)
+    public func readTemperature(_ completion: @escaping UUPeripheralSessionObjectErrorCallback<UInt8>)
     {
-        readUInt8(from: TiSensorTag.Keys.data)
-        { keyState in
-            NSLog("Key State is \(String(describing: keyState))")
-        }
+        readUInt8(from: TiSensorTag.Temperature.data, completion: completion)
     }
     
     

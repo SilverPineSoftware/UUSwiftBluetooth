@@ -81,12 +81,17 @@ final class UUPeripheralSessionTests: XCTestCase
         
         await fulfillment(of: [startExp], timeout: 30)
         
+    
+        
+        
         UUTestAddLine("Waiting a while...")
         session.startTimer(name: "test", timeout: 10.0)
         {
             UUTestAddLine("Ending session")
             session.end(error: nil)
         }
+        
+        
         
         await fulfillment(of: [endExp], timeout: 30)
         

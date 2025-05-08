@@ -7,6 +7,10 @@
 
 import CoreBluetooth
 
+public typealias UUPeripheralSessionStartedCallback = ((any UUPeripheralSession) -> Void)
+public typealias UUPeripheralSessionEndedCallback = ((any UUPeripheralSession, Error?) -> Void)
+public typealias UUPeripheralSessionObjectErrorCallback<T> = ((any UUPeripheralSession, T?, Error?) -> Void)
+
 public protocol UUPeripheralSession
 {
     init (peripheral: UUPeripheral)
@@ -20,8 +24,8 @@ public protocol UUPeripheralSession
     var sessionEndError: Error? { get }
     
     // Callbacks
-    var sessionStarted: ((any UUPeripheralSession) -> ())? { get set }
-    var sessionEnded: ((any UUPeripheralSession, Error?) -> ())? { get set }
+    var sessionStarted: UUPeripheralSessionStartedCallback { get set }
+    var sessionEnded: UUPeripheralSessionEndedCallback { get set }
     
     // Methods
     func start()
@@ -32,8 +36,7 @@ public protocol UUPeripheralSession
     
     func read(
         from characteristic: CBUUID,
-        completion: @escaping (Data?)->(),
-        errorHandler: ((Error)->Bool)?)
+        completion: @escaping UUPeripheralSessionObjectErrorCallback<Data>)
     
     func write(
         data: Data,
@@ -58,17 +61,20 @@ public protocol UUPeripheralSession
 
 public extension UUPeripheralSession // Read Methods
 {
-    func read(
-        from characteristic: CBUUID,
-        completion: @escaping (Data?)->())
-    {
-        read(from: characteristic, completion: completion, errorHandler: nil)
-    }
+//    func read(
+//        from characteristic: CBUUID,
+//        completion: @escaping (Data?)->())
+//    {
+//        read(from: characteristic, completion: completion, errorHandler: nil)
+//    }
     
-    func readString(from characteristic: CBUUID, encoding: String.Encoding, completion: @escaping (String?)->())
+    func readString(
+        from characteristic: CBUUID,
+        encoding: String.Encoding,
+        completion: @escaping UUPeripheralSessionObjectErrorCallback<String>)
     {
         read(from: characteristic)
-        { data in
+        { session, data, error in
          
             var result: String? = nil
             
@@ -77,92 +83,100 @@ public extension UUPeripheralSession // Read Methods
                 result = String(data: data, encoding: encoding)
             }
             
-            completion(result)
+            completion(session, result, error)
         }
     }
     
-    func readUtf8(from characteristic: CBUUID, completion: @escaping (String?)->())
+    func readUtf8(
+        from characteristic: CBUUID,
+        completion: @escaping UUPeripheralSessionObjectErrorCallback<String>)
     {
         readString(from: characteristic, encoding: .utf8, completion: completion)
     }
     
-    func readUInt8(from characteristic: CBUUID,  completion: @escaping (UInt8?)->())
+    func readUInt8(
+        from characteristic: CBUUID,
+        completion: @escaping UUPeripheralSessionObjectErrorCallback<UInt8>)
     {
         read(from: characteristic)
-        { data in
+        { session, data, error in
          
             let result = data?.uuUInt8(at: 0)
-            completion(result)
+            completion(session, result, error)
         }
     }
     
-    func readUInt16(from characteristic: CBUUID, completion: @escaping (UInt16?)->())
+    func readUInt16(
+        from characteristic: CBUUID,
+        completion: @escaping UUPeripheralSessionObjectErrorCallback<UInt16>)
     {
         read(from: characteristic)
-        { data in
+        { session, data, error in
          
             let result = data?.uuUInt16(at: 0)
-            completion(result)
+            completion(session, result, error)
         }
     }
     
-    func readUInt32(from characteristic: CBUUID, completion: @escaping (UInt32?)->())
+    func readUInt32(
+        from characteristic: CBUUID,
+        completion: @escaping UUPeripheralSessionObjectErrorCallback<UInt32>)
     {
         read(from: characteristic)
-        { data in
+        { session, data, error in
          
             let result = data?.uuUInt32(at: 0)
-            completion(result)
+            completion(session, result, error)
         }
     }
     
-    func readUInt64(from characteristic: CBUUID, completion: @escaping (UInt64?)->())
+    func readUInt64(from characteristic: CBUUID, completion: @escaping UUPeripheralSessionObjectErrorCallback<UInt64>)
     {
         read(from: characteristic)
-        { data in
+        { session, data, error in
          
             let result = data?.uuUInt64(at: 0)
-            completion(result)
+            completion(session, result, error)
         }
     }
     
-    func readInt8(from characteristic: CBUUID, completion: @escaping (Int8?)->())
+    func readInt8(from characteristic: CBUUID, completion: @escaping UUPeripheralSessionObjectErrorCallback<Int8>)
     {
         read(from: characteristic)
-        { data in
+        { session, data, error in
          
             let result = data?.uuInt8(at: 0)
-            completion(result)
+            completion(session, result, error)
         }
     }
     
-    func readInt16(from characteristic: CBUUID, completion: @escaping (Int16?)->())
+    func readInt16(from characteristic: CBUUID, completion: @escaping UUPeripheralSessionObjectErrorCallback<Int16>)
     {
         read(from: characteristic)
-        { data in
+        { session, data, error in
          
             let result = data?.uuInt16(at: 0)
-            completion(result)
+            completion(session, result, error)
         }
     }
     
-    func readInt32(from characteristic: CBUUID, completion: @escaping (Int32?)->())
+    func readInt32(from characteristic: CBUUID, completion: @escaping UUPeripheralSessionObjectErrorCallback<Int32>)
     {
         read(from: characteristic)
-        { data in
+        { session, data, error in
          
             let result = data?.uuInt32(at: 0)
-            completion(result)
+            completion(session, result, error)
         }
     }
     
-    func readInt32(from characteristic: CBUUID, completion: @escaping (Int64?)->())
+    func readInt32(from characteristic: CBUUID, completion: @escaping UUPeripheralSessionObjectErrorCallback<Int64>)
     {
         read(from: characteristic)
-        { data in
+        { session, data, error in
          
             let result = data?.uuInt64(at: 0)
-            completion(result)
+            completion(session, result, error)
         }
     }
 }
