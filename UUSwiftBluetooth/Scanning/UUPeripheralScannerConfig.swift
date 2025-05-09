@@ -1,5 +1,5 @@
 //
-//  UUBluetoothScanSettings.swift
+//  UUPeripheralScannerConfig.swift
 //  UUSwiftBluetooth
 //
 //  Created by Ryan DeVore on 11/13/24.
@@ -11,10 +11,10 @@ import CoreBluetooth
 /**
  Contains BLE scanning settings
  */
-public struct UUBluetoothScanSettings
+open class UUPeripheralScannerConfig
 {
     /**
-     Creates an instance of UUBluetoothScanSettings
+     Creates an instance of UUPeripheralScannerConfig
      */
     public init()
     {

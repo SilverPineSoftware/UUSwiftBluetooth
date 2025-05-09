@@ -14,13 +14,13 @@ public typealias UUPeripheralScannerStoppedCallback = (UUPeripheralScanner, Erro
 public protocol UUPeripheralScanner
 {
     var isScanning: Bool { get }
+    var config: UUPeripheralScannerConfig { get set }
     
     var started: UUPeripheralScannerStartedCallback { get set }
     var ended: UUPeripheralScannerStoppedCallback { get set }
     var listChanged: UUPeripheralListChangedCallback { get set }
     
-    func start(settings: UUBluetoothScanSettings)
-    
+    func start()
     func stop()
 }
 

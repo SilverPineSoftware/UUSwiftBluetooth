@@ -239,19 +239,32 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             self.tableData.removeAll()
             self.tableView.reloadData()
             
-            var settings = UUBluetoothScanSettings()
-            settings.discoveryFilters = filters
-            settings.allowDuplicates = true
-            settings.peripheralSorting = UUPeripheralRssiSortComparator(order: .reverse)
+            let config = UUPeripheralScannerConfig()
+            config.discoveryFilters = filters
+            config.allowDuplicates = true
+            config.peripheralSorting = UUPeripheralRssiSortComparator(order: .reverse)
             //settings.peripheralSorting = UUPeripheralFirstDiscoveryTimeComparator(order: .reverse)
             //settings.peripheralSorting = UUPeripheralFriendlyNameComparator(order: .reverse)
         
             
             UULog.debug(tag: LOG_TAG, message: "Starting scan")
+            scanner.config = config
+            scanner.started = handleScanStarted
+            scanner.ended = handleScanEnded
             scanner.listChanged = handleNearbyPeripheralsChanged
-            scanner.start(settings: settings)
+            scanner.start()
             rightNavBarItem.title = "Stop"
         }
+    }
+    
+    private func handleScanStarted(scanner: UUPeripheralScanner)
+    {
+        UULog.debug(tag: LOG_TAG, message: "Scan started")
+    }
+    
+    private func handleScanEnded(scanner: UUPeripheralScanner, error: Error?)
+    {
+        UULog.debug(tag: LOG_TAG, message: "Scan ended, error: \(String(describing: error))")
     }
     
     /*

@@ -14,6 +14,7 @@ fileprivate let LOG_TAG = "UUCoreBluetoothBleScanner"
 
 internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
 {
+    var config: UUPeripheralScannerConfig = UUPeripheralScannerConfig()
     var started: UUPeripheralScannerStartedCallback = { _ in }
     
     var ended: UUPeripheralScannerStoppedCallback = { _, _ in }
@@ -24,8 +25,6 @@ internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
     private var nearbyPeripheralMap: [UUID: (UUPeripheral & UUPeripheralInternal)] = [:]
     private var nearbyPeripheralMapLock = NSRecursiveLock()
     
-    private var scanSettings = UUBluetoothScanSettings()
-    
     @Published private var nearbyPeripherals: [UUPeripheral] = []
     
     private var nearbyPeripheralSubscription: AnyCancellable? = nil
@@ -35,16 +34,14 @@ internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
         self.centralManager = centralManager
     }
     
-    public func start(settings: UUBluetoothScanSettings)
+    open func start()
     {
-        self.scanSettings = settings
-        
         clearNearbyPeripherals()
         
-        if (settings.callbackThrottle > 0)
+        if (config.callbackThrottle > 0)
         {
             nearbyPeripheralSubscription = self.$nearbyPeripherals
-                .throttle(for: .seconds(scanSettings.callbackThrottle), scheduler: centralManager.dispatchQueue, latest: true)
+                .throttle(for: .seconds(config.callbackThrottle), scheduler: centralManager.dispatchQueue, latest: true)
                 .receive(on: centralManager.dispatchQueue)
                 .sink
                 { peripheralList in
@@ -65,8 +62,8 @@ internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
         
         notifyScanStarted()
         centralManager.startScan(
-            serviceUuids: settings.serviceUUIDs,
-            allowDuplicates: settings.allowDuplicates,
+            serviceUuids: config.serviceUUIDs,
+            allowDuplicates: config.allowDuplicates,
             advertisementHandler: handleAdvertisement,
             willRestoreCallback: handleWillRestoreState)
     }
@@ -83,7 +80,7 @@ internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
     
     private func notifyNearbyPeripherals(_ list: [UUPeripheral])
     {
-        let sorted = scanSettings.peripheralSorting.map { list.sorted(using: $0) } ?? list
+        let sorted = config.peripheralSorting.map { list.sorted(using: $0) } ?? list
         
         DispatchQueue.main.async
         {
@@ -96,7 +93,7 @@ internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
         return self.centralManager.isScanning
     }
     
-    public func stop()
+    open func stop()
     {
         nearbyPeripheralSubscription?.cancel()
         nearbyPeripheralSubscription = nil
@@ -132,7 +129,7 @@ internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
     
     private func shouldDiscoverPeripheral(_ peripheral: UUPeripheral) -> Bool
     {
-        guard let filters = scanSettings.discoveryFilters else
+        guard let filters = config.discoveryFilters else
         {
             return true
         }
