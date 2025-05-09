@@ -24,14 +24,15 @@ final class UUSwiftBluetoothTests: XCTestCase
         let exp = uuExpectationForMethod()
         
         // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-        let scanner = UUCoreBluetooth.defaultScanner
+        var scanner = UUCoreBluetooth.defaultScanner
         
-        let settings = UUBluetoothScanSettings()
+        let config = UUPeripheralScannerConfig()
         //settings.serviceUUIDs = []
+        scanner.config = config
         
         var discoveredPeripherals: [UUPeripheral] = []
-        scanner.startScan(settings)
-        { peripherals in
+        scanner.listChanged =
+        { _, peripherals in
             print("Scan callback: \(peripherals)")
             
             discoveredPeripherals.removeAll()
@@ -39,6 +40,8 @@ final class UUSwiftBluetoothTests: XCTestCase
             
             UUTestAddLine("Scan callback, got \(peripherals.count) peripherals")
         }
+        
+        scanner.start()
         
         UUTimerPool.shared.start(identifier: "test", timeout: 10, userInfo: nil, block:
         { _ in

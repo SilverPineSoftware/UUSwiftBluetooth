@@ -48,5 +48,5 @@ open class UUPeripheralScannerConfig
     /**
      Sorting method used.  Common sorting comparators are provided by UUSwiftBluetooth.  See UUPeripheralRssiSortComparator, UUPeripheralFirstDiscoveryTimeComparator, and UUPeripheralFriendlyNameComparator
      */
-    public var peripheralSorting: (any SortComparator<UUPeripheral>)? = nil
+    public var peripheralSorting: (any UUPeripheralComparator)? = nil
 }

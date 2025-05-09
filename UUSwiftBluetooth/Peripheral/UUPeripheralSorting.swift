@@ -5,161 +5,150 @@
 //  Created by Ryan DeVore on 12/12/24.
 //
 
-import UIKit
+import Foundation
 
-public struct UUPeripheralRssiSortComparator: SortComparator
+public protocol UUPeripheralComparator
 {
-    public typealias Compared = UUPeripheral
+    var ascending: Bool { get }
+    func compare(lhs: UUPeripheral, rhs: UUPeripheral) -> Bool
+}
+
+public class UUPeripheralRssiComparator: UUPeripheralComparator
+{
+    public var ascending: Bool = false
     
-    public var order: SortOrder = .forward
-    
-    public func compare(_ lhs: UUPeripheral, _ rhs: UUPeripheral) -> ComparisonResult
+    public init(ascending: Bool = false)
     {
-        return compareNumbers(order, lhs.rssi, rhs.rssi)
+        self.ascending = ascending
     }
     
-    public init(order: SortOrder)
+    public func compare(lhs: UUPeripheral, rhs: UUPeripheral) -> Bool
     {
-        self.order = order
+        return compareNumbers(ascending, lhs.rssi, rhs.rssi)
     }
 }
 
-public struct UUPeripheralFirstDiscoveryTimeComparator: SortComparator
+public class UUPeripheralFirstDiscoveryTimeComparator: UUPeripheralComparator
 {
-    public typealias Compared = UUPeripheral
+    public var ascending: Bool = true
     
-    public var order: SortOrder = .forward
-    
-    public func compare(_ lhs: UUPeripheral, _ rhs: UUPeripheral) -> ComparisonResult
+    public init(ascending: Bool = true)
     {
-        return compareDates(order, lhs.firstDiscoveryTime, rhs.firstDiscoveryTime)
+        self.ascending = ascending
     }
     
-    public init(order: SortOrder)
+    public func compare(lhs: UUPeripheral, rhs: UUPeripheral) -> Bool
     {
-        self.order = order
+        return compareDates(ascending, lhs.firstDiscoveryTime, rhs.firstDiscoveryTime)
     }
 }
 
-public struct UUPeripheralFriendlyNameComparator: SortComparator
+public class UUPeripheralFriendlyNameComparator: UUPeripheralComparator
 {
-    public typealias Compared = UUPeripheral
+    public var ascending: Bool = true
     
-    public var order: SortOrder = .forward
-    
-    public func compare(_ lhs: UUPeripheral, _ rhs: UUPeripheral) -> ComparisonResult
+    public init(ascending: Bool = true)
     {
-        return compareStrings(order, lhs.friendlyName, rhs.friendlyName)
+        self.ascending = ascending
     }
     
-    public init(order: SortOrder)
+    public func compare(lhs: UUPeripheral, rhs: UUPeripheral) -> Bool
     {
-        self.order = order
+        return compareStrings(ascending, lhs.friendlyName, rhs.friendlyName)
     }
 }
 
-internal func compareNumbers<T: BinaryInteger>(_ order: SortOrder, _ lhs: T?, _ rhs: T?) -> ComparisonResult
+
+fileprivate func compareNumbers<T: BinaryInteger>(_ ascending: Bool, _ lhs: T?, _ rhs: T?) -> Bool
 {
     if (lhs == nil && rhs == nil)
     {
-        return .orderedSame
+        return !ascending
     }
     
     if (lhs == nil && rhs != nil)
     {
-        return descending(order)
+        return ascending
     }
     
     if (rhs == nil && lhs != nil)
     {
-        return ascending(order)
+        return !ascending
     }
     
     if let left = lhs, let right = rhs
     {
-        if (left < right)
+        if (ascending)
         {
-            return ascending(order)
-        }
-        else if (right < left)
-        {
-            return descending(order)
-        }
-    }
-    
-    return .orderedSame
-}
-
-fileprivate func compareStrings(_ order: SortOrder, _ lhs: String?, _ rhs: String?) -> ComparisonResult
-{
-    if (lhs == nil && rhs == nil)
-    {
-        return .orderedSame
-    }
-    
-    if (lhs == nil && rhs != nil)
-    {
-        return descending(order)
-    }
-    
-    if (rhs == nil && lhs != nil)
-    {
-        return ascending(order)
-    }
-    
-    if let left = lhs, let right = rhs
-    {
-        if (order == .forward)
-        {
-            return left.localizedCompare(right)
+            return (left < right)
         }
         else
         {
-            return right.localizedCompare(left)
+            return (right < left)
         }
     }
     
-    return .orderedSame
+    return !ascending
 }
 
-fileprivate func compareDates(_ order: SortOrder, _ lhs: Date?, _ rhs: Date?) -> ComparisonResult
+fileprivate func compareDates(_ ascending: Bool, _ lhs: Date?, _ rhs: Date?) -> Bool
 {
     if (lhs == nil && rhs == nil)
     {
-        return .orderedSame
+        return !ascending
     }
     
     if (lhs == nil && rhs != nil)
     {
-        return descending(order)
+        return ascending
     }
     
     if (rhs == nil && lhs != nil)
     {
-        return ascending(order)
+        return !ascending
     }
     
     if let left = lhs, let right = rhs
     {
-        if (order == .forward)
+        if (ascending)
         {
-            return left.compare(right)
+            return (left < right)
         }
         else
         {
-            return right.compare(left)
+            return (right < left)
         }
     }
     
-    return .orderedSame
-}
-    
-fileprivate func ascending(_ order: SortOrder) -> ComparisonResult
-{
-    return order == .forward ? .orderedAscending : .orderedDescending
+    return !ascending
 }
 
-fileprivate func descending(_ order: SortOrder) -> ComparisonResult
+fileprivate func compareStrings(_ ascending: Bool, _ lhs: String?, _ rhs: String?) -> Bool
 {
-    return order == .forward ? .orderedDescending : .orderedAscending
+    if (lhs == nil && rhs == nil)
+    {
+        return !ascending
+    }
+    
+    if (lhs == nil && rhs != nil)
+    {
+        return ascending
+    }
+    
+    if (rhs == nil && lhs != nil)
+    {
+        return !ascending
+    }
+    
+    if let left = lhs, let right = rhs
+    {
+        switch left.localizedCompare(right)
+        {
+            case .orderedAscending: return ascending
+            case .orderedDescending: return !ascending
+            case .orderedSame: return true
+        }
+    }
+    
+    return !ascending
 }

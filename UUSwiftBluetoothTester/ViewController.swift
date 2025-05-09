@@ -242,7 +242,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             let config = UUPeripheralScannerConfig()
             config.discoveryFilters = filters
             config.allowDuplicates = true
-            config.peripheralSorting = UUPeripheralRssiSortComparator(order: .reverse)
+            config.peripheralSorting = UUPeripheralRssiComparator(ascending: false) // UUPeripheralRssiSortComparator(order: .reverse)
             //settings.peripheralSorting = UUPeripheralFirstDiscoveryTimeComparator(order: .reverse)
             //settings.peripheralSorting = UUPeripheralFriendlyNameComparator(order: .reverse)
         

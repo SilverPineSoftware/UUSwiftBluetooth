@@ -12,34 +12,36 @@ import UUSwiftBluetooth
 
 public extension UUPeripheralScanner
 {
-    func scanForPeripheral(timeout: TimeInterval, filter: @escaping (UUPeripheral)->Bool) async -> UUPeripheral?
+    mutating func scanForPeripheral(timeout: TimeInterval, filter: @escaping (UUPeripheral)->Bool) async -> UUPeripheral?
     {
         return await withCheckedContinuation
         { continuation in
             
             let timerId = "scanForPeripheralTimerId"
             
-            var scanSettings = UUBluetoothScanSettings()
-            scanSettings.discoveryFilters = [SinglePeripheralFilter(filter) ]
+            config = UUPeripheralScannerConfig()
+            config.discoveryFilters = [SinglePeripheralFilter(filter) ]
             
-            startScan(scanSettings)
-            { peripherals in
+            listChanged =
+            { scanner, peripherals in
                 
                 //NSLog("Discovered peripherals: \(peripherals)")
                 
                 if let p = peripherals.first
                 {
                     UUTimerPool.shared.cancel(by: timerId)
-                    self.stopScan()
+                    scanner.stop()
                     continuation.resume(returning: p)
                 }
             }
             
+            start()
+            
             // Stop scanning after timeout
-            UUTimerPool.shared.start(identifier: timerId, timeout: 5.0, userInfo: nil)
-            { _ in
+            UUTimerPool.shared.start(identifier: timerId, timeout: 5.0, userInfo: self)
+            { scanner in
                 
-                self.stopScan()
+                (scanner as? UUPeripheralScanner)?.stop()
                 continuation.resume(returning: nil)
             }
         }

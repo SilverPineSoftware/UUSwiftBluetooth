@@ -203,6 +203,8 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
 //    @available(iOS 13.0, *)
 //    optional func centralManager(_ central: CBCentralManager, connectionEventDidOccur event: CBConnectionEvent, for peripheral: CBPeripheral)
     
+    /*
+    @available(iOS 13, *)
     func centralManager(_ central: CBCentralManager, connectionEventDidOccur event: CBConnectionEvent, for peripheral: CBPeripheral)
     {
         UULog.debug(tag: LOG_TAG, message: "Connection event - peripheral: \(peripheral), event: \(event)")
@@ -220,10 +222,11 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
     //@available(iOS 13.0, *)
     //optional func centralManager(_ central: CBCentralManager, didUpdateANCSAuthorizationFor peripheral: CBPeripheral)
     
+    @available(iOS 13, *)
     func centralManager(_ central: CBCentralManager, didUpdateANCSAuthorizationFor peripheral: CBPeripheral)
     {
         UULog.debug(tag: LOG_TAG, message: "didUpdateANCSAuthorizationFor - peripheral: \(peripheral)")
-    }
+    }*/
 }
 
 class UUCentralManagerRestoringDelegate: UUCentralManagerDelegate

@@ -56,7 +56,7 @@ final class UUPeripheralSessionTests: XCTestCase
         let endExp = uuExpectationForMethod(tag: "session_end")
         
         UUTestAddLine("Scanning for peripheral")
-        let scanner = UUCoreBluetooth.defaultScanner
+        var scanner = UUCoreBluetooth.defaultScanner
         let peripheralOpt = await scanner.scanForPeripheral(timeout: 10, filter: UUPeripheralNameFilter("CC2650 SensorTag"))
         let peripheral = try XCTUnwrap(peripheralOpt)
         

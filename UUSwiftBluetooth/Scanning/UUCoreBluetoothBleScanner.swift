@@ -80,7 +80,17 @@ internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
     
     private func notifyNearbyPeripherals(_ list: [UUPeripheral])
     {
-        let sorted = config.peripheralSorting.map { list.sorted(using: $0) } ?? list
+        //let sorted = config.peripheralSorting.map { list.sorted(using: $0) } ?? list
+        let sorted: [UUPeripheral]
+        
+        if let sorting = config.peripheralSorting
+        {
+            sorted = list.sorted(by: sorting.compare)
+        }
+        else
+        {
+            sorted = list
+        }
         
         DispatchQueue.main.async
         {
