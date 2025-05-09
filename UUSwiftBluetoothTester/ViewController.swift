@@ -179,7 +179,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         navigationController?.pushViewController(host, animated: true)
     }
     
-    private func handleNearbyPeripheralsChanged(_ list: [UUPeripheral])
+    private func handleNearbyPeripheralsChanged(scanner: UUPeripheralScanner, list: [UUPeripheral])
     {
         
         let logLine = list.compactMap { p in
@@ -230,7 +230,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     {
         if (scanner.isScanning)
         {
-            scanner.stopScan()
+            scanner.stop()
             rightNavBarItem.title = "Scan"
         }
         else
@@ -248,7 +248,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
             
             UULog.debug(tag: LOG_TAG, message: "Starting scan")
-            scanner.startScan(settings, callback: self.handleNearbyPeripheralsChanged)
+            scanner.listChanged = handleNearbyPeripheralsChanged
+            scanner.start(settings: settings)
             rightNavBarItem.title = "Stop"
         }
     }

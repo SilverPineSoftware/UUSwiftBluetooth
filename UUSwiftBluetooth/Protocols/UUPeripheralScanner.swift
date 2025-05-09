@@ -7,12 +7,21 @@
 
 import UIKit
 
+public typealias UUPeripheralListChangedCallback = (UUPeripheralScanner, [UUPeripheral]) -> Void
+public typealias UUPeripheralScannerStartedCallback = (UUPeripheralScanner) -> Void
+public typealias UUPeripheralScannerStoppedCallback = (UUPeripheralScanner, Error?) -> Void
+
 public protocol UUPeripheralScanner
 {
     var isScanning: Bool { get }
     
-    func startScan(_ settings: UUBluetoothScanSettings, callback: @escaping ([UUPeripheral]) ->())
-    func stopScan()
+    var started: UUPeripheralScannerStartedCallback { get set }
+    var ended: UUPeripheralScannerStoppedCallback { get set }
+    var listChanged: UUPeripheralListChangedCallback { get set }
+    
+    func start(settings: UUBluetoothScanSettings)
+    
+    func stop()
 }
 
 public extension UUCoreBluetooth
