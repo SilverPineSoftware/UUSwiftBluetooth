@@ -5,7 +5,7 @@
 //  Created by Ryan DeVore on 12/16/24.
 //
 
-import UIKit
+import Foundation
 
 public typealias UUPeripheralListChangedCallback = (UUPeripheralScanner, [UUPeripheral]) -> Void
 public typealias UUPeripheralScannerStartedCallback = (UUPeripheralScanner) -> Void

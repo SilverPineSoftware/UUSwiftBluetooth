@@ -5,7 +5,7 @@
 //  Created by Ryan DeVore on 8/22/21.
 //
 
-import UIKit
+import Foundation
 
 private var theBluetoothDispatchQueue = DispatchQueue(label: "UUCoreBluetoothDispatchQueue", qos: .userInitiated, attributes: [], autoreleaseFrequency: .inherit, target: nil)
 

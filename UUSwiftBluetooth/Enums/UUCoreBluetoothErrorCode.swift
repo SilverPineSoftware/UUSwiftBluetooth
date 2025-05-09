@@ -5,8 +5,7 @@
 //  Created by Ryan DeVore on 8/13/21.
 //
 
-import UIKit
-
+import Foundation
 
 public enum UUCoreBluetoothErrorCode: Int
 {

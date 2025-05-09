@@ -5,7 +5,7 @@
 //  Created by Ryan DeVore on 11/25/24.
 //
 
-import UIKit
+import Foundation
 import CoreBluetooth
 import UUSwiftCore
 

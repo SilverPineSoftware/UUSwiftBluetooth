@@ -5,7 +5,7 @@
 //  Created by Ryan DeVore on 12/6/21.
 //
 
-import UIKit
+import Foundation
 import CoreBluetooth
 
 public extension UUCoreBluetooth
