@@ -1,5 +1,5 @@
 //
-//  UUBluetoothScanner.swift
+//  UUCoreBluetoothPeripheralScanner.swift
 //  UUSwiftBluetooth
 //
 //  Created by Ryan DeVore on 8/13/21.
@@ -12,14 +12,12 @@ import Combine
 
 fileprivate let LOG_TAG = "UUCoreBluetoothBleScanner"
 
-internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
+open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
 {
-    var config: UUPeripheralScannerConfig = UUPeripheralScannerConfig()
-    var started: UUPeripheralScannerStartedCallback = { _ in }
-    
-    var ended: UUPeripheralScannerStoppedCallback = { _, _ in }
-    
-    var listChanged: UUPeripheralListChangedCallback = { _, _ in }
+    public var config: UUPeripheralScannerConfig = UUPeripheralScannerConfig()
+    public var started: UUPeripheralScannerStartedCallback = { _ in }
+    public var ended: UUPeripheralScannerStoppedCallback = { _, _ in }
+    public var listChanged: UUPeripheralListChangedCallback = { _, _ in }
     
     private let centralManager: UUCentralManager
     private var nearbyPeripheralMap: [UUID: (UUPeripheral & UUPeripheralInternal)] = [:]
@@ -28,6 +26,7 @@ internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
     @Published private var nearbyPeripherals: [UUPeripheral] = []
     
     private var nearbyPeripheralSubscription: AnyCancellable? = nil
+    
     
     public required init(centralManager: UUCentralManager = UUCentralManager.shared)
     {
@@ -110,6 +109,16 @@ internal class UUCoreBluetoothBleScanner: UUPeripheralScanner
         
         centralManager.stopScan()
         notifyScanEnded(nil)
+    }
+    
+    public var peripherals: [any UUPeripheral]
+    {
+        return nearbyPeripherals
+    }
+    
+    public func getPeripheral(identifier: UUID) -> (any UUPeripheral)?
+    {
+        return nearbyPeripheralMap[identifier]
     }
     
     private func clearNearbyPeripherals()

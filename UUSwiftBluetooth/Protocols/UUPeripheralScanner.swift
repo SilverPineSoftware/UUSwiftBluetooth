@@ -15,6 +15,7 @@ public protocol UUPeripheralScanner
 {
     var isScanning: Bool { get }
     var config: UUPeripheralScannerConfig { get set }
+    var peripherals: [UUPeripheral] { get }
     
     var started: UUPeripheralScannerStartedCallback { get set }
     var ended: UUPeripheralScannerStoppedCallback { get set }
@@ -22,12 +23,14 @@ public protocol UUPeripheralScanner
     
     func start()
     func stop()
+    
+    func getPeripheral(identifier: UUID) -> UUPeripheral?
 }
 
 public extension UUCoreBluetooth
 {
     static var defaultScanner: UUPeripheralScanner
     {
-        return UUCoreBluetoothBleScanner()
+        return UUCoreBluetoothPeripheralScanner()
     }
 }
