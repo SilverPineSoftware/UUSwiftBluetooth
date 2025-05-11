@@ -10,7 +10,12 @@ import CoreBluetooth
 
 public struct UUCoreBluetooth
 {
-    public struct Defaults
+    private init() {}
+}
+
+public extension UUCoreBluetooth // Constants
+{
+    struct Defaults
     {
         public static var connectTimeout: TimeInterval = 10.0
         public static var disconnectTimeout: TimeInterval = 10.0

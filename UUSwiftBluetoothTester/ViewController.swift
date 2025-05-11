@@ -21,7 +21,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     private var tableData: [UUPeripheral] = []
     
-    private var scanner = UUCoreBluetooth.defaultScanner
+    private var scanner = UUBluetooth.scanner
     
     private var lastTableUpdate: TimeInterval = 0
     

@@ -26,11 +26,3 @@ public protocol UUPeripheralScanner
     
     func getPeripheral(identifier: UUID) -> UUPeripheral?
 }
-
-public extension UUCoreBluetooth
-{
-    static var defaultScanner: UUPeripheralScanner
-    {
-        return UUCoreBluetoothPeripheralScanner()
-    }
-}
