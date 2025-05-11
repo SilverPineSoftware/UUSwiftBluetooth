@@ -27,11 +27,11 @@ open class UUPeripheralOperation<Result>
         
         self.session = UUCoreBluetoothPeripheralSession(peripheral: peripheral)
         self.session.configuration = configuration
-        session.sessionStarted = { session in
+        session.started = { session in
             self.internalExecute()
         }
         
-        session.sessionEnded = { session, error in
+        session.ended = { session, error in
             self.operationCallback?(self.operationResult, error)
         }
     }

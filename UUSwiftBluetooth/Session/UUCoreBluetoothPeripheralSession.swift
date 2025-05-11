@@ -22,12 +22,12 @@ open class UUCoreBluetoothPeripheralSession: UUPeripheralSession
     public private(set) var discoveredDescriptors: [CBUUID:[CBDescriptor]] = [:]
     public private(set) var sessionEndError: Error? = nil
     
-    public var sessionStarted: UUPeripheralSessionStartedCallback =
+    public var started: UUPeripheralSessionStartedCallback =
     { session in
         UULog.fatal(tag: LOG_TAG, message: "Session started callback not implemented, session: \(session)")
     }
     
-    public var sessionEnded: UUPeripheralSessionEndedCallback =
+    public var ended: UUPeripheralSessionEndedCallback =
     { session, error in
         UULog.fatal(tag: LOG_TAG, message: "Session ended callback not implemented, session: \(session), error: \(String(describing: error))")
     }
@@ -277,7 +277,7 @@ fileprivate extension UUCoreBluetoothPeripheralSession
     {
         finishSessionStart
         {
-            self.sessionStarted(self)
+            self.started(self)
         }
     }
     
@@ -303,7 +303,7 @@ fileprivate extension UUCoreBluetoothPeripheralSession
             self.sessionEndError = disconnectError
         }
         
-        sessionEnded(self, self.sessionEndError)
+        ended(self, self.sessionEndError)
     }
 }
 

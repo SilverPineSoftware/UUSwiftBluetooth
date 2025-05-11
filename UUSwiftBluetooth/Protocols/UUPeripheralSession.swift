@@ -24,8 +24,8 @@ public protocol UUPeripheralSession
     var sessionEndError: Error? { get }
     
     // Callbacks
-    var sessionStarted: UUPeripheralSessionStartedCallback { get set }
-    var sessionEnded: UUPeripheralSessionEndedCallback { get set }
+    var started: UUPeripheralSessionStartedCallback { get set }
+    var ended: UUPeripheralSessionEndedCallback { get set }
     
     // Methods
     func start()
