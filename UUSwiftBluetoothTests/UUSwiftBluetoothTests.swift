@@ -24,7 +24,7 @@ final class UUSwiftBluetoothTests: XCTestCase
         let exp = uuExpectationForMethod()
         
         // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-        var scanner = UUCoreBluetooth.defaultScanner
+        var scanner = UUBluetooth.scanner
         
         let config = UUPeripheralScannerConfig()
         //settings.serviceUUIDs = []

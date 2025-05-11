@@ -56,7 +56,7 @@ final class UUPeripheralSessionTests: XCTestCase
         let endExp = uuExpectationForMethod(tag: "session_end")
         
         UUTestAddLine("Scanning for peripheral")
-        var scanner = UUCoreBluetooth.defaultScanner
+        var scanner = UUBluetooth.scanner
         let peripheralOpt = await scanner.scanForPeripheral(timeout: 10, filter: UUPeripheralNameFilter("CC2650 SensorTag"))
         let peripheral = try XCTUnwrap(peripheralOpt)
         
@@ -64,13 +64,13 @@ final class UUPeripheralSessionTests: XCTestCase
         //let session = UUCoreBluetoothPeripheralSession(peripheral: peripheral)
         let session = TiSensorTagCoreBluetoothSession(peripheral: peripheral)
         
-        session.sessionStarted =
+        session.started =
         { s in
             UUTestAddLine("Session Started")
             startExp.fulfill()
         }
         
-        session.sessionEnded =
+        session.ended =
         { s, err in
             UUTestAddLine("session ended, err: \(String(describing: err))")
             endExp.fulfill()
