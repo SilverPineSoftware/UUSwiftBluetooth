@@ -1,8 +1,8 @@
 {
   "configurations" : [
     {
-      "id" : "4E65A97B-4534-4079-8FE3-3B29651E534E",
-      "name" : "Test Scheme Action",
+      "id" : "0849FA27-9372-47B1-9A95-9E17290797DB",
+      "name" : "Configuration 1",
       "options" : {
 
       }
@@ -15,8 +15,8 @@
     {
       "target" : {
         "containerPath" : "container:UUSwiftBluetooth.xcodeproj",
-        "identifier" : "08E958322DD26C6F007A0C97",
-        "name" : "UUSwiftBluetoothLiveTests"
+        "identifier" : "08F620252C27AAD900A93EDC",
+        "name" : "UUSwiftBluetoothTests"
       }
     }
   ],

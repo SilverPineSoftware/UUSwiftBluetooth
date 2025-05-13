@@ -16,9 +16,18 @@ open class UUPeripheralScannerConfig
     /**
      Creates an instance of UUPeripheralScannerConfig
      */
-    public init()
+    public init(
+        allowDuplicates: Bool = false,
+        serviceUUIDs: [CBUUID]? = nil,
+        discoveryFilters: [UUPeripheralFilter]? = nil,
+        callbackThrottle: TimeInterval = 0.5,
+        peripheralSorting: (any UUPeripheralComparator)? = nil)
     {
-        
+        self.allowDuplicates = allowDuplicates
+        self.serviceUUIDs = serviceUUIDs
+        self.discoveryFilters = discoveryFilters
+        self.callbackThrottle = callbackThrottle
+        self.peripheralSorting = peripheralSorting
     }
     
     /**

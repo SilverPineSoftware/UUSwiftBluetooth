@@ -21,6 +21,34 @@
                ReferencedContainer = "container:UUSwiftBluetooth.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "08F620362C27BB8D00A93EDC"
+               BuildableName = "UUSwiftBluetoothTestHost.app"
+               BlueprintName = "UUSwiftBluetoothTestHost"
+               ReferencedContainer = "container:UUSwiftBluetooth.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "08E958322DD26C6F007A0C97"
+               BuildableName = "UUSwiftBluetoothLiveTests.xctest"
+               BlueprintName = "UUSwiftBluetoothLiveTests"
+               ReferencedContainer = "container:UUSwiftBluetooth.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -30,7 +58,10 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <TestPlans>
          <TestPlanReference
-            reference = "container:LiveTests.xctestplan"
+            reference = "container:LiveTests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:UnitTests.xctestplan"
             default = "YES">
          </TestPlanReference>
       </TestPlans>
