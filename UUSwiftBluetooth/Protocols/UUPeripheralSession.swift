@@ -10,6 +10,7 @@ import CoreBluetooth
 public typealias UUPeripheralSessionStartedCallback = ((any UUPeripheralSession) -> Void)
 public typealias UUPeripheralSessionEndedCallback = ((any UUPeripheralSession, Error?) -> Void)
 public typealias UUPeripheralSessionObjectErrorCallback<T> = ((any UUPeripheralSession, T?, Error?) -> Void)
+public typealias UUPeripheralSessionErrorCallback = ((any UUPeripheralSession, Error?) -> Void)
 
 public protocol UUPeripheralSession
 {
@@ -40,21 +41,18 @@ public protocol UUPeripheralSession
     
     func write(
         data: Data,
-        toCharacteristic: CBUUID,
+        to characteristic: CBUUID,
         withResponse: Bool,
-        completion: @escaping ()->(),
-        errorHandler: ((Error)->Bool)?)
+        completion: @escaping UUPeripheralSessionErrorCallback)
     
     func startListeningForDataChanges(
         from characteristic: CBUUID,
-        dataChanged: @escaping (Data?)->(),
-        completion: @escaping ()->(),
-        errorHandler: ((Error)->Bool)?)
+        dataChanged: @escaping UUPeripheralSessionObjectErrorCallback<Data>,
+        completion: @escaping UUPeripheralSessionErrorCallback)
     
     func stopListeningForDataChanges(
         from characteristic: CBUUID,
-        completion: @escaping ()->(),
-        errorHandler: ((Error)->Bool)?)
+        completion: @escaping UUPeripheralSessionErrorCallback)
 }
 
 
@@ -184,32 +182,23 @@ public extension UUPeripheralSession // Read Methods
 public extension UUPeripheralSession // Write Methods
 {
     func write(
-        data: Data,
-        toCharacteristic: CBUUID,
-        withResponse: Bool,
-        completion: @escaping ()->())
-    {
-        write(data: data, toCharacteristic: toCharacteristic, withResponse: withResponse, completion: completion, errorHandler: nil)
-    }
-    
-    func write(
         string: String,
         with encoding: String.Encoding,
         to characteristic: CBUUID,
         withResponse: Bool,
-        completion: @escaping ()->())
+        completion: @escaping UUPeripheralSessionErrorCallback)
     {
         var data = Data()
         data.uuAppend(string, encoding: encoding)
         
-        write(data: data, toCharacteristic: characteristic, withResponse: withResponse, completion: completion)
+        write(data: data, to: characteristic, withResponse: withResponse, completion: completion)
     }
     
     func writeUtf8(
         string: String,
         to characteristic: CBUUID,
         withResponse: Bool,
-        completion: @escaping ()->())
+        completion: @escaping UUPeripheralSessionErrorCallback)
     {
         write(string: string, with: .utf8, to: characteristic, withResponse: withResponse, completion: completion)
     }
@@ -218,29 +207,10 @@ public extension UUPeripheralSession // Write Methods
         integer: T,
         to characteristic: CBUUID,
         withResponse: Bool,
-        completion: @escaping ()->())
+        completion: @escaping UUPeripheralSessionErrorCallback)
     {
         var data = Data()
         data.uuAppend(integer)
-        write(data: data, toCharacteristic: characteristic, withResponse: withResponse, completion: completion)
-    }
-}
-
-public extension UUPeripheralSession // Characteristic Data Notify
-{
-    func startListeningForDataChanges(
-        from characteristic: CBUUID,
-        dataChanged: @escaping (Data?)->(),
-        completion: @escaping ()->())
-    {
-        startListeningForDataChanges(from: characteristic, dataChanged: dataChanged, completion: completion, errorHandler: nil)
-    }
-    
-    func stopListeningForDataChanges(
-        from characteristic: CBUUID,
-        completion: @escaping ()->())
-    {
-        stopListeningForDataChanges(from: characteristic, completion: completion, errorHandler: nil)
-        
+        write(data: data, to: characteristic, withResponse: withResponse, completion: completion)
     }
 }

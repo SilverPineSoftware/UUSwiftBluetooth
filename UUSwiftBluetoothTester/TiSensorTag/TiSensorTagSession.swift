@@ -284,12 +284,10 @@ public class TiSensorTagCoreBluetoothSession: UUCoreBluetoothPeripheralSession, 
     {
         startListeningForDataChanges(
             from: TiSensorTag.Keys.data,
-            dataChanged: handleKeysDataChanged, completion: completion,
-            errorHandler: { error in
-                
-                // Don't end the session if the keys data char is not available
-                return true
-            })
+            dataChanged: handleKeysDataChanged)
+            { session, error in
+                completion()
+            }
     }
     
     private func setupGyroscopeService(_ completion: @escaping ()->Void)
@@ -319,27 +317,17 @@ public class TiSensorTagCoreBluetoothSession: UUCoreBluetoothPeripheralSession, 
     private func setupTemperatureService(_ completion: @escaping ()->Void)
     {
         write(integer: UInt8(1), to: TiSensorTag.Temperature.config, withResponse: true)
-        {
+        { session, error in
+            
             self.startListeningForDataChanges(
                 from: TiSensorTag.Temperature.data,
                 dataChanged: self.handleTemperatureDataChanged,
-                completion: completion,
-                errorHandler:
-                { error in
-                    
-                    return false
-                })
+                completion:
+                    { session, error in
+                        
+                        completion()
+                    })
         }
-        
-        /*
-        writeConfiguration(
-            TiSensorTag.Temperature.config,
-            TiSensorTag.Temperature.period,
-            TiSensorTag.Temperature.data,
-            UInt8(1),
-            UInt8(10),
-            self.handleTemperatureDataChanged,
-            completion)*/
     }
     
     private func setupMovementService(_ completion: @escaping ()->Void)
@@ -399,67 +387,68 @@ public class TiSensorTagCoreBluetoothSession: UUCoreBluetoothPeripheralSession, 
         _ dataCharacteristic: CBUUID,
         _ configValue: any FixedWidthInteger,
         _ periodValue: any FixedWidthInteger,
-        _ dataChanged: @escaping (Data?) -> Void,
+        _ dataChanged: @escaping (UUPeripheralSession, Data?, Error?) -> Void,
         _ completion: @escaping ()->Void)
     {
         write(integer: configValue, to: configCharacteristic, withResponse: true)
-        {
+        { session, error in
+            
             self.write(integer: periodValue, to: periodCharacteristic, withResponse: true)
-            {
+            { session, error in
+                
                 self.startListeningForDataChanges(
                     from: dataCharacteristic,
                     dataChanged: dataChanged,
-                    completion: completion,
-                    errorHandler: { error in
-                        
-                        return false
-                    })
+                    completion:
+                        { session, error in
+                          completion()
+                        })
             }
         }
     }
     
-    private func handleKeysDataChanged(_ data: Data?)
+    private func handleKeysDataChanged(_ session: UUPeripheralSession, _ data: Data?, _ error: Error?)
     {
         NSLog("Keys data changed: \(data?.uuToHexString() ?? "nil")")
         
     }
     
-    private func handleGryoscopeDataChanged(_ data: Data?)
+    private func handleGryoscopeDataChanged(_ session: UUPeripheralSession, _ data: Data?, _ error: Error?)
     {
         NSLog("Gyroscope data changed: \(data?.uuToHexString() ?? "nil")")
     }
     
-    private func handleAccelerometerDataChanged(_ data: Data?)
+    private func handleAccelerometerDataChanged(_ session: UUPeripheralSession, _ data: Data?, _ error: Error?)
     {
         NSLog("Accelerometer data changed: \(data?.uuToHexString() ?? "nil")")
     }
     
-    private func handleTemperatureDataChanged(_ data: Data?)
+    private func handleTemperatureDataChanged(_ session: UUPeripheralSession, _ data: Data?, _ error: Error?)
     {
         NSLog("Temperature data changed: \(data?.uuToHexString() ?? "nil")")
     }
     
-    private func handleMovementDataChanged(_ data: Data?)
+    private func handleMovementDataChanged(_ session: UUPeripheralSession, _ data: Data?, _ error: Error?)
     {
         NSLog("Movement data changed: \(data?.uuToHexString() ?? "nil")")
     }
     
-    private func handleBarometerDataChanged(_ data: Data?)
+    private func handleBarometerDataChanged(_ session: UUPeripheralSession, _ data: Data?, _ error: Error?)
     {
         NSLog("Barometer data changed: \(data?.uuToHexString() ?? "nil")")
     }
     
-    private func handleHumidityDataChanged(_ data: Data?)
+    private func handleHumidityDataChanged(_ session: UUPeripheralSession, _ data: Data?, _ error: Error?)
     {
         NSLog("Humidity data changed: \(data?.uuToHexString() ?? "nil")")
     }
     
-    private func handleLightDataChanged(_ data: Data?)
+    private func handleLightDataChanged(_ session: UUPeripheralSession, _ data: Data?, _ error: Error?)
     {
         NSLog("Light data changed: \(data?.uuToHexString() ?? "nil")")
     }
     
-    private func handleMagnetometerDataChanged(_ data: Data?)
+    private func handleMagnetometerDataChanged(_ session: UUPeripheralSession, _ data: Data?, _ error: Error?)
     {
         NSLog("Magnetometer data changed: \(data?.uuToHexString() ?? "nil")")
     }
