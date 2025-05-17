@@ -34,6 +34,8 @@
 		08A7AADF26EA9A1800E7254A /* SectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AADE26EA9A1800E7254A /* SectionHeaderView.swift */; };
 		08A7AAE126EA9B9300E7254A /* ServiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AAE026EA9B9300E7254A /* ServiceView.swift */; };
 		08A7AAE326EAA48A00E7254A /* CharacteristicRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AAE226EAA48A00E7254A /* CharacteristicRowView.swift */; };
+		08AD81882DD8598200ED4E99 /* UUSwiftCore in Frameworks */ = {isa = PBXBuildFile; productRef = 08AD81872DD8598200ED4E99 /* UUSwiftCore */; };
+		08AD81892DD8598200ED4E99 /* UUSwiftCore in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 08AD81872DD8598200ED4E99 /* UUSwiftCore */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		08CD067C2DB212A5008AC79F /* ExtensionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08CD067B2DB212A5008AC79F /* ExtensionTests.swift */; };
 		08E9583D2DD26C7C007A0C97 /* UUSwiftBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */; };
 		08E9583E2DD26C7C007A0C97 /* UUSwiftBluetooth.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -111,6 +113,7 @@
 			dstSubfolderSpec = 10;
 			files = (
 				08A2093626C70E3D008F3534 /* UUSwiftBluetooth.framework in Embed Frameworks */,
+				08AD81892DD8598200ED4E99 /* UUSwiftCore in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -242,6 +245,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				08A2093526C70E3D008F3534 /* UUSwiftBluetooth.framework in Frameworks */,
+				08AD81882DD8598200ED4E99 /* UUSwiftCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1243,7 +1247,7 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SilverPineSoftware/UUSwiftCore";
 			requirement = {
-				branch = main;
+				branch = develop;
 				kind = branch;
 			};
 		};
@@ -1259,6 +1263,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 08F620302C27B72500A93EDC /* XCRemoteSwiftPackageReference "UUSwiftTestCore" */;
 			productName = UUSwiftTestCoreUX;
+		};
+		08AD81872DD8598200ED4E99 /* UUSwiftCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C5C67CCE26C60A0E004DF50D /* XCRemoteSwiftPackageReference "UUSwiftCore" */;
+			productName = UUSwiftCore;
 		};
 		08E958402DD26C81007A0C97 /* UUSwiftTestCore */ = {
 			isa = XCSwiftPackageProductDependency;
