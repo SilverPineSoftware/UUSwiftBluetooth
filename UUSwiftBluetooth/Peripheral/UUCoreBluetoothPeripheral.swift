@@ -649,6 +649,12 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         }
         
         underlyingPeripheral.writeValue(data, for: characteristic, type: .withoutResponse)
+        
+        // Immediately invoke the completion callback because write without response will not trigger a delegate callback
+        dispatchQueue.async
+        {
+            completion(self, characteristic, nil)
+        }
     }
     
     // Block based wrapper around CBPeripheral writeValue:forDesctiptor with type
