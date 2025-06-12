@@ -34,6 +34,8 @@ public protocol UUPeripheral
     func startTimer(name: String, timeout: TimeInterval, block: @escaping ()->())
     func cancelTimer(name: String)
     
+    func maximumWriteValueLength(for writeType: CBCharacteristicWriteType) -> Int
+    
     func connect(timeout: TimeInterval,
                  connected: @escaping UUPeripheralConnectedBlock,
                  disconnected: @escaping UUPeripheralDisconnectedBlock)

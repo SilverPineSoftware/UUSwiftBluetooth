@@ -112,6 +112,11 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         timerPool.cancel(by: timerId)
     }
     
+    func maximumWriteValueLength(for writeType: CBCharacteristicWriteType) -> Int
+    {
+        return underlyingPeripheral.maximumWriteValueLength(for: writeType)
+    }
+    
     
     // Block based wrapper around CBCentralManager connectPeripheral:options with a
     // timeout value.  If a negative timeout is passed there will be no timeout used.
@@ -891,7 +896,6 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     {
         cancelTimer(name: timerBucket.rawValue)
     }
-    
     
     private var canAttemptOperation: Error?
     {
