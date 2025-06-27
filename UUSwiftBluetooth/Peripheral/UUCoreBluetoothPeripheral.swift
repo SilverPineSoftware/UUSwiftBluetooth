@@ -748,39 +748,39 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         }
     }
     
-    // Convenience wrapper to perform both service and characteristic discovery at
-    // one time.  This method is useful when you know both service and characteristic
-    // UUID's ahead of time.
-    public func discover(
-        characteristics: [CBUUID]?,
-        for serviceUuid: CBUUID,
-        timeout: TimeInterval,
-        completion: @escaping UUDiscoverCharacteristicsCompletionBlock)
-    {
-        let start = Date().timeIntervalSinceReferenceDate
-        
-        discoverServices(serviceUUIDs: [serviceUuid], timeout: timeout)
-        { discoveredServices, err in
-            
-            if let error = err
-            {
-                completion(nil, error)
-                return
-            }
-            
-            guard let foundService = discoveredServices?.filter({ $0.uuid.uuidString == serviceUuid.uuidString }).first else
-            {
-                // QUESTION: Should this emit a 'service not found error'
-                completion(nil, err)
-                return
-            }
-            
-            let duration = Date().timeIntervalSinceReferenceDate - start
-            let remainingTimeout = timeout - duration
-            
-            self.discoverCharacteristics(characteristicUUIDs: characteristics, for: foundService, timeout: remainingTimeout, completion: completion)
-        }
-    }
+//    // Convenience wrapper to perform both service and characteristic discovery at
+//    // one time.  This method is useful when you know both service and characteristic
+//    // UUID's ahead of time.
+//    public func discover(
+//        characteristics: [CBUUID]?,
+//        for serviceUuid: CBUUID,
+//        timeout: TimeInterval,
+//        completion: @escaping UUDiscoverCharacteristicsCompletionBlock)
+//    {
+//        let start = Date().timeIntervalSinceReferenceDate
+//        
+//        discoverServices(serviceUUIDs: [serviceUuid], timeout: timeout)
+//        { discoveredServices, err in
+//            
+//            if let error = err
+//            {
+//                completion(nil, error)
+//                return
+//            }
+//            
+//            guard let foundService = discoveredServices?.filter({ $0.uuid.uuidString == serviceUuid.uuidString }).first else
+//            {
+//                // QUESTION: Should this emit a 'service not found error'
+//                completion(nil, err)
+//                return
+//            }
+//            
+//            let duration = Date().timeIntervalSinceReferenceDate - start
+//            let remainingTimeout = timeout - duration
+//            
+//            self.discoverCharacteristics(characteristicUUIDs: characteristics, for: foundService, timeout: remainingTimeout, completion: completion)
+//        }
+//    }
     
     
     
