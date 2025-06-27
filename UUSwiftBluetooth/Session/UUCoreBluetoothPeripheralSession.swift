@@ -50,6 +50,7 @@ open class UUCoreBluetoothPeripheralSession: UUPeripheralSession
         disconnect()
     }
     
+    /*
     public func startTimer(name: String, timeout: TimeInterval, block: @escaping ()->())
     {
         peripheral.startTimer(name: name, timeout: timeout, block: block)
@@ -158,7 +159,7 @@ open class UUCoreBluetoothPeripheralSession: UUPeripheralSession
             
             completion(self, err)
         }
-    }
+    }*/
     
     // MARK: - Private Variables
     
@@ -173,10 +174,10 @@ open class UUCoreBluetoothPeripheralSession: UUPeripheralSession
     
     // MARK: - Private Implementation
     
-    private func findDiscoveredCharacteristic(for uuid: CBUUID) -> CBCharacteristic?
-    {
-        return discoveredCharacteristics.values.flatMap { $0 }.first { $0.uuid == uuid }
-    }
+//    private func findDiscoveredCharacteristic(for uuid: CBUUID) -> CBCharacteristic?
+//    {
+//        return discoveredCharacteristics.values.flatMap { $0 }.first { $0.uuid == uuid }
+//    }
     
     
     open func finishSessionStart(_ completion: @escaping ()->())

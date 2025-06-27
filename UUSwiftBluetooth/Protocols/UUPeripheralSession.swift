@@ -58,13 +58,115 @@ public protocol UUPeripheralSession
 
 
 public extension UUPeripheralSession // Read Methods
-{
-//    func read(
-//        from characteristic: CBUUID,
-//        completion: @escaping (Data?)->())
-//    {
-//        read(from: characteristic, completion: completion, errorHandler: nil)
-//    }
+{   
+    func startTimer(name: String, timeout: TimeInterval, block: @escaping ()->())
+    {
+        peripheral.startTimer(name: name, timeout: timeout, block: block)
+    }
+    
+    func cancelTimer(name: String)
+    {
+        peripheral.cancelTimer(name: name)
+    }
+    
+    func read(
+        from characteristic: CBUUID,
+        completion: @escaping UUPeripheralSessionObjectErrorCallback<Data>)
+    {
+        guard let char = findDiscoveredCharacteristic(for: characteristic) else
+        {
+            let err = NSError.uuRequiredCharacteristicNotFoundError(characteristic)
+            completion(self, nil, err)
+            return
+        }
+        
+        peripheral.readValue(for: char, timeout: self.configuration.readTimeout)
+        { p, char, error in
+            
+            completion(self, char.value, error)
+        }
+    }
+    
+    func write(
+        data: Data,
+        to characteristic: CBUUID,
+        withResponse: Bool,
+        completion: @escaping UUPeripheralSessionErrorCallback)
+    {
+        guard let char = findDiscoveredCharacteristic(for: characteristic) else
+        {
+            let err = NSError.uuRequiredCharacteristicNotFoundError(characteristic)
+            completion(self, err)
+            return
+        }
+        
+        if (withResponse)
+        {
+            peripheral.writeValue(data: data, for: char, timeout: configuration.writeTimeout)
+            { p, char, error in
+                
+                completion(self, error)
+            }
+        }
+        else
+        {
+            peripheral.writeValueWithoutResponse(data: data, for: char)
+            { p, char, error in
+                
+                completion(self, error)
+            }
+        }
+    }
+    
+    func startListeningForDataChanges(
+        from characteristic: CBUUID,
+        dataChanged: @escaping UUPeripheralSessionObjectErrorCallback<Data>,
+        completion: @escaping UUPeripheralSessionErrorCallback)
+    {
+        guard let char = findDiscoveredCharacteristic(for: characteristic) else
+        {
+            let err = NSError.uuRequiredCharacteristicNotFoundError(characteristic)
+            completion(self, err)
+            return
+        }
+        
+        peripheral.setNotifyValue(
+            enabled: true,
+            for: char,
+            timeout: configuration.readTimeout)
+        { p, char, error in
+            
+            dataChanged(self, char.value, error)
+            
+        } completion:
+        { p, char, err in
+            
+            completion(self, err)
+        }
+    }
+    
+    func stopListeningForDataChanges(
+        from characteristic: CBUUID,
+        completion: @escaping UUPeripheralSessionErrorCallback)
+    {
+        guard let char = findDiscoveredCharacteristic(for: characteristic) else
+        {
+            let err = NSError.uuRequiredCharacteristicNotFoundError(characteristic)
+            completion(self, err)
+            return
+        }
+        
+        peripheral.setNotifyValue(enabled: false, for: char, timeout: configuration.readTimeout, notifyHandler: nil)
+        { p, char, err in
+            
+            completion(self, err)
+        }
+    }
+    
+    private func findDiscoveredCharacteristic(for uuid: CBUUID) -> CBCharacteristic?
+    {
+        return discoveredCharacteristics.values.flatMap { $0 }.first { $0.uuid == uuid }
+    }
     
     func readString(
         from characteristic: CBUUID,
