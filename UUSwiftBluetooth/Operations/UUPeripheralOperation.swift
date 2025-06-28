@@ -15,7 +15,7 @@ open class UUPeripheralOperation<Result>
 {
     public let peripheral: UUPeripheral
     
-    public private(set) var session: any UUPeripheralSession
+    public private(set) var session: UUPeripheralSession
     
     private var operationCallback: ((Result?, Error?)->())? = nil
     
@@ -25,7 +25,7 @@ open class UUPeripheralOperation<Result>
     {
         self.peripheral = peripheral
         
-        self.session = UUCoreBluetoothPeripheralSession(peripheral: peripheral)
+        self.session = UUPeripheralSession(peripheral: peripheral)
         self.session.configuration = configuration
         session.started = { session in
             self.internalExecute()

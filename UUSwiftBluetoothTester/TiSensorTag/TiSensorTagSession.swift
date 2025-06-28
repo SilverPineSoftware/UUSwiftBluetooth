@@ -234,7 +234,7 @@ public extension TiSensorTagSession // Async
 
 
 
-public class TiSensorTagCoreBluetoothSession: UUCoreBluetoothPeripheralSession, TiSensorTagSession
+public class TiSensorTagCoreBluetoothSession: UUPeripheralSession, TiSensorTagSession
 {
     public required init(peripheral: UUPeripheral)
     {

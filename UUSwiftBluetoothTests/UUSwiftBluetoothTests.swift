@@ -15,6 +15,7 @@ import CoreBluetooth
 
 final class UUSwiftBluetoothTests: XCTestCase 
 {
+    /*
     private let sniffer = UUBluetoothSniffer()
     
     func test_scanner() throws
@@ -104,7 +105,7 @@ final class UUSwiftBluetoothTests: XCTestCase
                 }
             }
         }
-    }
+    }*/
     
     func testIntSorting()
     {

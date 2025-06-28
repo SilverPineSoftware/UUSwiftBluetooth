@@ -11,5 +11,5 @@ public protocol UUBluetoothProvider
 {
     var scanner: UUPeripheralScanner { get }
     
-    func createSession(peripheral: UUPeripheral) -> UUPeripheralSession
+    //func createSession(peripheral: UUPeripheral) -> UUPeripheralSession
 }

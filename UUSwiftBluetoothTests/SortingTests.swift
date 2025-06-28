@@ -12,7 +12,7 @@ final class SortingTests: XCTestCase
 {
     private let input: [UUPeripheral] =
     [
-        MockPeripheral(
+        UUMockPeripheral(
             identifier: UUID(uuidString: "BB06F68C-AC25-476C-AC6B-16DB517E2198")!,
             rssi: -50,
             name: "A",
@@ -20,21 +20,21 @@ final class SortingTests: XCTestCase
             firstDiscoveryTime: Date(timeIntervalSinceNow: -100)
         ),
             
-         MockPeripheral(
+         UUMockPeripheral(
             identifier: UUID(uuidString: "CE54002F-3C72-4189-8663-FAD905C6D6DF")!,
             rssi: -60,
             name: "C",
             friendlyName: "C",
             firstDiscoveryTime: Date(timeIntervalSinceNow: -200)),
             
-        MockPeripheral(
+        UUMockPeripheral(
             identifier: UUID(uuidString: "DE776C44-A550-4E83-A9EA-8D5892AF3814")!,
             rssi: -70,
             name: "B",
             friendlyName: "B",
             firstDiscoveryTime: Date(timeIntervalSinceNow: -500)),
         
-        MockPeripheral(
+        UUMockPeripheral(
             identifier: UUID(uuidString: "0BC865D0-8C7F-447D-AF32-D79D1EDBFEAF")!,
             rssi: -80,
             name: "D",

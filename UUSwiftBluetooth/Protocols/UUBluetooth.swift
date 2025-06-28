@@ -27,8 +27,8 @@ public class UUBluetooth
         return provider.scanner
     }
     
-    public static func createSession(peripheral: UUPeripheral) -> UUPeripheralSession
-    {
-        return provider.createSession(peripheral: peripheral)
-    }
+//    public static func createSession(peripheral: UUPeripheral) -> UUPeripheralSession
+//    {
+//        return provider.createSession(peripheral: peripheral)
+//    }
 }
