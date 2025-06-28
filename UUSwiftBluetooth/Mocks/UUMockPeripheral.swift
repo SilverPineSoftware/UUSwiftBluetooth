@@ -14,7 +14,7 @@ public class UUMockPeripheral: UUPeripheral
 {
     public var identifier: UUID = UUID()
     
-    public var advertisement: any UUAdvertisement = UUMockAdvertisement()
+    public var advertisement: UUAdvertisement = UUAdvertisement()
     
     public var rssi: Int = 0
     
@@ -29,7 +29,7 @@ public class UUMockPeripheral: UUPeripheral
     public var services: [CBService]? = nil
     
     init(identifier: UUID = UUID(),
-         advertisement: any UUAdvertisement = UUMockAdvertisement(),
+         advertisement: UUAdvertisement = UUAdvertisement(),
          rssi: Int = 0,
          name: String = "",
          friendlyName: String = "",

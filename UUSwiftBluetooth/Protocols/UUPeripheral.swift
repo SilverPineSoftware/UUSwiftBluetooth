@@ -158,5 +158,5 @@ public extension UUPeripheral
 
 internal protocol UUPeripheralInternal
 {
-    func update(advertisement: UUBluetoothAdvertisement)
+    func update(advertisement: UUAdvertisement)
 }

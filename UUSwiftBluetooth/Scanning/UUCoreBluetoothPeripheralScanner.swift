@@ -130,12 +130,18 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
         nearbyPeripherals = []
     }
     
-    private func handleAdvertisement(advertisement: UUBluetoothAdvertisement)
+    private func handleAdvertisement(advertisement: UUAdvertisement)
     {
         defer { nearbyPeripheralMapLock.unlock() }
         nearbyPeripheralMapLock.lock()
         
-        let peripheral = nearbyPeripheralMap[advertisement.peripheral.identifier] ?? UUCoreBluetoothPeripheral(centralManager: centralManager, peripheral: advertisement.peripheral, advertisement: advertisement)
+        guard let cbPeripheral = centralManager.lookupPeripheral(advertisement.identifier) else
+        {
+            UULog.verbose(tag: LOG_TAG, message: "Unable to obtain CBPeripheral for \(advertisement.identifier)")
+            return
+        }
+        
+        let peripheral = nearbyPeripheralMap[advertisement.identifier] ?? UUCoreBluetoothPeripheral(centralManager: centralManager, peripheral: cbPeripheral, advertisement: advertisement)
         peripheral.update(advertisement: advertisement)
         
         nearbyPeripheralMap[peripheral.identifier] = peripheral

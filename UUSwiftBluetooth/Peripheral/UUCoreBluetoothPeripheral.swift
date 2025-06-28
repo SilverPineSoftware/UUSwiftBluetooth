@@ -76,7 +76,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         return underlyingPeripheral.services
     }
     
-    func update(advertisement: UUBluetoothAdvertisement)
+    func update(advertisement: UUAdvertisement)
     {
         self.advertisement = advertisement
         self.rssi = advertisement.rssi

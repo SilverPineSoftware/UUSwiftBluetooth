@@ -74,7 +74,7 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
         }
         
         UULog.debug(tag: LOG_TAG, message: "peripheral: \(peripheral), RSSI: \(RSSI), advertisement: \(advertisementData)")
-        block(UUBluetoothAdvertisement(peripheral, advertisementData, RSSI.intValue))
+        block(UUAdvertisement(peripheral.identifier, advertisementData, RSSI.intValue))
         //peripheralFoundBlock?(peripheral, advertisementData, RSSI.intValue)
     }
     

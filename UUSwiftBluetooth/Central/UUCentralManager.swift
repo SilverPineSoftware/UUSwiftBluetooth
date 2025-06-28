@@ -15,7 +15,7 @@ fileprivate let LOG_TAG = "UUCentralManager"
 
 public typealias UUCentralStateChangedBlock = ((CBManagerState)->())
 //public typealias UUPeripheralFoundBlock = ((CBPeripheral, [String:Any], Int)->())
-public typealias UUBluetoothAdvertisementBlock = ((UUBluetoothAdvertisement)->())
+public typealias UUBluetoothAdvertisementBlock = ((UUAdvertisement)->())
 public typealias UUWillRestoreStateBlock = (([String:Any])->())
 public typealias UUPeripheralListBlock = (([UUPeripheral])->())
 
@@ -85,6 +85,11 @@ public class UUCentralManager
     public func registerForCentralStateChanges(_ block: UUCentralStateChangedBlock?)
     {
         centralStateChangedBlock = block
+    }
+    
+    public func lookupPeripheral(_ identifier: UUID) -> CBPeripheral?
+    {
+        return centralManager.retrievePeripherals(withIdentifiers: [identifier]).first
     }
     
     

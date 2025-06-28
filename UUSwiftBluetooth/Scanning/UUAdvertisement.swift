@@ -1,14 +1,14 @@
 //
-//  UUMockAdvertisement.swift
+//  UUAdvertisement.swift
 //  UUSwiftBluetooth
 //
-//  Created by Ryan DeVore on 6/27/25.
+//  Created by Ryan DeVore on 12/16/24.
 //
 
 import Foundation
 import CoreBluetooth
 
-public class UUMockAdvertisement: UUAdvertisement
+public class UUAdvertisement
 {
     public var identifier: UUID = UUID()
     public var advertisementData: [String:Any] = [:]
