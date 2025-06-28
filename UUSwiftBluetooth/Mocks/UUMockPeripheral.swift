@@ -28,7 +28,7 @@ public class UUMockPeripheral: UUPeripheral
     
     public var services: [CBService]? = nil
     
-    init(identifier: UUID = UUID(),
+    public init(identifier: UUID = UUID(),
          advertisement: UUAdvertisement = UUAdvertisement(),
          rssi: Int = 0,
          name: String = "",
