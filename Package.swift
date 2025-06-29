@@ -31,7 +31,7 @@ let package = Package(
             name: "UUSwiftBluetooth",
             dependencies: ["UUSwiftCore"],
             path: "UUSwiftBluetooth",
-            exclude: ["Info.plist", "UnitTests"])
+            exclude: ["Info.plist"])
 	],
     swiftLanguageModes: [
 		.v4_2,
