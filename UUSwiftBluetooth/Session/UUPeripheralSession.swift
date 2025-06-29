@@ -45,12 +45,12 @@ open class UUPeripheralSession
     }
     
     // Methods
-    public func start()
+    open func start()
     {
         connect()
     }
     
-    public func end(error: Error?)
+    open func end(error: Error?)
     {
         sessionEndError = error
         disconnect()
