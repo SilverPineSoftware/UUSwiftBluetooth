@@ -34,7 +34,7 @@ public typealias UUPeripheralListBlock = (([UUPeripheral])->())
  */
 public class UUCentralManager
 {
-    private(set) internal var dispatchQueue = DispatchQueue(label: "UUCentralManagerQueue", qos: .userInitiated, attributes: [], autoreleaseFrequency: .inherit, target: nil)
+    private(set) internal var dispatchQueue = DispatchQueue(label: "UUCentralManagerQueue", qos: .userInteractive, attributes: [], autoreleaseFrequency: .inherit, target: nil)
     
     private var delegate: UUCentralManagerDelegate
     var centralManager: CBCentralManager
