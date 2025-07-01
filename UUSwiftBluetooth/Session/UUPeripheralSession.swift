@@ -177,8 +177,11 @@ fileprivate extension UUPeripheralSession
     
     func handleSessionStarted()
     {
+        UULog.debug(tag: LOG_TAG, message: "handleSessionStarted")
+        
         finishSessionStart
         {
+            UULog.debug(tag: LOG_TAG, message: "handleSessionStarted, notifying session started delegate")
             self.started(self)
         }
     }
@@ -259,6 +262,8 @@ fileprivate extension UUPeripheralSession
     
     private func discoverNextCharacteristics()
     {
+        UULog.debug(tag: LOG_TAG, message: "discoverNextCharacteristics, servicesNeedingCharacteristicDiscovery.count: \(servicesNeedingCharacteristicDiscovery.count)")
+        
         if (servicesNeedingCharacteristicDiscovery.isEmpty)
         {
             handleCharacteristicDiscoveryFinished()
@@ -275,6 +280,8 @@ fileprivate extension UUPeripheralSession
     
     private func handleCharacteristicDiscoveryFinished()
     {
+        UULog.debug(tag: LOG_TAG, message: "handleCharacteristicDiscoveryFinished")
+        
         logDiscoveredCharacteristics()
         startDescriptorDiscovery()
     }
@@ -298,13 +305,22 @@ fileprivate extension UUPeripheralSession
         
         let charsToDiscover = characteristicsToDiscover(for: service.uuid)
         
-        UULog.debug(tag: LOG_TAG, message: "There are \(String(describing: charsToDiscover?.count ?? 0)) characteristics to discover on service \(service.uuid)")
+        if let chars = charsToDiscover
+        {
+            UULog.debug(tag: LOG_TAG, message: "Discovering \(chars.count) characteristics to discover on service \(service.uuid), chars: \(chars.compactMap(\.uuidString))")
+        }
+        else
+        {
+            UULog.debug(tag: LOG_TAG, message: "Discovering all characteristics on service \(service.uuid)")
+        }
         
         peripheral.discoverCharacteristics(
             characteristicUUIDs: charsToDiscover,
             for: service,
             timeout: configuration.characteristicDiscoveryTimeout)
         { characteristics, error in
+            
+            UULog.debug(tag: LOG_TAG, message: "peripheral.discoverCharacteristics returned for service \(service.uuid)")
             
             if let err = error
             {
@@ -339,6 +355,8 @@ fileprivate extension UUPeripheralSession
 {
     func startDescriptorDiscovery()
     {
+        UULog.debug(tag: LOG_TAG, message: "startDescriptorDiscovery")
+        
         discoveredDescriptors.removeAll()
         characteristicsNeedingDescriptorDiscovery.append(contentsOf: discoveredCharacteristics.values.flatMap { $0 })
         discoverNextDescriptors()
@@ -346,6 +364,8 @@ fileprivate extension UUPeripheralSession
     
     private func discoverNextDescriptors()
     {
+        UULog.debug(tag: LOG_TAG, message: "discoverNextDescriptors, characteristicsNeedingDescriptorDiscovery.count: \(characteristicsNeedingDescriptorDiscovery.count)")
+        
         if (characteristicsNeedingDescriptorDiscovery.isEmpty)
         {
             handleDescriptorDiscoveryFinished()
@@ -370,10 +390,14 @@ fileprivate extension UUPeripheralSession
     {
         discoveredDescriptors[characteristic.uuid] = []
         
+        UULog.debug(tag: LOG_TAG, message: "Discovering all descriptors for characteristic \(characteristic.uuid)")
+        
         peripheral.discoverDescriptorsForCharacteristic(
             for: characteristic,
             timeout: configuration.descriptorDiscoveryTimeout)
         { descriptors, error in
+            
+            UULog.debug(tag: LOG_TAG, message: "peripheral.discoverDescriptorsForCharacteristic returned for characteristic \(characteristic.uuid)")
             
             if let err = error
             {
