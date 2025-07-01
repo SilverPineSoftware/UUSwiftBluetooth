@@ -1,0 +1,474 @@
+{
+  "name": "TI Sensor Tag",
+  "services" : [
+    {
+      "characteristics" : [
+        {
+          "name" : "System ID",
+          "properties" : [
+            "Read"
+          ],
+          "uuid" : "2A23"
+        },
+        {
+          "name" : "Model Number String",
+          "properties" : [
+            "Read"
+          ],
+          "uuid" : "2A24"
+        },
+        {
+          "name" : "Serial Number String",
+          "properties" : [
+            "Read"
+          ],
+          "uuid" : "2A25"
+        },
+        {
+          "name" : "Firmware Revision String",
+          "properties" : [
+            "Read"
+          ],
+          "uuid" : "2A26"
+        },
+        {
+          "name" : "Hardware Revision String",
+          "properties" : [
+            "Read"
+          ],
+          "uuid" : "2A27"
+        },
+        {
+          "name" : "Software Revision String",
+          "properties" : [
+            "Read"
+          ],
+          "uuid" : "2A28"
+        },
+        {
+          "name" : "Manufacturer Name String",
+          "properties" : [
+            "Read"
+          ],
+          "uuid" : "2A29"
+        },
+        {
+          "name" : "IEEE Regulatory Certification",
+          "properties" : [
+            "Read"
+          ],
+          "uuid" : "2A2A"
+        },
+        {
+          "name" : "PnP ID",
+          "properties" : [
+            "Read"
+          ],
+          "uuid" : "2A50"
+        }
+      ],
+      "name" : "Device Information",
+      "uuid" : "180A"
+    },
+    {
+      "characteristics" : [
+        {
+          "descriptors" : [
+            {
+              "name" : "Client Characteristic Configuration",
+              "uuid" : "2902"
+            },
+            {
+              "name" : "Report Reference",
+              "uuid" : "2908"
+            },
+            {
+              "name" : "Characteristic Format",
+              "uuid" : "2904"
+            }
+          ],
+          "name" : "Battery Level",
+          "properties" : [
+            "Read",
+            "Notify"
+          ],
+          "uuid" : "2A19"
+        }
+      ],
+      "name" : "Battery",
+      "uuid" : "180F"
+    },
+    {
+      "characteristics" : [
+        {
+          "descriptors" : [
+            {
+              "name" : "Client Characteristic Configuration",
+              "uuid" : "2902"
+            }
+          ],
+          "name" : "TI SensorTag Temperature Data",
+          "properties" : [
+            "Read",
+            "Notify"
+          ],
+          "uuid" : "F000AA01-0451-4000-B000-000000000000"
+        },
+        {
+          "name" : "TI SensorTag Temperature Config",
+          "properties" : [
+            "Read",
+            "Write"
+          ],
+          "uuid" : "F000AA02-0451-4000-B000-000000000000"
+        },
+        {
+          "name" : "TI SensorTag Temperature Period",
+          "properties" : [
+            "Read",
+            "Write"
+          ],
+          "uuid" : "F000AA03-0451-4000-B000-000000000000"
+        }
+      ],
+      "name" : "TI SensorTag Temperature Service",
+      "uuid" : "F000AA00-0451-4000-B000-000000000000"
+    },
+    {
+      "characteristics" : [
+        {
+          "descriptors" : [
+            {
+              "name" : "Client Characteristic Configuration",
+              "uuid" : "2902"
+            }
+          ],
+          "name" : "TI SensorTag Humidity Data",
+          "properties" : [
+            "Read",
+            "Notify"
+          ],
+          "uuid" : "F000AA21-0451-4000-B000-000000000000"
+        },
+        {
+          "name" : "TI SensorTag Humidity Config",
+          "properties" : [
+            "Read",
+            "Write"
+          ],
+          "uuid" : "F000AA22-0451-4000-B000-000000000000"
+        },
+        {
+          "name" : "TI SensorTag Humidity Period",
+          "properties" : [
+            "Read",
+            "Write"
+          ],
+          "uuid" : "F000AA23-0451-4000-B000-000000000000"
+        }
+      ],
+      "name" : "TI SensorTag Humidity Service",
+      "uuid" : "F000AA20-0451-4000-B000-000000000000"
+    },
+    {
+      "characteristics" : [
+        {
+          "descriptors" : [
+            {
+              "name" : "Client Characteristic Configuration",
+              "uuid" : "2902"
+            }
+          ],
+          "name" : "TI SensorTag Barometer Data",
+          "properties" : [
+            "Read",
+            "Notify"
+          ],
+          "uuid" : "F000AA41-0451-4000-B000-000000000000"
+        },
+        {
+          "name" : "TI SensorTag Barometer Config",
+          "properties" : [
+            "Read",
+            "Write"
+          ],
+          "uuid" : "F000AA42-0451-4000-B000-000000000000"
+        },
+        {
+          "name" : "TI SensorTag Barometer Period",
+          "properties" : [
+            "Read",
+            "Write"
+          ],
+          "uuid" : "F000AA44-0451-4000-B000-000000000000"
+        }
+      ],
+      "name" : "TI SensorTag Barometer Service",
+      "uuid" : "F000AA40-0451-4000-B000-000000000000"
+    },
+    {
+      "characteristics" : [
+        {
+          "descriptors" : [
+            {
+              "name" : "Client Characteristic Configuration",
+              "uuid" : "2902"
+            }
+          ],
+          "name" : "TI SensorTag Movement Data",
+          "properties" : [
+            "Read",
+            "Notify"
+          ],
+          "uuid" : "F000AA81-0451-4000-B000-000000000000"
+        },
+        {
+          "name" : "TI SensorTag Movement Config",
+          "properties" : [
+            "Read",
+            "Write"
+          ],
+          "uuid" : "F000AA82-0451-4000-B000-000000000000"
+        },
+        {
+          "name" : "TI SensorTag Movement Period",
+          "properties" : [
+            "Read",
+            "Write"
+          ],
+          "uuid" : "F000AA83-0451-4000-B000-000000000000"
+        }
+      ],
+      "name" : "TI SensorTag Movement Service",
+      "uuid" : "F000AA80-0451-4000-B000-000000000000"
+    },
+    {
+      "characteristics" : [
+        {
+          "descriptors" : [
+            {
+              "name" : "Client Characteristic Configuration",
+              "uuid" : "2902"
+            }
+          ],
+          "name" : "TI SensorTag Light Sensor Data",
+          "properties" : [
+            "Read",
+            "Notify"
+          ],
+          "uuid" : "F000AA71-0451-4000-B000-000000000000"
+        },
+        {
+          "name" : "TI SensorTag Light Sensor Config",
+          "properties" : [
+            "Read",
+            "Write"
+          ],
+          "uuid" : "F000AA72-0451-4000-B000-000000000000"
+        },
+        {
+          "name" : "TI SensorTag Light Sensor Period",
+          "properties" : [
+            "Read",
+            "Write"
+          ],
+          "uuid" : "F000AA73-0451-4000-B000-000000000000"
+        }
+      ],
+      "name" : "TI SensorTag Light Sensor Service",
+      "uuid" : "F000AA70-0451-4000-B000-000000000000"
+    },
+    {
+      "characteristics" : [
+        {
+          "descriptors" : [
+            {
+              "name" : "Client Characteristic Configuration",
+              "uuid" : "2902"
+            },
+            {
+              "name" : "Characteristic User Description",
+              "uuid" : "2901"
+            }
+          ],
+          "name" : "Unknown",
+          "properties" : [
+            "Notify"
+          ],
+          "uuid" : "FFE1"
+        }
+      ],
+      "name" : "Unknown",
+      "uuid" : "FFE0"
+    },
+    {
+      "characteristics" : [
+        {
+          "name" : "TI SensorTag IO Data",
+          "properties" : [
+            "Read",
+            "Write"
+          ],
+          "uuid" : "F000AA65-0451-4000-B000-000000000000"
+        },
+        {
+          "name" : "TI SensorTag IO Config",
+          "properties" : [
+            "Read",
+            "Write"
+          ],
+          "uuid" : "F000AA66-0451-4000-B000-000000000000"
+        }
+      ],
+      "name" : "TI SensorTag IO Service",
+      "uuid" : "F000AA64-0451-4000-B000-000000000000"
+    },
+    {
+      "characteristics" : [
+        {
+          "descriptors" : [
+            {
+              "name" : "Client Characteristic Configuration",
+              "uuid" : "2902"
+            }
+          ],
+          "name" : "TI SensorTag Register Data",
+          "properties" : [
+            "Read",
+            "Write",
+            "Notify"
+          ],
+          "uuid" : "F000AC01-0451-4000-B000-000000000000"
+        },
+        {
+          "name" : "TI SensorTag Register Address",
+          "properties" : [
+            "Read",
+            "Write"
+          ],
+          "uuid" : "F000AC02-0451-4000-B000-000000000000"
+        },
+        {
+          "name" : "TI SensorTag Register Device ID",
+          "properties" : [
+            "Read",
+            "Write"
+          ],
+          "uuid" : "F000AC03-0451-4000-B000-000000000000"
+        }
+      ],
+      "name" : "TI SensorTag Register Service",
+      "uuid" : "F000AC00-0451-4000-B000-000000000000"
+    },
+    {
+      "characteristics" : [
+        {
+          "descriptors" : [
+            {
+              "name" : "Client Characteristic Configuration",
+              "uuid" : "2902"
+            }
+          ],
+          "name" : "TI Connection Control Current Used Parameters",
+          "properties" : [
+            "Read",
+            "Notify"
+          ],
+          "uuid" : "F000CCC1-0451-4000-B000-000000000000"
+        },
+        {
+          "name" : "TI Connection Control Request New Parameters",
+          "properties" : [
+            "Write"
+          ],
+          "uuid" : "F000CCC2-0451-4000-B000-000000000000"
+        },
+        {
+          "name" : "TI Connection Control Disconnect Request",
+          "properties" : [
+            "Write"
+          ],
+          "uuid" : "F000CCC3-0451-4000-B000-000000000000"
+        }
+      ],
+      "name" : "TI Connection Control Service",
+      "uuid" : "F000CCC0-0451-4000-B000-000000000000"
+    },
+    {
+      "characteristics" : [
+        {
+          "descriptors" : [
+            {
+              "name" : "Client Characteristic Configuration",
+              "uuid" : "2902"
+            },
+            {
+              "name" : "Characteristic User Description",
+              "uuid" : "2901"
+            }
+          ],
+          "name" : "TI OAD Image Notify",
+          "properties" : [
+            "WriteWithoutResponse",
+            "Write",
+            "Notify"
+          ],
+          "uuid" : "F000FFC1-0451-4000-B000-000000000000"
+        },
+        {
+          "descriptors" : [
+            {
+              "name" : "Client Characteristic Configuration",
+              "uuid" : "2902"
+            },
+            {
+              "name" : "Characteristic User Description",
+              "uuid" : "2901"
+            }
+          ],
+          "name" : "TI OAD Image Block Request",
+          "properties" : [
+            "WriteWithoutResponse",
+            "Write",
+            "Notify"
+          ],
+          "uuid" : "F000FFC2-0451-4000-B000-000000000000"
+        },
+        {
+          "descriptors" : [
+            {
+              "name" : "Characteristic User Description",
+              "uuid" : "2901"
+            }
+          ],
+          "name" : "Unknown",
+          "properties" : [
+            "WriteWithoutResponse",
+            "Write"
+          ],
+          "uuid" : "F000FFC3-0451-4000-B000-000000000000"
+        },
+        {
+          "descriptors" : [
+            {
+              "name" : "Client Characteristic Configuration",
+              "uuid" : "2902"
+            },
+            {
+              "name" : "Characteristic User Description",
+              "uuid" : "2901"
+            }
+          ],
+          "name" : "Unknown",
+          "properties" : [
+            "Read",
+            "Notify"
+          ],
+          "uuid" : "F000FFC4-0451-4000-B000-000000000000"
+        }
+      ],
+      "name" : "TI OAD Service",
+      "uuid" : "F000FFC0-0451-4000-B000-000000000000"
+    }
+  ]
+}

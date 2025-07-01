@@ -10,7 +10,6 @@
 		0811F5762DC7F5460067E8E6 /* UUSwiftTestCoreUX in Frameworks */ = {isa = PBXBuildFile; productRef = 0811F5752DC7F5460067E8E6 /* UUSwiftTestCoreUX */; };
 		0811F57C2DC8661B0067E8E6 /* UUSwiftTestCoreUX in Frameworks */ = {isa = PBXBuildFile; productRef = 0811F57B2DC8661B0067E8E6 /* UUSwiftTestCoreUX */; };
 		082510732D1B04CE00E81CDE /* PeripheralImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082510722D1B04CE00E81CDE /* PeripheralImport.swift */; };
-		08393EA32DCDD55900AB110B /* SortingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08393EA22DCDD55900AB110B /* SortingTests.swift */; };
 		08393F052DD04EE800AB110B /* UUDefaultProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08393F042DD04EE800AB110B /* UUDefaultProvider.swift */; };
 		083F066A26CF512B002780A1 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 083F066926CF512B002780A1 /* SettingsViewController.swift */; };
 		0894C3AE2D1092C8009A6063 /* UUCoreBluetooth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0894C3AD2D1092C8009A6063 /* UUCoreBluetooth.swift */; };
@@ -34,14 +33,12 @@
 		08A7AAE126EA9B9300E7254A /* ServiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AAE026EA9B9300E7254A /* ServiceView.swift */; };
 		08A7AAE326EAA48A00E7254A /* CharacteristicRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A7AAE226EAA48A00E7254A /* CharacteristicRowView.swift */; };
 		08AD81882DD8598200ED4E99 /* UUSwiftCore in Frameworks */ = {isa = PBXBuildFile; productRef = 08AD81872DD8598200ED4E99 /* UUSwiftCore */; };
-		08CD067C2DB212A5008AC79F /* ExtensionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08CD067B2DB212A5008AC79F /* ExtensionTests.swift */; };
 		08E9583D2DD26C7C007A0C97 /* UUSwiftBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */; };
 		08E9583E2DD26C7C007A0C97 /* UUSwiftBluetooth.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		08E958412DD26C81007A0C97 /* UUSwiftTestCore in Frameworks */ = {isa = PBXBuildFile; productRef = 08E958402DD26C81007A0C97 /* UUSwiftTestCore */; };
 		08E958432DD26C81007A0C97 /* UUSwiftTestCoreUX in Frameworks */ = {isa = PBXBuildFile; productRef = 08E958422DD26C81007A0C97 /* UUSwiftTestCoreUX */; };
 		08ECB0A5275E728100502735 /* ReadDeviceInfoOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08ECB0A4275E728100502735 /* ReadDeviceInfoOperation.swift */; };
 		08ECB0A7275E744A00502735 /* UUCoreBluetooth+Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08ECB0A6275E744A00502735 /* UUCoreBluetooth+Constants.swift */; };
-		08F620292C27AAD900A93EDC /* UUSwiftBluetoothTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08F620282C27AAD900A93EDC /* UUSwiftBluetoothTests.swift */; };
 		08F620322C27B72500A93EDC /* UUSwiftTestCore in Frameworks */ = {isa = PBXBuildFile; productRef = 08F620312C27B72500A93EDC /* UUSwiftTestCore */; };
 		08F6203A2C27BB8D00A93EDC /* UUSwiftBluetoothTestHostApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08F620392C27BB8D00A93EDC /* UUSwiftBluetoothTestHostApp.swift */; };
 		08F6203E2C27BB8D00A93EDC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 08F6203D2C27BB8D00A93EDC /* Assets.xcassets */; };
@@ -154,7 +151,6 @@
 		0811F5772DC7F8D80067E8E6 /* UUPeripheralSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUPeripheralSessionTests.swift; sourceTree = "<group>"; };
 		0811F5792DC7FB580067E8E6 /* Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
 		082510722D1B04CE00E81CDE /* PeripheralImport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralImport.swift; sourceTree = "<group>"; };
-		08393EA22DCDD55900AB110B /* SortingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SortingTests.swift; sourceTree = "<group>"; };
 		08393F042DD04EE800AB110B /* UUDefaultProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUDefaultProvider.swift; sourceTree = "<group>"; };
 		083F066926CF512B002780A1 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		0894C3AD2D1092C8009A6063 /* UUCoreBluetooth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUCoreBluetooth.swift; sourceTree = "<group>"; };
@@ -177,12 +173,10 @@
 		08A7AADE26EA9A1800E7254A /* SectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeaderView.swift; sourceTree = "<group>"; };
 		08A7AAE026EA9B9300E7254A /* ServiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceView.swift; sourceTree = "<group>"; };
 		08A7AAE226EAA48A00E7254A /* CharacteristicRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacteristicRowView.swift; sourceTree = "<group>"; };
-		08CD067B2DB212A5008AC79F /* ExtensionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionTests.swift; sourceTree = "<group>"; };
 		08E958332DD26C6F007A0C97 /* UUSwiftBluetoothLiveTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UUSwiftBluetoothLiveTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		08ECB0A4275E728100502735 /* ReadDeviceInfoOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadDeviceInfoOperation.swift; sourceTree = "<group>"; };
 		08ECB0A6275E744A00502735 /* UUCoreBluetooth+Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UUCoreBluetooth+Constants.swift"; sourceTree = "<group>"; };
 		08F620262C27AAD900A93EDC /* UUSwiftBluetoothTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UUSwiftBluetoothTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		08F620282C27AAD900A93EDC /* UUSwiftBluetoothTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUSwiftBluetoothTests.swift; sourceTree = "<group>"; };
 		08F620372C27BB8D00A93EDC /* UUSwiftBluetoothTestHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UUSwiftBluetoothTestHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		08F620392C27BB8D00A93EDC /* UUSwiftBluetoothTestHostApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUSwiftBluetoothTestHostApp.swift; sourceTree = "<group>"; };
 		08F6203D2C27BB8D00A93EDC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -200,6 +194,27 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		08016F2C2E144FD700C0E647 /* Exceptions for "TiSensorTag" folder in "UUSwiftBluetoothTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				TiSensorTagSession.swift,
+			);
+			target = 08F620252C27AAD900A93EDC /* UUSwiftBluetoothTests */;
+		};
+		08016F2F2E14510D00C0E647 /* Exceptions for "UUSwiftBluetoothTests" folder in "UUSwiftBluetoothTestHost" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/ti_sensor_tag.json,
+			);
+			target = 08F620362C27BB8D00A93EDC /* UUSwiftBluetoothTestHost */;
+		};
+		08016F302E14510D00C0E647 /* Exceptions for "UUSwiftBluetoothTests" folder in "UUSwiftBluetoothLiveTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/ti_sensor_tag.json,
+			);
+			target = 08E958322DD26C6F007A0C97 /* UUSwiftBluetoothLiveTests */;
+		};
 		089AE4842E1049B10094C577 /* Exceptions for "TiSensorTag" folder in "UUSwiftBluetoothLiveTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -210,9 +225,19 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		08016F212E144F0300C0E647 /* UUSwiftBluetoothTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				08016F2F2E14510D00C0E647 /* Exceptions for "UUSwiftBluetoothTests" folder in "UUSwiftBluetoothTestHost" target */,
+				08016F302E14510D00C0E647 /* Exceptions for "UUSwiftBluetoothTests" folder in "UUSwiftBluetoothLiveTests" target */,
+			);
+			path = UUSwiftBluetoothTests;
+			sourceTree = "<group>";
+		};
 		0811F5812DC930510067E8E6 /* TiSensorTag */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				08016F2C2E144FD700C0E647 /* Exceptions for "TiSensorTag" folder in "UUSwiftBluetoothTests" target */,
 				089AE4842E1049B10094C577 /* Exceptions for "TiSensorTag" folder in "UUSwiftBluetoothLiveTests" target */,
 			);
 			path = TiSensorTag;
@@ -382,16 +407,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		08F620272C27AAD900A93EDC /* UUSwiftBluetoothTests */ = {
-			isa = PBXGroup;
-			children = (
-				08F620282C27AAD900A93EDC /* UUSwiftBluetoothTests.swift */,
-				08CD067B2DB212A5008AC79F /* ExtensionTests.swift */,
-				08393EA22DCDD55900AB110B /* SortingTests.swift */,
-			);
-			path = UUSwiftBluetoothTests;
-			sourceTree = "<group>";
-		};
 		08F620382C27BB8D00A93EDC /* UUSwiftBluetoothTestHost */ = {
 			isa = PBXGroup;
 			children = (
@@ -420,7 +435,7 @@
 				C5C67CC926C609D6004DF50D /* README.md */,
 				C5C67CBF26C6098F004DF50D /* UUSwiftBluetooth */,
 				08A2091F26C7092B008F3534 /* UUSwiftBluetoothTester */,
-				08F620272C27AAD900A93EDC /* UUSwiftBluetoothTests */,
+				08016F212E144F0300C0E647 /* UUSwiftBluetoothTests */,
 				08F620382C27BB8D00A93EDC /* UUSwiftBluetoothTestHost */,
 				089AE47F2E1047BB0094C577 /* UUSwiftBluetoothLiveTests */,
 				C5C67CBE26C6098F004DF50D /* Products */,
@@ -539,6 +554,9 @@
 			dependencies = (
 				08F6202C2C27AAD900A93EDC /* PBXTargetDependency */,
 				08F620462C27BB9500A93EDC /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				08016F212E144F0300C0E647 /* UUSwiftBluetoothTests */,
 			);
 			name = UUSwiftBluetoothTests;
 			packageProductDependencies = (
@@ -743,9 +761,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				08CD067C2DB212A5008AC79F /* ExtensionTests.swift in Sources */,
-				08F620292C27AAD900A93EDC /* UUSwiftBluetoothTests.swift in Sources */,
-				08393EA32DCDD55900AB110B /* SortingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

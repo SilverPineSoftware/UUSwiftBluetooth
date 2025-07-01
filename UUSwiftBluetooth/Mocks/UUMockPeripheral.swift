@@ -9,6 +9,7 @@ import Foundation
 import CoreBluetooth
 import UUSwiftCore
 
+fileprivate let LOG_TAG = "UUMockPeripheral"
 
 public class UUMockPeripheral: UUPeripheral
 {
@@ -63,7 +64,7 @@ public class UUMockPeripheral: UUPeripheral
     ///
     /// Number of seconds each api call will delay before returning an async result
     ///
-    public var mockCallbackTime: TimeInterval = 1.0
+    public var mockCallbackTime: TimeInterval = 0.01
     
     ///
     /// Mock result
@@ -71,6 +72,8 @@ public class UUMockPeripheral: UUPeripheral
     public var mockCallbackError: Error? = nil
     
     public var mockMaximumWriteValueLengths: [CBCharacteristicWriteType:Int] = [.withResponse: 20, .withoutResponse: 20]
+    
+    public var mockRssi: Int = 0
     
     private var disconnectCallback: UUPeripheralDisconnectedBlock? = nil
     private var notifyHandlers: [CBUUID:UUPeripheralCharacteristicErrorBlock] = [:]
@@ -170,26 +173,62 @@ public class UUMockPeripheral: UUPeripheral
     
     public func readValue(for characteristic: CBCharacteristic, timeout: TimeInterval, completion: @escaping UUPeripheralCharacteristicErrorBlock)
     {
+        dispatch
+        {
+            completion(self, characteristic, self.mockCallbackError)
+        }
     }
     
     public func readValue(for descriptor: CBDescriptor, timeout: TimeInterval, completion: @escaping UUPeripheralDescriptorErrorBlock)
     {
+        dispatch
+        {
+            completion(self, descriptor, self.mockCallbackError)
+        }
     }
     
     public func writeValue(data: Data, for characteristic: CBCharacteristic, timeout: TimeInterval, completion: @escaping UUPeripheralCharacteristicErrorBlock)
     {
+        dispatch
+        {
+            if let mutableChar = characteristic as? CBMutableCharacteristic
+            {
+                mutableChar.value = data
+            }
+            
+            completion(self, characteristic, self.mockCallbackError)
+        }
     }
     
     public func writeValueWithoutResponse(data: Data, for characteristic: CBCharacteristic, completion: @escaping UUPeripheralCharacteristicErrorBlock)
     {
+        dispatch
+        {
+            if let mutableChar = characteristic as? CBMutableCharacteristic
+            {
+                mutableChar.value = data
+            }
+            
+            completion(self, characteristic, self.mockCallbackError)
+        }
     }
     
     public func writeValue(data: Data, for descriptor: CBDescriptor, timeout: TimeInterval, completion: @escaping UUPeripheralDescriptorErrorBlock)
     {
+        dispatch
+        {
+            self.replaceDescriptor(descriptor, data)
+            completion(self, descriptor, self.mockCallbackError)
+        }
     }
     
     public func readRSSI(timeout: TimeInterval, completion: @escaping UUPeripheralIntegerErrorBlock)
     {
+        dispatch
+        {
+            self.rssi = self.mockRssi
+            completion(self, self.rssi, self.mockCallbackError)
+        }
     }
     
     public func openL2CAPChannel(psm: CBL2CAPPSM)
@@ -221,13 +260,52 @@ public class UUMockPeripheral: UUPeripheral
     {
         return lookupCharacteristic(uuid)?.descriptors
     }
+    
+    private func replaceDescriptor(_ descriptor: CBDescriptor, _ value: Any?)
+    {
+        for svc in self.mockServices
+        {
+            for chr in svc.characteristics ?? []
+            {
+                if let mutableChar = chr as? CBMutableCharacteristic
+                {
+                    if var descriptors = mutableChar.descriptors
+                    {
+                        if let index = descriptors.firstIndex(of: descriptor)
+                        {
+                            //chr.descriptors?[index] = CBMutableDescriptor(type: descriptor.uuid, value: value)
+                            descriptors[index] = CBMutableDescriptor(type: descriptor.uuid, value: value)
+                        }
+                        
+                        mutableChar.descriptors = descriptors
+                    }
+                }
+            }
+        }
+    }
 }
 
 public extension UUDescriptorRepresentation // Mock Support
 {
     var mockDescriptor: CBMutableDescriptor
     {
-        return CBMutableDescriptor(type: CBUUID(string: self.uuid), value: nil)
+        NSLog("descriptor: \(self.uuToJsonString())")
+        return CBMutableDescriptor(type: CBUUID(string: self.uuid), value: mockData())
+    }
+    
+    private func mockData() -> Any?
+    {
+        if (self.uuid == "2904")
+        {
+            return Data()
+        }
+        
+        if (self.uuid == "2901")
+        {
+            return String()
+        }
+        
+        return nil
     }
 }
 

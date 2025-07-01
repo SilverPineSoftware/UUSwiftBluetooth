@@ -1,0 +1,94 @@
+{
+  "name": "Atmotube PRO",
+  "services" : [
+    {
+      "characteristics" : [
+        {
+          "descriptors" : [
+            {
+              "name" : "Client Characteristic Configuration",
+              "uuid" : "2902"
+            }
+          ],
+          "name" : "SGPC3 characteristic",
+          "properties" : [
+            "Read",
+            "Notify"
+          ],
+          "uuid" : "DB450002-8E9A-4818-ADD7-6ED94A328AB4"
+        },
+        {
+          "descriptors" : [
+            {
+              "name" : "Client Characteristic Configuration",
+              "uuid" : "2902"
+            }
+          ],
+          "name" : "BME280 characteristic",
+          "properties" : [
+            "Read",
+            "Notify"
+          ],
+          "uuid" : "DB450003-8E9A-4818-ADD7-6ED94A328AB4"
+        },
+        {
+          "descriptors" : [
+            {
+              "name" : "Client Characteristic Configuration",
+              "uuid" : "2902"
+            }
+          ],
+          "name" : "Status characteristic",
+          "properties" : [
+            "Read",
+            "Notify"
+          ],
+          "uuid" : "DB450004-8E9A-4818-ADD7-6ED94A328AB4"
+        },
+        {
+          "descriptors" : [
+            {
+              "name" : "Client Characteristic Configuration",
+              "uuid" : "2902"
+            }
+          ],
+          "name" : "PM characteristic",
+          "properties" : [
+            "Read",
+            "Notify"
+          ],
+          "uuid" : "DB450005-8E9A-4818-ADD7-6ED94A328AB4"
+        }
+      ],
+      "name" : "Atmotube PRO",
+      "uuid" : "DB450001-8E9A-4818-ADD7-6ED94A328AB4"
+    },
+    {
+      "characteristics" : [
+        {
+          "name" : "UART RX characteristic",
+          "properties" : [
+            "WriteWithoutResponse",
+            "Write"
+          ],
+          "uuid" : "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
+        },
+        {
+          "descriptors" : [
+            {
+              "name" : "Client Characteristic Configuration",
+              "uuid" : "2902"
+            }
+          ],
+          "name" : "UART TX characteristic",
+          "properties" : [
+            "Notify"
+          ],
+          "uuid" : "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
+        }
+      ],
+      "name" : "UART service",
+      "uuid" : "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
+    }
+  ]
+}
