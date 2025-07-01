@@ -102,4 +102,21 @@ public extension CBCharacteristicProperties
         
         return parts.joined(separator: ", ")
     }
+    
+    init(uuDescription: [String]?)
+    {
+        var result: UInt = 0
+        
+        let allValues = CBCharacteristicProperties().uuAllValues
+        
+        for str in uuDescription ?? []
+        {
+            if let val = allValues.first(where: { $0.uuDescription() == str })
+            {
+                result |= val.rawValue
+            }
+        }
+        
+        self.init(rawValue: result)
+    }
 }

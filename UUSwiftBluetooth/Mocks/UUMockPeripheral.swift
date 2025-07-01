@@ -223,3 +223,44 @@ public class UUMockPeripheral: UUPeripheral
     }
 }
 
+public extension UUDescriptorRepresentation // Mock Support
+{
+    var mockDescriptor: CBMutableDescriptor
+    {
+        return CBMutableDescriptor(type: CBUUID(string: self.uuid), value: nil)
+    }
+}
+
+public extension UUCharacteristicRepresentation // Mock Support
+{
+    var mockCharacteristic: CBMutableCharacteristic
+    {
+        let props = CBCharacteristicProperties(uuDescription: self.properties)
+        let char = CBMutableCharacteristic(type: CBUUID(string: self.uuid), properties: props, value: nil, permissions: [])
+        char.descriptors = self.descriptors?.compactMap { $0.mockDescriptor }
+        return char
+    }
+}
+
+public extension UUServiceRepresentation // Mock Support
+{
+    var mockService: CBMutableService
+    {
+        let svc = CBMutableService(type: CBUUID(string: self.uuid), primary: self.isPrimary ?? false)
+        svc.characteristics = self.characteristics?.compactMap { $0.mockCharacteristic }
+        svc.includedServices = self.includedServices?.compactMap { $0.mockService }
+        return svc
+    }
+}
+
+public extension UUPeripheralRepresentation // Mock Support
+{
+    var mockPeripheral: UUMockPeripheral
+    {
+        let p = UUMockPeripheral()
+        p.mockServices = self.services?.compactMap(\.mockService) ?? []
+        return p
+    }
+}
+
+
