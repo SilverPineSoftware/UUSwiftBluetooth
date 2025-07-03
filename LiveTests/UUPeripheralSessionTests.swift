@@ -48,7 +48,7 @@ final class UUPeripheralSessionTests: XCTestCase
         }
     }
     
-    func testSessionConnect() async throws
+    func test_0001_sessionConnect() async throws
     {
         UUTestSetTitle("Peripheral Session Test")
         
@@ -81,7 +81,50 @@ final class UUPeripheralSessionTests: XCTestCase
         
         await fulfillment(of: [startExp], timeout: 30)
         
+        UUTestAddLine("Waiting a while...")
+        session.startTimer(name: "test", timeout: 10.0)
+        {
+            UUTestAddLine("Ending session")
+            session.end(error: nil)
+        }
+        
+        await fulfillment(of: [endExp], timeout: 30)
+        
+        UUTestAddLine("Test done")
+    }
     
+    func test_0002_discoverServices() async throws
+    {
+        UUTestSetTitle("Peripheral Session Test")
+        
+        let startExp = uuExpectationForMethod(tag: "session_start")
+        let endExp = uuExpectationForMethod(tag: "session_end")
+        
+        UUTestAddLine("Scanning for peripheral")
+        var scanner = UUBluetooth.scanner
+        let peripheralOpt = await scanner.scanForPeripheral(timeout: 10, filter: UUPeripheralNameFilter("CC2650 SensorTag"))
+        let peripheral = try XCTUnwrap(peripheralOpt)
+        
+        UUTestAddLine("Found peripheral")
+        //let session = UUCoreBluetoothPeripheralSession(peripheral: peripheral)
+        let session = TiSensorTagCoreBluetoothSession(peripheral: peripheral)
+        
+        session.started =
+        { s in
+            UUTestAddLine("Session Started")
+            startExp.fulfill()
+        }
+        
+        session.ended =
+        { s, err in
+            UUTestAddLine("session ended, err: \(String(describing: err))")
+            endExp.fulfill()
+        }
+        
+        UUTestAddLine("Starting session")
+        session.start()
+        
+        await fulfillment(of: [startExp], timeout: 30)
         
         
         UUTestAddLine("Waiting a while...")
@@ -90,8 +133,6 @@ final class UUPeripheralSessionTests: XCTestCase
             UUTestAddLine("Ending session")
             session.end(error: nil)
         }
-        
-        
         
         await fulfillment(of: [endExp], timeout: 30)
         

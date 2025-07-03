@@ -37,7 +37,7 @@ extension NSError
             }
         }
         
-        return NSError(domain: "doo", code: errorCode.rawValue, userInfo: md)
+        return NSError(domain: kUUCoreBluetoothErrorDomain, code: errorCode.rawValue, userInfo: md)
     }
     
     

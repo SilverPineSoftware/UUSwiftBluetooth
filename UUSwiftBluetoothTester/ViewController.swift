@@ -342,10 +342,10 @@ class PeripheralFilter: UUPeripheralFilter
 {
     func shouldDiscover(_ peripheral: UUPeripheral) -> Bool
     {
-        if (peripheral.friendlyName.isEmpty)
-        {
-            return false
-        }
+//        if (peripheral.friendlyName.isEmpty)
+//        {
+//            return false
+//        }
         
         return true
     }

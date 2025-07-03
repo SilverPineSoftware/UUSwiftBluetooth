@@ -8,7 +8,8 @@
 import Foundation
 import UUSwiftCore
 import UUSwiftBluetooth
-
+import UUSwiftTestCore
+import XCTest
 
 public extension UUPeripheralScanner
 {
@@ -45,6 +46,55 @@ public extension UUPeripheralScanner
                 continuation.resume(returning: nil)
             }
         }
+    }
+}
+
+public extension XCTestCase
+{
+    func scanForPeripheral(
+        scanner: UUPeripheralScanner,
+        timeout: TimeInterval,
+        filter: @escaping (UUPeripheral)->Bool) -> UUPeripheral?
+    {
+        let exp = uuExpectationForMethod()
+        
+        let timerId = "scanForPeripheralTimerId"
+        
+        let config = UUPeripheralScannerConfig()
+        config.discoveryFilters = [SinglePeripheralFilter(filter) ]
+        
+        var scanner = scanner
+        
+        var foundPeripheral: UUPeripheral? = nil
+        
+        scanner.listChanged =
+        { scanner, peripherals in
+            
+            if let p = peripherals.first
+            {
+                UUTimerPool.shared.cancel(by: timerId)
+                foundPeripheral = p
+                NSLog("Found Peripheral: \(p)")
+                scanner.stop()
+            }
+        }
+        
+        scanner.ended =
+        { scanner, error in
+            exp.fulfill()
+        }
+        
+        scanner.start()
+        
+        UUTimerPool.shared.start(identifier: timerId, timeout: 10.0, userInfo: scanner)
+        { _ in
+            
+            scanner.stop()
+        }
+        
+        uuWaitForExpectations(30.0)
+        
+        return foundPeripheral
     }
 }
 

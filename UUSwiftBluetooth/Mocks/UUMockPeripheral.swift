@@ -128,7 +128,15 @@ public class UUMockPeripheral: UUPeripheral
     {
         dispatch
         {
-            completion(self.mockServices, self.mockCallbackError)
+            // In iOS initial service discovery won't include any characteristics, so we'll extract out just
+            // the services and return them here.
+            var servicesWithNoChars: [CBMutableService]? = self.mockServices.map { CBMutableService(type: $0.uuid, primary: $0.isPrimary) }
+            if (self.mockCallbackError != nil)
+            {
+                servicesWithNoChars = nil
+            }
+            
+            completion(servicesWithNoChars, self.mockCallbackError)
         }
     }
     
@@ -136,7 +144,20 @@ public class UUMockPeripheral: UUPeripheral
     {
         dispatch
         {
-            let result = self.lookupCharacteristics(service.uuid)
+            // In iOS initial characteristic discovery won't include any descriptors, so we'll extract out just
+            // the chars and return them here.
+            //let servicesWithNoChars = self.mockServices.map { CBMutableService(type: $0.uuid, primary: $0.isPrimary) }
+            
+            let lookup = self.lookupCharacteristics(service.uuid)
+            var result = lookup?.map {
+                CBMutableCharacteristic(type: $0.uuid, properties: $0.properties, value: nil, permissions: [])
+            }
+            
+            if (self.mockCallbackError != nil)
+            {
+                result = nil
+            }
+            
             completion(result, self.mockCallbackError)
         }
     }
@@ -154,7 +175,13 @@ public class UUMockPeripheral: UUPeripheral
     {
         dispatch
         {
-            let result = self.lookupDescriptors(characteristic.uuid)
+            var result = self.lookupDescriptors(characteristic.uuid)
+            
+            if (self.mockCallbackError != nil)
+            {
+                result = nil
+            }
+            
             completion(result, self.mockCallbackError)
         }
     }
