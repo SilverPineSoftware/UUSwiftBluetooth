@@ -120,13 +120,10 @@ final class UUPeripheralSessionTests: XCTestCase
 
         wait(for: [startExp], timeout: 30)
         
-        //NSLog("Sleeping a while")
-        //testWait(5.0)
-        
         let writeExp = uuExpectationForMethod(tag: "write")
         var writeError: Error? = nil
         let data = try XCTUnwrap("ABCD".uuToHexData())
-        let char: CBUUID = CBUUID()
+        let char: CBUUID = TiSensorTag.Temperature.config
         session.write(data: data, to: char, withResponse: false)
         { session, error in
         
@@ -138,7 +135,6 @@ final class UUPeripheralSessionTests: XCTestCase
         XCTAssertNil(writeError)
         
         NSLog("Sleeping a while before ending session")
-        //testWait(5.0)
         session.end(error: nil)
 
         NSLog("Waiting for session to end")

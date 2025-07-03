@@ -157,6 +157,11 @@ public class UUMockPeripheral: UUPeripheral
             {
                 result = nil
             }
+            else if (result == nil)
+            {
+                // core blueooth when no charactistics are found for a service will return no error and an empty array
+                result = []
+            }
             
             completion(result, self.mockCallbackError)
         }
