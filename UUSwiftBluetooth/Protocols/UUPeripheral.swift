@@ -73,7 +73,7 @@ public protocol UUPeripheral
         enabled: Bool,
         for characteristic: CBCharacteristic,
         timeout: TimeInterval,
-        notifyHandler: UUPeripheralCharacteristicErrorBlock?,
+        notifyHandler: UUObjectErrorBlock<Data>?,
         completion: @escaping UUErrorBlock)
     
     func readValue(for characteristic: CBCharacteristic,

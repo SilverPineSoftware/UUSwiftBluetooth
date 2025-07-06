@@ -76,7 +76,7 @@ public class UUMockPeripheral: UUPeripheral
     public var mockRssi: Int = 0
     
     private var disconnectCallback: UUPeripheralDisconnectedBlock? = nil
-    private var notifyHandlers: [CBUUID:UUPeripheralCharacteristicErrorBlock] = [:]
+    private var notifyHandlers: [CBUUID:UUObjectErrorBlock<Data>] = [:]
     private var charNotifyMap: [CBUUID:Bool] = [:]
     
     public func startTimer(name: String, timeout: TimeInterval, block: @escaping () -> ())
@@ -217,7 +217,7 @@ public class UUMockPeripheral: UUPeripheral
         enabled: Bool,
         for characteristic: CBCharacteristic,
         timeout: TimeInterval,
-        notifyHandler: UUPeripheralCharacteristicErrorBlock?,
+        notifyHandler: UUObjectErrorBlock<Data>?,
         completion: @escaping UUErrorBlock)
     {
         dispatch

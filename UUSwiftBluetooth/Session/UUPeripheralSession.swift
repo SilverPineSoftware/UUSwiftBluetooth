@@ -136,9 +136,9 @@ open class UUPeripheralSession
             enabled: true,
             for: char,
             timeout: configuration.readTimeout)
-        { p, char, error in
+        { data, error in
             
-            dataChanged(self, char.value, error)
+            dataChanged(self, data, error)
             
         } completion:
         { err in

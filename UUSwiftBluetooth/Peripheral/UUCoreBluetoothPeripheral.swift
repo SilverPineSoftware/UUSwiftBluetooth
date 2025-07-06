@@ -448,7 +448,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         enabled: Bool,
         for characteristic: CBCharacteristic,
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
-        notifyHandler: UUPeripheralCharacteristicErrorBlock?,
+        notifyHandler: UUObjectErrorBlock<Data>?,
         completion: @escaping UUErrorBlock)
     {
         UULog.debug(tag: LOG_TAG, message: "Set Notify State for \(self.debugName), enabled: \(enabled), timeout: \(timeout), characateristic: \(characteristic)")
@@ -463,12 +463,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         if (enabled)
         {
-            let handler: UUCBPeripheralCharacteristicErrorBlock =
-            { p, characteristic, error in
-                notifyHandler?(self, characteristic, error)
-            }
-            
-            delegate.registerUpdateHandler(handler, characteristic)
+            delegate.registerUpdateHandler(for: characteristic, handler: notifyHandler)
         }
         else
         {
