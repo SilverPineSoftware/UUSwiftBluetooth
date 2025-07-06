@@ -21,7 +21,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
     
     // MARK: peripheralDidUpdateName
     
-    func testDidUpdateName() throws
+    func test_peripheralDidUpdateName_success() throws
     {
         let exp = uuExpectationForMethod()
         
@@ -56,7 +56,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         XCTAssertNotNil(delegate.peripheralNameUpdatedBlock)
     }
     
-    func testDidUpdateName_notRegistered() throws
+    func test_peripheralDidUpdateName_notRegistered() throws
     {
         let exp = uuExpectationForMethod()
         exp.isInverted = true
@@ -80,9 +80,65 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         XCTAssertNil(delegate.peripheralNameUpdatedBlock)
     }
     
+    // MARK: didModifyServices
+    
+    func test_didModifyServices_success() throws
+    {
+        let exp = uuExpectationForMethod()
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        var callbackResult: CBPeripheral? = nil
+        
+        delegate.didModifyServicesBlock =
+        { peripheral, invalidatedServices in
+            
+            callbackResult = peripheral
+            exp.fulfill()
+        }
+        
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+
+        XCTAssertNotNil(delegate.didModifyServicesBlock)
+        
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didModifyServices: [])
+        }
+        
+        uuWaitForExpectations()
+        
+        XCTAssertNotNil(callbackResult)
+        
+        XCTAssertNotNil(delegate.didModifyServicesBlock)
+    }
+    
+    func test_didModifyServices_notRegistered() throws
+    {
+        let exp = uuExpectationForMethod()
+        exp.isInverted = true
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        delegate.didModifyServicesBlock = nil
+        
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral(name: "Before"))
+
+        XCTAssertNil(delegate.didModifyServicesBlock)
+        
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didModifyServices: [])
+        }
+        
+        uuWaitForExpectations(1.0)
+        
+        XCTAssertNil(delegate.didModifyServicesBlock)
+    }
+    
     // MARK: didDiscoverServices
     
-    func testDiscoverServicesHandler_success() throws
+    func test_didDiscoverServices_success() throws
     {
         let exp = uuExpectationForMethod()
         
@@ -121,7 +177,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         XCTAssertNil(delegate.discoverServicesBlock)
     }
     
-    func testDiscoverServicesHandler_error() throws
+    func test_didDiscoverServices_error() throws
     {
         let exp = uuExpectationForMethod()
         
@@ -161,7 +217,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         XCTAssertNil(delegate.discoverServicesBlock)
     }
     
-    func testDiscoverServicesHandler_notRegistered() throws
+    func test_didDiscoverServices_notRegistered() throws
     {
         let exp = uuExpectationForMethod()
         exp.isInverted = true

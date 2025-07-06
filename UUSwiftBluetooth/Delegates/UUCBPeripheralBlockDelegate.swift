@@ -31,7 +31,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     // ////////////////////////////////////////////////////////////////////////////////////////////
     
     public var peripheralNameUpdatedBlock: UUCBPeripheralBlock? = nil
-    private var didModifyServicesBlock: UUCBPeripheralServiceListBlock? = nil
+    public var didModifyServicesBlock: UUCBPeripheralServiceListBlock? = nil
     private var didReadRssiBlock: UUCBPeripheralIntErrorBlock? = nil
     public var discoverServicesBlock: UUListErrorBlock<CBService>? = nil
     private var discoverIncludedServicesBlock: UUCBPeripheralServiceErrorBlock? = nil
@@ -53,8 +53,8 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     public func clearBlocks()
     {
         peripheralNameUpdatedBlock = nil
-        
         didModifyServicesBlock = nil
+        
         didReadRssiBlock = nil
         discoverServicesBlock = nil
         discoverIncludedServicesBlock = nil
@@ -226,6 +226,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     
     public func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService])
     {
+        // Don't clear this one because it's an async event not invoked in direct response to a method call.
         didModifyServicesBlock?(peripheral, invalidatedServices)
     }
     
