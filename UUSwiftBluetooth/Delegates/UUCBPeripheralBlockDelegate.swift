@@ -22,6 +22,7 @@ public typealias UUCBL2CapChannelOpenedBlock = ((CBPeripheral, CBL2CAPChannel?, 
 
 
 
+public typealias UUObjectErrorBlock<T> = ((T?, Error?) -> Void)
 public typealias UUListErrorBlock<T> = (([T]?, Error?) -> Void)
 
 public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
@@ -32,7 +33,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     
     public var peripheralNameUpdatedBlock: UUCBPeripheralBlock? = nil
     public var didModifyServicesBlock: UUCBPeripheralServiceListBlock? = nil
-    private var didReadRssiBlock: UUCBPeripheralIntErrorBlock? = nil
+    public var didReadRssiBlock: UUObjectErrorBlock<Int>? = nil
     public var discoverServicesBlock: UUListErrorBlock<CBService>? = nil
     private var discoverIncludedServicesBlock: UUCBPeripheralServiceErrorBlock? = nil
     private var discoverCharacteristicsBlock: UUCBPeripheralServiceErrorBlock? = nil
@@ -54,9 +55,9 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     {
         peripheralNameUpdatedBlock = nil
         didModifyServicesBlock = nil
-        
         didReadRssiBlock = nil
         discoverServicesBlock = nil
+        
         discoverIncludedServicesBlock = nil
         discoverCharacteristicsBlock = nil
         updateValueForCharacteristicBlocks.removeAll()
@@ -128,16 +129,6 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     public func clearSetNotifyValueHandler()
     {
         setNotifyValueForCharacteristicBlock = nil
-    }
-    
-    public func registerReadRssiaHandler(_ handler: UUCBPeripheralIntErrorBlock?)
-    {
-        didReadRssiBlock = handler
-    }
-    
-    public func clearReadRssiaHandler()
-    {
-        didReadRssiBlock = nil
     }
     
     public func registerDidOpenL2CAPChannelHandler(_ handler: UUCBL2CapChannelOpenedBlock?)
@@ -234,7 +225,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     {
         let block = didReadRssiBlock
         didReadRssiBlock = nil
-        block?(peripheral, RSSI.intValue, error)
+        block?(RSSI.intValue, error)
     }
     
     public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?)

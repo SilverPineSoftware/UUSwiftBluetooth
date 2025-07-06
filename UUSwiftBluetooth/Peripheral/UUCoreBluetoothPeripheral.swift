@@ -718,12 +718,12 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         let timerId = TimerId.readRssi
         
-        delegate.registerReadRssiaHandler(
-        { peripheral, rssi, error in
+        delegate.didReadRssiBlock =
+        { rssi, error in
             
             let err = self.prepareToFinishOperation(timerId, error)
-            completion(self, rssi, err)
-        })
+            completion(self, rssi ?? UUCoreBluetooth.Constants.noRssi, err)
+        }
         
         if let err = canAttemptOperation
         {

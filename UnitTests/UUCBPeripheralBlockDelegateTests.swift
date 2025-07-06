@@ -75,7 +75,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
             delegate.peripheralDidUpdateName(mockPeripheral)
         }
         
-        uuWaitForExpectations(1.0)
+        uuWaitForExpectations(0.2)
         
         XCTAssertNil(delegate.peripheralNameUpdatedBlock)
     }
@@ -131,7 +131,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
             delegate.peripheral(mockPeripheral, didModifyServices: [])
         }
         
-        uuWaitForExpectations(1.0)
+        uuWaitForExpectations(0.2)
         
         XCTAssertNil(delegate.didModifyServicesBlock)
     }
@@ -237,10 +237,120 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
             delegate.peripheral(mockPeripheral, didDiscoverServices: inputError)
         }
         
-        uuWaitForExpectations(1.0)
+        uuWaitForExpectations(0.2)
         
         XCTAssertNil(delegate.discoverServicesBlock)
     }
+    
+    
+    
+    // MARK: didReadRSSI
+    
+    func test_didReadRSSI_success() throws
+    {
+        let exp = uuExpectationForMethod()
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        var callbackResult: Int? = nil
+        var callbackError: Error? = nil
+        
+        delegate.didReadRssiBlock =
+        { rssi, err in
+            
+            callbackResult = rssi
+            callbackError = err
+            exp.fulfill()
+        }
+        
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+
+        XCTAssertNotNil(delegate.didReadRssiBlock)
+        
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didReadRSSI: NSNumber(integerLiteral: -20), error: nil)
+        }
+        
+        uuWaitForExpectations()
+        
+        XCTAssertNil(callbackError)
+        XCTAssertNotNil(callbackResult)
+        
+        let result = try XCTUnwrap(callbackResult)
+        XCTAssertEqual(-20, result)
+        
+        XCTAssertNil(delegate.didReadRssiBlock)
+    }
+    
+    func test_didReadRSSI_error() throws
+    {
+        let exp = uuExpectationForMethod()
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        var callbackResult: Int? = nil
+        var callbackError: Error? = nil
+        
+        delegate.didReadRssiBlock =
+        { rssi, err in
+            
+            callbackResult = rssi
+            callbackError = err
+            exp.fulfill()
+        }
+        
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        XCTAssertNotNil(delegate.didReadRssiBlock)
+        
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
+
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didReadRSSI: NSNumber(integerLiteral: 55), error: inputError)
+        }
+        
+        uuWaitForExpectations()
+        
+        XCTAssertNotNil(callbackError)
+        XCTAssertNotNil(callbackResult)
+        
+        let result = try XCTUnwrap(callbackError) as NSError
+        XCTAssertEqual(inputError.domain, result.domain)
+        XCTAssertEqual(inputError.code, result.code)
+        
+        let result2 = try XCTUnwrap(callbackResult)
+        XCTAssertEqual(55, result2)
+        
+        XCTAssertNil(delegate.didReadRssiBlock)
+    }
+    
+    func test_didReadRssiBlock_notRegistered() throws
+    {
+        let exp = uuExpectationForMethod()
+        exp.isInverted = true
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        delegate.didReadRssiBlock = nil
+        
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        XCTAssertNil(delegate.didReadRssiBlock)
+        
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
+
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didReadRSSI: NSNumber(integerLiteral: -20), error: inputError)
+        }
+        
+        uuWaitForExpectations(0.2)
+        
+        XCTAssertNil(delegate.didReadRssiBlock)
+    }
+    
     
 
     
