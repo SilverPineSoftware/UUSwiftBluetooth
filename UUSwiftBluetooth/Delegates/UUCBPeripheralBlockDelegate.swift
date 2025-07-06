@@ -39,8 +39,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     internal var updateValueForCharacteristicBlocks: [String:UUObjectErrorBlock<Data>] = [:]
     internal var readValueForCharacteristicBlocks: [String:UUObjectErrorBlock<Data>] = [:]
     internal var writeValueForCharacteristicBlocks: [String:UUErrorBlock] = [:]
-    internal var updateValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
-    internal var readValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
+    internal var readValueForDescriptorBlocks: [String:UUObjectErrorBlock<Any>] = [:]
     internal var writeValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
     
     
@@ -64,7 +63,6 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         updateValueForCharacteristicBlocks.removeAll()
         readValueForCharacteristicBlocks.removeAll()
         writeValueForCharacteristicBlocks.removeAll()
-        updateValueForDescriptorBlocks.removeAll()
         readValueForDescriptorBlocks.removeAll()
         writeValueForDescriptorBlocks.removeAll()
         
@@ -84,7 +82,6 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         UULog.debug(tag: LOG_TAG, message: "updateValueForCharacteristicBlocks: \(String(describing: updateValueForCharacteristicBlocks))")
         UULog.debug(tag: LOG_TAG, message: "readValueForCharacteristicBlocks: \(String(describing: readValueForCharacteristicBlocks))")
         UULog.debug(tag: LOG_TAG, message: "writeValueForCharacteristicBlocks: \(String(describing: writeValueForCharacteristicBlocks))")
-        UULog.debug(tag: LOG_TAG, message: "updateValueForDescriptorBlocks: \(String(describing: updateValueForDescriptorBlocks))")
         UULog.debug(tag: LOG_TAG, message: "readValueForDescriptorBlocks: \(String(describing: readValueForDescriptorBlocks))")
         UULog.debug(tag: LOG_TAG, message: "writeValueForDescriptorBlocks: \(String(describing: writeValueForDescriptorBlocks))")
         UULog.debug(tag: LOG_TAG, message: "setNotifyValueForCharacteristicBlock: \(String(describing: setNotifyValueForCharacteristicBlock))")
@@ -142,23 +139,15 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     {
         writeValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuid.uuidString)
     }
-    
-    public func registerUpdateHandler(_ handler: UUCBPeripheralDescriptorErrorBlock?, _ descriptor: CBDescriptor)
-    {
-        updateValueForDescriptorBlocks[descriptor.uuid.uuidString] = handler
-    }
 
-    public func removeUpdateHandler(_ descriptor: CBDescriptor)
-    {
-        updateValueForDescriptorBlocks.removeValue(forKey: descriptor.uuid.uuidString)
-    }
-
-    public func registerReadHandler(_ handler: UUCBPeripheralDescriptorErrorBlock?, _ descriptor: CBDescriptor)
+    public func registerReadHandler(
+        for descriptor: CBDescriptor,
+        handler: UUObjectErrorBlock<Any>?)
     {
         readValueForDescriptorBlocks[descriptor.uuid.uuidString] = handler
     }
 
-    public func removeReadHandler(_ descriptor: CBDescriptor)
+    public func removeReadHandler(for descriptor: CBDescriptor)
     {
         readValueForDescriptorBlocks.removeValue(forKey: descriptor.uuid.uuidString)
     }
@@ -263,15 +252,10 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     
     public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor descriptor: CBDescriptor, error: Error?)
     {
-        let key = descriptor.uuid.uuidString
-        if let updateBlock = updateValueForDescriptorBlocks[key]
+        if let readBlock = readValueForDescriptorBlocks[descriptor.uuid.uuidString]
         {
-            updateBlock(peripheral, descriptor, error)
-        }
-        
-        if let readBlock = readValueForDescriptorBlocks[key]
-        {
-            readBlock(peripheral, descriptor, error)
+            removeReadHandler(for: descriptor)
+            readBlock(descriptor.value, error)
         }
     }
     

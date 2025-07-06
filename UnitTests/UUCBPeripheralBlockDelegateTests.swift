@@ -1101,7 +1101,112 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         XCTAssertNil(delegate.writeValueForCharacteristicBlocks[mockCharacteristic.uuid.uuidString])
     }
     
+    // MARK: didUpdateValueForDescriptorRead
+    
+    func test_didUpdateValueForDescriptorRead_success() throws
+    {
+        let exp = uuExpectationForMethod(tag: "read")
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        let mockDescriptor = CBMutableDescriptor(type: CBUUID(), value: "HelloWorld")
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        var callbackResult: Any? = nil
+        var callbackError: Error? = nil
+        
+        delegate.registerReadHandler(for: mockDescriptor)
+        { data, err in
+            callbackResult = data
+            callbackError = err
+            exp.fulfill()
+        }
+        
+        XCTAssertNotNil(delegate.readValueForDescriptorBlocks[mockDescriptor.uuid.uuidString])
+        
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didUpdateValueFor: mockDescriptor, error: nil)
+        }
+        
+        uuWaitForExpectations(0.2)
+        
+        XCTAssertNotNil(callbackResult)
+        XCTAssertNil(callbackError)
+        
+        let result = try XCTUnwrap(callbackResult)
+        XCTAssertEqual("HelloWorld", result as? String)
+        
+        XCTAssertNil(delegate.readValueForCharacteristicBlocks[mockDescriptor.uuid.uuidString])
+    }
+    
+    func test_didUpdateValueForDescriptorRead_error() throws
+    {
+        let exp = uuExpectationForMethod(tag: "read")
+        let updateExp = uuExpectationForMethod(tag: "update")
+        updateExp.isInverted = true
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        let mockDescriptor = CBMutableDescriptor(type: CBUUID(), value: nil)
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        var callbackResult: Any? = nil
+        var callbackError: Error? = nil
+        
+        delegate.registerReadHandler(for: mockDescriptor)
+        { data, err in
+            callbackResult = data
+            callbackError = err
+            exp.fulfill()
+        }
+        
+        XCTAssertNotNil(delegate.readValueForDescriptorBlocks[mockDescriptor.uuid.uuidString])
+        
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
 
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didUpdateValueFor: mockDescriptor, error: inputError)
+        }
+        
+        uuWaitForExpectations(0.2)
+        
+        XCTAssertNil(callbackResult)
+        XCTAssertNotNil(callbackError)
+        
+        let result = try XCTUnwrap(callbackError) as NSError
+        XCTAssertEqual(inputError.domain, result.domain)
+        XCTAssertEqual(inputError.code, result.code)
+        
+        XCTAssertNil(delegate.readValueForDescriptorBlocks[mockDescriptor.uuid.uuidString])
+    }
+    
+    func test_didUpdateValueForDescriptorRead_notRegistered() throws
+    {
+        let exp = uuExpectationForMethod()
+        exp.isInverted = true
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        let mockDescriptor = CBMutableDescriptor(type: CBUUID(), value: nil)
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        delegate.registerReadHandler(for: mockDescriptor, handler: nil)
+        
+        XCTAssertNil(delegate.readValueForDescriptorBlocks[mockDescriptor.uuid.uuidString])
+        
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
+
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didUpdateValueFor: mockDescriptor, error: inputError)
+        }
+        
+        uuWaitForExpectations(0.2)
+        
+        XCTAssertNil(delegate.readValueForDescriptorBlocks[mockDescriptor.uuid.uuidString])
+    }
+    
+    
+    
     
     
 }

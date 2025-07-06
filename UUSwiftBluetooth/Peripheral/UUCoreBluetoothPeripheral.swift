@@ -538,20 +538,17 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     public func readValue(
         for descriptor: CBDescriptor,
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
-        completion: @escaping UUPeripheralDescriptorErrorBlock)
+        completion: @escaping UUObjectErrorBlock<Any>)
     {
         UULog.debug(tag: LOG_TAG, message: "Read value for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
         
         let timerId = TimerId.readDescriptor
         
-        delegate.registerReadHandler(
-            { peripheral, descriptor, error in
-                
-                let err = self.prepareToFinishOperation(timerId, error)
-                self.delegate.removeReadHandler(descriptor)
-                completion(self, descriptor, err)
-                
-            }, descriptor)
+        delegate.registerReadHandler(for: descriptor)
+        { data, error in
+            
+            self.finishOperation(timerId, data, error, completion)
+        }
         
         if let err = canAttemptOperation
         {

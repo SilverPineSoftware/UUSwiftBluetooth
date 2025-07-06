@@ -76,14 +76,15 @@ public protocol UUPeripheral
         notifyHandler: UUObjectErrorBlock<Data>?,
         completion: @escaping UUErrorBlock)
     
-    func readValue(for characteristic: CBCharacteristic,
-                   timeout: TimeInterval,
-                   completion: @escaping UUObjectErrorBlock<Data>)
+    func readValue(
+        for characteristic: CBCharacteristic,
+        timeout: TimeInterval,
+        completion: @escaping UUObjectErrorBlock<Data>)
     
     func readValue(
         for descriptor: CBDescriptor,
         timeout: TimeInterval,
-        completion: @escaping UUPeripheralDescriptorErrorBlock)
+        completion: @escaping UUObjectErrorBlock<Any>)
     
     func writeValue(
         data: Data,

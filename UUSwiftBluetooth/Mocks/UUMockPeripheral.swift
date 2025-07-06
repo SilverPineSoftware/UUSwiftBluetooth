@@ -241,11 +241,14 @@ public class UUMockPeripheral: UUPeripheral
         }
     }
     
-    public func readValue(for descriptor: CBDescriptor, timeout: TimeInterval, completion: @escaping UUPeripheralDescriptorErrorBlock)
+    public func readValue(
+        for descriptor: CBDescriptor,
+        timeout: TimeInterval,
+        completion: @escaping UUObjectErrorBlock<Any>)
     {
         dispatch
         {
-            completion(self, descriptor, self.mockCallbackError)
+            completion(descriptor.value, self.mockCallbackError)
         }
     }
     
