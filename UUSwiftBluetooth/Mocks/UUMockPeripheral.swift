@@ -124,7 +124,10 @@ public class UUMockPeripheral: UUPeripheral
         }
     }
     
-    public func discoverServices(serviceUUIDs: [CBUUID]?, timeout: TimeInterval, completion: @escaping UUDiscoverServicesCompletionBlock)
+    public func discoverServices(
+        serviceUUIDs: [CBUUID]?,
+        timeout: TimeInterval,
+        completion: @escaping UUListErrorBlock<CBService>)
     {
         dispatch
         {

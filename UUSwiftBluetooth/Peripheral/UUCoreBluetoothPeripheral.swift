@@ -224,7 +224,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     public func discoverServices(
         serviceUUIDs: [CBUUID]? = nil,
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
-        completion: @escaping UUDiscoverServicesCompletionBlock)
+        completion: @escaping UUListErrorBlock<CBService>)
     {
         UULog.debug(tag: LOG_TAG, message: "Discovering services for \(self.debugName), timeout: \(timeout), service list: \(String(describing: serviceUUIDs))")
         
@@ -233,8 +233,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         delegate.discoverServicesBlock =
         { services, errOpt in
             
-            //self.underlyingPeripheral = peripheral
-            self.finishDiscoverServices(timerId, services, errOpt, completion)
+            self.finishOperation(timerId, services, errOpt, completion)
         }
         
         if let err = canAttemptOperation
@@ -848,15 +847,15 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         completion(result, err)
     }
     
-    private func finishDiscoverServices(
-        _ timerBucket: TimerId,
-        _ services: [CBService]?,
-        _ error: Error?,
-        _ completion: @escaping UUDiscoverServicesCompletionBlock)
-    {
-        let err = prepareToFinishOperation(timerBucket, error)
-        completion(services, err)
-    }
+//    private func finishDiscoverServices(
+//        _ timerBucket: TimerId,
+//        _ services: [CBService]?,
+//        _ error: Error?,
+//        _ completion: @escaping UUDiscoverServicesCompletionBlock)
+//    {
+//        let err = prepareToFinishOperation(timerBucket, error)
+//        completion(services, err)
+//    }
     
     private func finishDiscoverCharacteristics(
         _ timerBucket: TimerId,
