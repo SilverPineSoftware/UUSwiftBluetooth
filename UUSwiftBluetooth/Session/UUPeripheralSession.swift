@@ -316,7 +316,7 @@ fileprivate extension UUPeripheralSession
         
         peripheral.discoverCharacteristics(
             characteristicUUIDs: charsToDiscover,
-            for: service.uuid,
+            for: service,
             timeout: configuration.characteristicDiscoveryTimeout)
         { characteristics, error in
             
@@ -393,7 +393,7 @@ fileprivate extension UUPeripheralSession
         UULog.debug(tag: LOG_TAG, message: "Discovering all descriptors for characteristic \(characteristic.uuid)")
         
         peripheral.discoverDescriptors(
-            for: characteristic.uuid,
+            for: characteristic,
             timeout: configuration.descriptorDiscoveryTimeout)
         { descriptors, error in
             

@@ -263,17 +263,10 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     // with an optional timeout value.  A negative timeout value will disable the timeout.
     public func discoverCharacteristics(
         characteristicUUIDs: [CBUUID]?,
-        for service: CBUUID,
+        for service: CBService,
         timeout: TimeInterval,
         completion: @escaping UUListErrorBlock<CBCharacteristic>)
     {
-        guard let svc = underlyingPeripheral.services?.first(where: { $0.uuid == service }) else
-        {
-            let err = NSError.uuRequiredServiceNotFoundError(service)
-            completion(nil, err)
-            return
-        }
-        
         UULog.debug(tag: LOG_TAG, message: "Discovering characteristics for \(self.debugName), timeout: \(timeout), service: \(service), characteristic list: \(String(describing: characteristicUUIDs))")
         
         let timerId = TimerId.characteristicDiscovery
@@ -286,17 +279,17 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         if let err = canAttemptOperation
         {
-            endCharacteristicDiscovery(svc, err)
+            endCharacteristicDiscovery(service, err)
             return
         }
         
         startTimer(timerId, timeout)
         {
             let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endCharacteristicDiscovery(svc, err)
+            self.endCharacteristicDiscovery(service, err)
         }
         
-        underlyingPeripheral.discoverCharacteristics(characteristicUUIDs, for: svc)
+        underlyingPeripheral.discoverCharacteristics(characteristicUUIDs, for: service)
     }
     
     private func endCharacteristicDiscovery(_ service: CBService, _ error: Error?)
@@ -311,17 +304,10 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     // with an optional timeout value.  A negative timeout value will disable the timeout.
     func discoverIncludedServices(
         includedServiceUUIDs: [CBUUID]?,
-        for service: CBUUID,
+        for service: CBService,
         timeout: TimeInterval,
         completion: @escaping UUListErrorBlock<CBService>)
     {
-        guard let svc = underlyingPeripheral.services?.first(where: { $0.uuid == service }) else
-        {
-            let err = NSError.uuRequiredServiceNotFoundError(service)
-            completion(nil, err)
-            return
-        }
-        
         UULog.debug(tag: LOG_TAG, message: "Discovering included services for \(self.debugName), timeout: \(timeout), service: \(service), service list: \(String(describing: includedServiceUUIDs))")
         
         let timerId = TimerId.includedServicesDiscovery
@@ -334,17 +320,17 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         if let err = canAttemptOperation
         {
-            endDiscoverIncludedServices(svc, err)
+            endDiscoverIncludedServices(service, err)
             return
         }
         
         startTimer(timerId, timeout)
         {
             let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endDiscoverIncludedServices(svc, err)
+            self.endDiscoverIncludedServices(service, err)
         }
         
-        underlyingPeripheral.discoverIncludedServices(includedServiceUUIDs, for: svc)
+        underlyingPeripheral.discoverIncludedServices(includedServiceUUIDs, for: service)
     }
     
     private func endDiscoverIncludedServices(_ service: CBService, _ error: Error?)
@@ -358,21 +344,11 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     // Block based wrapper around CBPeripheral discoverDescriptorsForCharacteristic,
     // with an optional timeout value.  A negative timeout value will disable the timeout.
     public func discoverDescriptors(
-        for characteristic: CBUUID,
+        for characteristic: CBCharacteristic,
         timeout: TimeInterval,
         completion: @escaping UUListErrorBlock<CBDescriptor>)
     {
         UULog.debug(tag: LOG_TAG, message: "Discovering descriptors for \(self.debugName), timeout: \(timeout), characteristic: \(characteristic)")
-        
-        let services = underlyingPeripheral.services ?? []
-        let allChars = services.flatMap { $0.characteristics ?? []}
-        
-        guard let chr = allChars.first(where: { $0.uuid == characteristic }) else
-        {
-            let err = NSError.uuRequiredCharacteristicNotFoundError(characteristic)
-            completion(nil, err)
-            return
-        }
         
         let timerId = TimerId.descriptorDiscovery
         
@@ -384,17 +360,17 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         if let err = canAttemptOperation
         {
-            endDescriptorDiscovery(chr, err)
+            endDescriptorDiscovery(characteristic, err)
             return
         }
         
         startTimer(timerId, timeout)
         {
             let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endDescriptorDiscovery(chr, err)
+            self.endDescriptorDiscovery(characteristic, err)
         }
         
-        underlyingPeripheral.discoverDescriptors(for: chr)
+        underlyingPeripheral.discoverDescriptors(for: characteristic)
     }
     
     private func endDescriptorDiscovery(_ characteristic: CBCharacteristic, _ error: Error?)
@@ -417,7 +393,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             return
         }
         
-        discoverCharacteristics(characteristicUUIDs: nil, for: nextService.uuid, timeout: timeout)
+        discoverCharacteristics(characteristicUUIDs: nil, for: nextService, timeout: timeout)
         { _, error in
             
             if let err = error

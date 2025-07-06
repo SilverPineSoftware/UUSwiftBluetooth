@@ -145,7 +145,7 @@ public class UUMockPeripheral: UUPeripheral
     
     public func discoverCharacteristics(
         characteristicUUIDs: [CBUUID]?,
-        for service: CBUUID,
+        for service: CBService,
         timeout: TimeInterval,
         completion: @escaping UUListErrorBlock<CBCharacteristic>)
     {
@@ -155,7 +155,7 @@ public class UUMockPeripheral: UUPeripheral
             // the chars and return them here.
             //let servicesWithNoChars = self.mockServices.map { CBMutableService(type: $0.uuid, primary: $0.isPrimary) }
             
-            let lookup = self.lookupCharacteristics(service)
+            let lookup = self.lookupCharacteristics(service.uuid)
             var result = lookup?.map {
                 CBMutableCharacteristic(type: $0.uuid, properties: $0.properties, value: nil, permissions: [])
             }
@@ -176,7 +176,7 @@ public class UUMockPeripheral: UUPeripheral
     
     public func discoverIncludedServices(
         includedServiceUUIDs: [CBUUID]?,
-        for service: CBUUID,
+        for service: CBService,
         timeout: TimeInterval,
         completion: @escaping UUListErrorBlock<CBService>)
     {
@@ -184,7 +184,7 @@ public class UUMockPeripheral: UUPeripheral
         {
             // In iOS initial service discovery won't include any characteristics, so we'll extract out just
             // the services and return them here.
-            let filteredServices = self.mockServices.filter { $0.uuid == service }
+            let filteredServices = self.mockServices.filter { $0.uuid == service.uuid }
             var servicesWithNoChars: [CBMutableService]? = filteredServices.map { CBMutableService(type: $0.uuid, primary: $0.isPrimary) }
             if (self.mockCallbackError != nil)
             {
@@ -196,13 +196,13 @@ public class UUMockPeripheral: UUPeripheral
     }
     
     public func discoverDescriptors(
-        for characteristic: CBUUID,
+        for characteristic: CBCharacteristic,
         timeout: TimeInterval,
         completion: @escaping UUListErrorBlock<CBDescriptor>)
     {
         dispatch
         {
-            var result = self.lookupDescriptors(characteristic)
+            var result = self.lookupDescriptors(characteristic.uuid)
             
             if (self.mockCallbackError != nil)
             {

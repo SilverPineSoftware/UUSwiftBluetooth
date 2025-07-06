@@ -48,18 +48,18 @@ public protocol UUPeripheral
     
     func discoverCharacteristics(
         characteristicUUIDs: [CBUUID]?,
-        for service: CBUUID,
+        for service: CBService,
         timeout: TimeInterval,
         completion: @escaping UUListErrorBlock<CBCharacteristic>)
     
     func discoverIncludedServices(
         includedServiceUUIDs: [CBUUID]?,
-        for service: CBUUID,
+        for service: CBService,
         timeout: TimeInterval,
         completion: @escaping UUListErrorBlock<CBService>)
     
     func discoverDescriptors(
-        for characteristic: CBUUID,
+        for characteristic: CBCharacteristic,
         timeout: TimeInterval,
         completion: @escaping UUListErrorBlock<CBDescriptor>)
     
