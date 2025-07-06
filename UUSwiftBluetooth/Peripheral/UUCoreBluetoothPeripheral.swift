@@ -366,12 +366,11 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         let timerId = TimerId.descriptorDiscovery
         
-        delegate.registerDiscoverDescriptorsHandler(
-        { peripheral, characteristic, error in
+        delegate.discoverDescriptorsBlock =
+        { descriptors, error in
             
-            self.underlyingPeripheral = peripheral
-            self.finishDiscoverDescriptors(timerId, error, characteristic, completion)
-        })
+            self.finishOperation(timerId, descriptors, error, completion)
+        }
         
         if let err = canAttemptOperation
         {

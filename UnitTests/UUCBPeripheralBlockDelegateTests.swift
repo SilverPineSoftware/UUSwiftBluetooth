@@ -572,6 +572,117 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         XCTAssertNil(delegate.discoverCharacteristicsBlock)
     }
     
+    // MARK: didDiscoverDescriptors
+    
+    func test_didDiscoverDescriptors_success() throws
+    {
+        let exp = uuExpectationForMethod()
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        var callbackResult: [CBDescriptor]? = nil
+        var callbackError: Error? = nil
+        
+        delegate.discoverDescriptorsBlock =
+        { descriptors, err in
+            
+            callbackResult = descriptors
+            callbackError = err
+            exp.fulfill()
+        }
+        
+        let mockCharacteristic = CBMutableCharacteristic(type: CBUUID(), properties: [.read, .write], value: nil, permissions: [.readable, .writeable])
+        mockCharacteristic.descriptors = [
+            CBMutableDescriptor(type: CBUUID(), value: nil),
+            CBMutableDescriptor(type: CBUUID(), value: "Hello"),
+        ]
+        
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+
+        XCTAssertNotNil(delegate.discoverDescriptorsBlock)
+        
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didDiscoverDescriptorsFor: mockCharacteristic, error: nil)
+        }
+        
+        uuWaitForExpectations()
+        
+        XCTAssertNil(callbackError)
+        XCTAssertNotNil(callbackResult)
+        
+        let result = try XCTUnwrap(callbackResult)
+        XCTAssertEqual(2, result.count)
+        
+        XCTAssertNil(delegate.discoverDescriptorsBlock)
+    }
+    
+    func test_didDiscoverDescriptors_error() throws
+    {
+        let exp = uuExpectationForMethod()
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        var callbackResult: [CBDescriptor]? = nil
+        var callbackError: Error? = nil
+        
+        delegate.discoverDescriptorsBlock =
+        { descriptors, err in
+            
+            callbackResult = descriptors
+            callbackError = err
+            exp.fulfill()
+        }
+        
+        let mockCharacteristic = CBMutableCharacteristic(type: CBUUID(), properties: [.read, .write], value: nil, permissions: [.readable, .writeable])
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        XCTAssertNotNil(delegate.discoverDescriptorsBlock)
+        
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
+
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didDiscoverDescriptorsFor: mockCharacteristic, error: inputError)
+        }
+        
+        uuWaitForExpectations()
+        
+        XCTAssertNotNil(callbackError)
+        XCTAssertNil(callbackResult)
+        
+        let result = try XCTUnwrap(callbackError) as NSError
+        XCTAssertEqual(inputError.domain, result.domain)
+        XCTAssertEqual(inputError.code, result.code)
+        
+        XCTAssertNil(delegate.discoverDescriptorsBlock)
+    }
+    
+    func test_didDiscoverDescriptors_notRegistered() throws
+    {
+        let exp = uuExpectationForMethod()
+        exp.isInverted = true
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        delegate.discoverDescriptorsBlock = nil
+        
+        let mockCharacteristic = CBMutableCharacteristic(type: CBUUID(), properties: [.read, .write], value: nil, permissions: [.readable, .writeable])
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        XCTAssertNil(delegate.discoverDescriptorsBlock)
+        
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
+
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didDiscoverDescriptorsFor: mockCharacteristic, error: inputError)
+        }
+        
+        uuWaitForExpectations(0.2)
+        
+        XCTAssertNil(delegate.discoverDescriptorsBlock)
+    }
     
 
     
