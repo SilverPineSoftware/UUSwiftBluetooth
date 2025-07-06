@@ -229,7 +229,7 @@ final class UUMockPeripheralTests: XCTestCase
         var charResult: [CBCharacteristic]? = nil
         var errorResult: Error? = nil
         
-        peripheral.discoverCharacteristics(characteristicUUIDs: nil, for: peripheral.mockServices[0].uuid, timeout: 10.0)
+        peripheral.discoverCharacteristics(characteristicUUIDs: nil, for: peripheral.mockServices[0], timeout: 10.0)
         { operationResult, operationError in
             charResult = operationResult
             errorResult = operationError
@@ -258,7 +258,7 @@ final class UUMockPeripheralTests: XCTestCase
         var errorResult: Error? = nil
         
         let fakeService = CBMutableService(type: CBUUID(), primary: false)
-        peripheral.discoverCharacteristics(characteristicUUIDs: nil, for: fakeService.uuid, timeout: 10.0)
+        peripheral.discoverCharacteristics(characteristicUUIDs: nil, for: fakeService, timeout: 10.0)
         { operationResult, operationError in
             charResult = operationResult
             errorResult = operationError
