@@ -36,12 +36,12 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     public var discoverDescriptorsBlock: UUListErrorBlock<CBDescriptor>? = nil
     public var setNotifyValueForCharacteristicBlock: UUErrorBlock? = nil
     
-    private var updateValueForCharacteristicBlocks: [String:UUCBPeripheralCharacteristicErrorBlock] = [:]
-    private var readValueForCharacteristicBlocks: [String:UUCBPeripheralCharacteristicErrorBlock] = [:]
-    private var writeValueForCharacteristicBlocks: [String:UUCBPeripheralCharacteristicErrorBlock] = [:]
-    private var updateValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
-    private var readValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
-    private var writeValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
+    internal var updateValueForCharacteristicBlocks: [String:UUCBPeripheralCharacteristicErrorBlock] = [:]
+    internal var readValueForCharacteristicBlocks: [String:UUObjectErrorBlock<Data>] = [:]
+    internal var writeValueForCharacteristicBlocks: [String:UUCBPeripheralCharacteristicErrorBlock] = [:]
+    internal var updateValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
+    internal var readValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
+    internal var writeValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
     
     
     private var didOpenL2ChannelBlock: UUCBL2CapChannelOpenedBlock? = nil
@@ -114,13 +114,16 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         updateValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuid.uuidString)
     }
 
-    public func registerReadHandler(_ handler: UUCBPeripheralCharacteristicErrorBlock?, _ characteristic: CBCharacteristic)
+    public func registerReadHandler(
+        for characteristic: CBCharacteristic,
+        handler: UUObjectErrorBlock<Data>?)
     {
         UULog.verbose(tag: LOG_TAG, message: "Adding Read Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
         readValueForCharacteristicBlocks[characteristic.uuid.uuidString] = handler
     }
 
-    public func removeReadHandler(_ characteristic: CBCharacteristic)
+    public func removeReadHandler(
+        for characteristic: CBCharacteristic)
     {
         UULog.verbose(tag: LOG_TAG, message: "Removing Read Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
         readValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuid.uuidString)
@@ -219,13 +222,15 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         if let updateBlock = updateValueForCharacteristicBlocks[key]
         {
             UULog.verbose(tag: LOG_TAG, message: "Invoking Update Block for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
+            // Do not clear the block because updates can come in async
             updateBlock(peripheral, characteristic, error)
         }
         
         if let readBlock = readValueForCharacteristicBlocks[key]
         {
             UULog.verbose(tag: LOG_TAG, message: "Invoking Read Block for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
-            readBlock(peripheral, characteristic, error)
+            removeReadHandler(for: characteristic)
+            readBlock(characteristic.value, error)
         }
     }
     

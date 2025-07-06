@@ -230,11 +230,14 @@ public class UUMockPeripheral: UUPeripheral
         }
     }
     
-    public func readValue(for characteristic: CBCharacteristic, timeout: TimeInterval, completion: @escaping UUPeripheralCharacteristicErrorBlock)
+    public func readValue(
+        for characteristic: CBCharacteristic,
+        timeout: TimeInterval,
+        completion: @escaping UUObjectErrorBlock<Data>)
     {
         dispatch
         {
-            completion(self, characteristic, self.mockCallbackError)
+            completion(characteristic.value, self.mockCallbackError)
         }
     }
     

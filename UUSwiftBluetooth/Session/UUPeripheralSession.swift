@@ -83,9 +83,9 @@ open class UUPeripheralSession
         }
         
         peripheral.readValue(for: char, timeout: self.configuration.readTimeout)
-        { p, char, error in
+        { data, error in
             
-            completion(self, char.value, error)
+            completion(self, data, error)
         }
     }
     

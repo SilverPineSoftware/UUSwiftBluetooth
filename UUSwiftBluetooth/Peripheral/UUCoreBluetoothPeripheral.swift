@@ -502,22 +502,18 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     // optional timeout value.  A negative timeout value will disable the timeout.
     public func readValue(
         for characteristic: CBCharacteristic,
-        timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
-        completion: @escaping UUPeripheralCharacteristicErrorBlock)
+        timeout: TimeInterval,
+        completion: @escaping UUObjectErrorBlock<Data>)
     {
         UULog.debug(tag: LOG_TAG, message: "Read value for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
         
         let timerId = TimerId.readCharacteristic
         
-        delegate.registerReadHandler(
-            { peripheral, characteristic, error in
-                
-                let err = self.prepareToFinishOperation(timerId, error)
-                
-                self.delegate.removeReadHandler(characteristic)
-                completion(self, characteristic, err)
-                
-            }, characteristic)
+        delegate.registerReadHandler(for: characteristic)
+        { data, error in
+            
+            self.finishOperation(timerId, data, error, completion)
+        }
         
         startTimer(timerId, timeout)
         {

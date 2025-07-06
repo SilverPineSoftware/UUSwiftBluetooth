@@ -78,7 +78,7 @@ public protocol UUPeripheral
     
     func readValue(for characteristic: CBCharacteristic,
                    timeout: TimeInterval,
-                   completion: @escaping UUPeripheralCharacteristicErrorBlock)
+                   completion: @escaping UUObjectErrorBlock<Data>)
     
     func readValue(
         for descriptor: CBDescriptor,
