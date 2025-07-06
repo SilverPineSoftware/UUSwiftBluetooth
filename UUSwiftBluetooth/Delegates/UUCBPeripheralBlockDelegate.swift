@@ -268,6 +268,20 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         }
     }
     
+    /**
+     *  @method peripheralIsReadyToSendWriteWithoutResponse:
+     *
+     *  @param peripheral   The peripheral providing this update.
+     *
+     *  @discussion         This method is invoked after a failed call to @link writeValue:forCharacteristic:type: @/link, when <i>peripheral</i> is again
+     *                      ready to send characteristic value updates.
+     *
+     */
+//    public func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral)
+//    {
+//     // TODO: implement this
+//    }
+    
     public func peripheral(_ peripheral: CBPeripheral, didOpen channel: CBL2CAPChannel?, error: Error?)
     {
         didOpenL2ChannelBlock?(peripheral, channel, error)
