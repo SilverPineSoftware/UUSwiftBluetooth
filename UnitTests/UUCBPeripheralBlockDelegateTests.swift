@@ -11,42 +11,9 @@ import CoreBluetooth
 
 final class UUCBPeripheralBlockDelegateTests: XCTestCase
 {
-    private func makePeripheral(
-        uuid: UUID? = nil,
-        name: String? = nil,
-        services: [CBMutableService]? = nil) -> CBPeripheral?
-    {
-        let peripheralClass = NSClassFromString("CBPeripheral") as? NSObject.Type
-        guard let peripheral = peripheralClass?.init() as? CBPeripheral else
-        {
-            return nil
-        }
-
-        peripheral.addObserver(peripheral, forKeyPath: "delegate", options: [], context: nil)
-        
-        // Use KVC to set some properties
-        
-        if let uuid = uuid
-        {
-            peripheral.setValue(uuid, forKey: "identifier")
-        }
-        
-        if let name = name
-        {
-            peripheral.setValue(name, forKey: "name")
-        }
-        
-        if let services = services
-        {
-            peripheral.setValue(services, forKey: "services")
-        }
-        
-        return peripheral
-    }
-    
     func testMakeMockCBPeripheral() throws
     {
-        let mockPeripheral = try XCTUnwrap(makePeripheral())
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
         XCTAssertNotNil(mockPeripheral)
     }
     
@@ -69,7 +36,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         
         let mockService = CBMutableService(type: CBUUID(), primary: true)
         
-        let mockPeripheral = try XCTUnwrap(makePeripheral(services: [mockService]))
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral(services: [mockService]))
 
         DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
         {
@@ -102,7 +69,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
             exp.fulfill()
         }
         
-        let mockPeripheral = try XCTUnwrap(makePeripheral())
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
         
         let inputError = NSError(domain: "test", code: 1, userInfo: nil)
 
