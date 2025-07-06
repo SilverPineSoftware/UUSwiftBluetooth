@@ -74,7 +74,7 @@ public protocol UUPeripheral
         for characteristic: CBCharacteristic,
         timeout: TimeInterval,
         notifyHandler: UUPeripheralCharacteristicErrorBlock?,
-        completion: @escaping UUPeripheralCharacteristicErrorBlock)
+        completion: @escaping UUErrorBlock)
     
     func readValue(for characteristic: CBCharacteristic,
                    timeout: TimeInterval,

@@ -684,6 +684,105 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         XCTAssertNil(delegate.discoverDescriptorsBlock)
     }
     
+    
+    // MARK: didUpdateNotificationState
+    
+    func test_didUpdateNotificationState_success() throws
+    {
+        let exp = uuExpectationForMethod()
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        var callbackError: Error? = nil
+        
+        delegate.setNotifyValueForCharacteristicBlock =
+        { err in
+            
+            callbackError = err
+            exp.fulfill()
+        }
+        
+        let mockCharacteristic = CBMutableCharacteristic(type: CBUUID(), properties: [.read, .write], value: nil, permissions: [.readable, .writeable])
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+
+        XCTAssertNotNil(delegate.setNotifyValueForCharacteristicBlock)
+        
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didUpdateNotificationStateFor: mockCharacteristic, error: nil)
+        }
+        
+        uuWaitForExpectations()
+        
+        XCTAssertNil(callbackError)
+        
+        XCTAssertNil(delegate.setNotifyValueForCharacteristicBlock)
+    }
+    
+    func test_didUpdateNotificationState_error() throws
+    {
+        let exp = uuExpectationForMethod()
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        var callbackError: Error? = nil
+        
+        delegate.setNotifyValueForCharacteristicBlock =
+        { err in
+            
+            callbackError = err
+            exp.fulfill()
+        }
+        
+        let mockCharacteristic = CBMutableCharacteristic(type: CBUUID(), properties: [.read, .write], value: nil, permissions: [.readable, .writeable])
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        XCTAssertNotNil(delegate.discoverDescriptorsBlock)
+        
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
+
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didUpdateNotificationStateFor: mockCharacteristic, error: inputError)
+        }
+        
+        uuWaitForExpectations()
+        
+        XCTAssertNotNil(callbackError)
+        
+        let result = try XCTUnwrap(callbackError) as NSError
+        XCTAssertEqual(inputError.domain, result.domain)
+        XCTAssertEqual(inputError.code, result.code)
+        
+        XCTAssertNil(delegate.setNotifyValueForCharacteristicBlock)
+    }
+    
+    func test_didUpdateNotificationState_notRegistered() throws
+    {
+        let exp = uuExpectationForMethod()
+        exp.isInverted = true
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        delegate.setNotifyValueForCharacteristicBlock = nil
+        
+        let mockCharacteristic = CBMutableCharacteristic(type: CBUUID(), properties: [.read, .write], value: nil, permissions: [.readable, .writeable])
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        XCTAssertNil(delegate.setNotifyValueForCharacteristicBlock)
+        
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
+
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didUpdateNotificationStateFor: mockCharacteristic, error: inputError)
+        }
+        
+        uuWaitForExpectations(0.2)
+        
+        XCTAssertNil(delegate.setNotifyValueForCharacteristicBlock)
+    }
+    
 
     
     

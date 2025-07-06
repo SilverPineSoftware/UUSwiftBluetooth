@@ -141,7 +141,7 @@ open class UUPeripheralSession
             dataChanged(self, char.value, error)
             
         } completion:
-        { p, char, err in
+        { err in
             
             completion(self, err)
         }
@@ -159,7 +159,7 @@ open class UUPeripheralSession
         }
         
         peripheral.setNotifyValue(enabled: false, for: char, timeout: configuration.readTimeout, notifyHandler: nil)
-        { p, char, err in
+        { err in
             
             completion(self, err)
         }

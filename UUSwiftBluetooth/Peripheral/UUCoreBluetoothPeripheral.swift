@@ -449,17 +449,17 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         for characteristic: CBCharacteristic,
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
         notifyHandler: UUPeripheralCharacteristicErrorBlock?,
-        completion: @escaping UUPeripheralCharacteristicErrorBlock)
+        completion: @escaping UUErrorBlock)
     {
         UULog.debug(tag: LOG_TAG, message: "Set Notify State for \(self.debugName), enabled: \(enabled), timeout: \(timeout), characateristic: \(characteristic)")
         
         let timerId = TimerId.characteristicNotifyState
         
-        delegate.registerSetNotifyValueHandler(
-        { peripheral, characteristic, error in
+        delegate.setNotifyValueForCharacteristicBlock =
+        { error in
             
-            self.finishOperation(timerId, peripheral, characteristic, error, completion)
-        })
+            self.finishOperation(timerId, error, completion)
+        }
         
         if (enabled)
         {
@@ -817,6 +817,15 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         completion(self, characteristic, err)
     }
     
+    
+    private func finishOperation(
+        _ timerBucket: TimerId,
+        _ error: Error?,
+        _ completion: @escaping UUErrorBlock)
+    {
+        let err = prepareToFinishOperation(timerBucket, error)
+        completion(err)
+    }
     
     private func finishOperation<T>(
         _ timerBucket: TimerId,

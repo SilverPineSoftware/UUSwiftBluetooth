@@ -34,6 +34,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     public var discoverIncludedServicesBlock: UUListErrorBlock<CBService>? = nil
     public var discoverCharacteristicsBlock: UUListErrorBlock<CBCharacteristic>? = nil
     public var discoverDescriptorsBlock: UUListErrorBlock<CBDescriptor>? = nil
+    public var setNotifyValueForCharacteristicBlock: UUErrorBlock? = nil
     
     private var updateValueForCharacteristicBlocks: [String:UUCBPeripheralCharacteristicErrorBlock] = [:]
     private var readValueForCharacteristicBlocks: [String:UUCBPeripheralCharacteristicErrorBlock] = [:]
@@ -41,7 +42,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     private var updateValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
     private var readValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
     private var writeValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
-    private var setNotifyValueForCharacteristicBlock: UUCBPeripheralCharacteristicErrorBlock? = nil
+    
     
     private var didOpenL2ChannelBlock: UUCBL2CapChannelOpenedBlock? = nil
     
@@ -57,6 +58,8 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         discoverServicesBlock = nil
         discoverIncludedServicesBlock = nil
         discoverCharacteristicsBlock = nil
+        discoverDescriptorsBlock = nil
+        setNotifyValueForCharacteristicBlock = nil
         
         updateValueForCharacteristicBlocks.removeAll()
         readValueForCharacteristicBlocks.removeAll()
@@ -64,8 +67,8 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         updateValueForDescriptorBlocks.removeAll()
         readValueForDescriptorBlocks.removeAll()
         writeValueForDescriptorBlocks.removeAll()
-        setNotifyValueForCharacteristicBlock = nil
-        discoverDescriptorsBlock = nil
+        
+        
         
         didOpenL2ChannelBlock = nil
     }
@@ -89,16 +92,6 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         UULog.debug(tag: LOG_TAG, message: "didOpenL2ChannelBlock: \(String(describing: didOpenL2ChannelBlock))")
     }
 
-    public func registerSetNotifyValueHandler(_ handler: UUCBPeripheralCharacteristicErrorBlock?)
-    {
-        setNotifyValueForCharacteristicBlock = handler
-    }
-    
-    public func clearSetNotifyValueHandler()
-    {
-        setNotifyValueForCharacteristicBlock = nil
-    }
-    
     public func registerDidOpenL2CAPChannelHandler(_ handler: UUCBL2CapChannelOpenedBlock?)
     {
         didOpenL2ChannelBlock = handler
@@ -248,7 +241,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     {
         let block = setNotifyValueForCharacteristicBlock
         setNotifyValueForCharacteristicBlock = nil
-        block?(peripheral, characteristic, error)
+        block?(error)
     }
     
     public func peripheral(_ peripheral: CBPeripheral, didDiscoverDescriptorsFor characteristic: CBCharacteristic, error: Error?)

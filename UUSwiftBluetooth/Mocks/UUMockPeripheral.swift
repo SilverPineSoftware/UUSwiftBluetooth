@@ -213,7 +213,12 @@ public class UUMockPeripheral: UUPeripheral
         }
     }
     
-    public func setNotifyValue(enabled: Bool, for characteristic: CBCharacteristic, timeout: TimeInterval, notifyHandler: UUPeripheralCharacteristicErrorBlock?, completion: @escaping UUPeripheralCharacteristicErrorBlock)
+    public func setNotifyValue(
+        enabled: Bool,
+        for characteristic: CBCharacteristic,
+        timeout: TimeInterval,
+        notifyHandler: UUPeripheralCharacteristicErrorBlock?,
+        completion: @escaping UUErrorBlock)
     {
         dispatch
         {
@@ -221,7 +226,7 @@ public class UUMockPeripheral: UUPeripheral
             
             self.charNotifyMap[characteristic.uuid] = enabled
             
-            completion(self, characteristic, self.mockCallbackError)
+            completion(self.mockCallbackError)
         }
     }
     
