@@ -18,7 +18,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
 {
     private let centralManager: UUCentralManager
     private let dispatchQueue: DispatchQueue
-    private let delegate = UUPeripheralDelegate()
+    private let delegate = UUCBPeripheralBlockDelegate()
     private let timerPool: UUTimerPool
 
     // Reference to the underlying CBPeripheral
@@ -230,12 +230,12 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         let timerId = TimerId.serviceDiscovery
         
-        delegate.discoverServicesBlock =
-        { peripheral, errOpt in
+        delegate.registerDiscoverServicesHandler(
+        { services, errOpt in
             
-            self.underlyingPeripheral = peripheral
-            self.finishDiscoverServices(timerId, errOpt, completion)
-        }
+            //self.underlyingPeripheral = peripheral
+            self.finishDiscoverServices(timerId, services, errOpt, completion)
+        })
         
         if let err = canAttemptOperation
         {
@@ -272,12 +272,12 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         let timerId = TimerId.characteristicDiscovery
         
-        delegate.discoverCharacteristicsBlock =
+        delegate.registerDiscoverCharacteristicsHandler(
         { peripheral, service, error in
             
             self.underlyingPeripheral = peripheral
             self.finishDiscoverCharacteristics(timerId, error, service, completion)
-        }
+        })
         
         if let err = canAttemptOperation
         {
@@ -314,12 +314,12 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         let timerId = TimerId.includedServicesDiscovery
         
-        delegate.discoverIncludedServicesBlock =
+        delegate.registerDiscoverIncludedServicesHandler(
         { peripheral, service, error in
             
             self.underlyingPeripheral = peripheral
             self.finishOperation(timerId, peripheral, error, completion)
-        }
+        })
         
         if let err = canAttemptOperation
         {
@@ -355,12 +355,12 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         let timerId = TimerId.descriptorDiscovery
         
-        delegate.discoverDescriptorsBlock =
+        delegate.registerDiscoverDescriptorsHandler(
         { peripheral, characteristic, error in
             
             self.underlyingPeripheral = peripheral
             self.finishDiscoverDescriptors(timerId, error, characteristic, completion)
-        }
+        })
         
         if let err = canAttemptOperation
         {
@@ -458,11 +458,11 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         let timerId = TimerId.characteristicNotifyState
         
-        delegate.setNotifyValueForCharacteristicBlock =
+        delegate.registerSetNotifyValueHandler(
         { peripheral, characteristic, error in
             
             self.finishOperation(timerId, peripheral, characteristic, error, completion)
-        };
+        })
         
         if (enabled)
         {
@@ -718,12 +718,12 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         let timerId = TimerId.readRssi
         
-        delegate.didReadRssiBlock =
+        delegate.registerReadRssiaHandler(
         { peripheral, rssi, error in
             
             let err = self.prepareToFinishOperation(timerId, error)
             completion(self, rssi, err)
-        }
+        })
         
         if let err = canAttemptOperation
         {
@@ -758,26 +758,26 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
 //        completion: @escaping UUDiscoverCharacteristicsCompletionBlock)
 //    {
 //        let start = Date().timeIntervalSinceReferenceDate
-//        
+//
 //        discoverServices(serviceUUIDs: [serviceUuid], timeout: timeout)
 //        { discoveredServices, err in
-//            
+//
 //            if let error = err
 //            {
 //                completion(nil, error)
 //                return
 //            }
-//            
+//
 //            guard let foundService = discoveredServices?.filter({ $0.uuid.uuidString == serviceUuid.uuidString }).first else
 //            {
 //                // QUESTION: Should this emit a 'service not found error'
 //                completion(nil, err)
 //                return
 //            }
-//            
+//
 //            let duration = Date().timeIntervalSinceReferenceDate - start
 //            let remainingTimeout = timeout - duration
-//            
+//
 //            self.discoverCharacteristics(characteristicUUIDs: characteristics, for: foundService, timeout: remainingTimeout, completion: completion)
 //        }
 //    }
@@ -822,11 +822,12 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     
     private func finishDiscoverServices(
         _ timerBucket: TimerId,
+        _ services: [CBService]?,
         _ error: Error?,
         _ completion: @escaping UUDiscoverServicesCompletionBlock)
     {
         let err = prepareToFinishOperation(timerBucket, error)
-        completion(self.services, err)
+        completion(services, err)
     }
     
     private func finishDiscoverCharacteristics(
@@ -933,7 +934,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     
     func setDidOpenL2ChannelCallback(callback:((CBPeripheral, CBL2CAPChannel?, Error?) -> Void)?)
     {
-        self.delegate.didOpenL2ChannelBlock = callback
+        self.delegate.registerDidOpenL2CAPChannelHandler(callback)
     }    
 }
 
