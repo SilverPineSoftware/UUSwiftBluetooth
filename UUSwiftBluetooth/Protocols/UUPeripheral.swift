@@ -16,7 +16,7 @@ public typealias UUPeripheralErrorBlock = ((UUPeripheral, Error?)->())
 public typealias UUPeripheralCharacteristicErrorBlock = ((UUPeripheral, CBCharacteristic, Error?)->())
 public typealias UUPeripheralDescriptorErrorBlock = ((UUPeripheral, CBDescriptor, Error?)->())
 public typealias UUPeripheralIntegerErrorBlock = ((UUPeripheral, Int, Error?)->())
-public typealias UUDiscoverServicesCompletionBlock = (([CBService]?, Error?)->())
+
 public typealias UUDiscoverCharacteristicsCompletionBlock = (([CBCharacteristic]?, Error?)->())
 public typealias UUDiscoverDescriptorsCompletionBlock = (([CBDescriptor]?, Error?)->())
 
