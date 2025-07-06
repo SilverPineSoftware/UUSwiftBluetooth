@@ -195,11 +195,14 @@ public class UUMockPeripheral: UUPeripheral
         }
     }
     
-    public func discoverDescriptorsForCharacteristic(for characteristic: CBCharacteristic, timeout: TimeInterval, completion: @escaping UUDiscoverDescriptorsCompletionBlock)
+    public func discoverDescriptors(
+        for characteristic: CBUUID,
+        timeout: TimeInterval,
+        completion: @escaping UUListErrorBlock<CBDescriptor>)
     {
         dispatch
         {
-            var result = self.lookupDescriptors(characteristic.uuid)
+            var result = self.lookupDescriptors(characteristic)
             
             if (self.mockCallbackError != nil)
             {

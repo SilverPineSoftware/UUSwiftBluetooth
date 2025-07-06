@@ -392,8 +392,8 @@ fileprivate extension UUPeripheralSession
         
         UULog.debug(tag: LOG_TAG, message: "Discovering all descriptors for characteristic \(characteristic.uuid)")
         
-        peripheral.discoverDescriptorsForCharacteristic(
-            for: characteristic,
+        peripheral.discoverDescriptors(
+            for: characteristic.uuid,
             timeout: configuration.descriptorDiscoveryTimeout)
         { descriptors, error in
             

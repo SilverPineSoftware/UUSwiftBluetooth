@@ -357,12 +357,22 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     
     // Block based wrapper around CBPeripheral discoverDescriptorsForCharacteristic,
     // with an optional timeout value.  A negative timeout value will disable the timeout.
-    public func discoverDescriptorsForCharacteristic(
-        for characteristic: CBCharacteristic,
-        timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
-        completion: @escaping UUDiscoverDescriptorsCompletionBlock)
+    public func discoverDescriptors(
+        for characteristic: CBUUID,
+        timeout: TimeInterval,
+        completion: @escaping UUListErrorBlock<CBDescriptor>)
     {
         UULog.debug(tag: LOG_TAG, message: "Discovering descriptors for \(self.debugName), timeout: \(timeout), characteristic: \(characteristic)")
+        
+        let services = underlyingPeripheral.services ?? []
+        let allChars = services.flatMap { $0.characteristics ?? []}
+        
+        guard let chr = allChars.first(where: { $0.uuid == characteristic }) else
+        {
+            let err = NSError.uuRequiredCharacteristicNotFoundError(characteristic)
+            completion(nil, err)
+            return
+        }
         
         let timerId = TimerId.descriptorDiscovery
         
@@ -374,17 +384,17 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         if let err = canAttemptOperation
         {
-            endDescriptorDiscovery(characteristic, err)
+            endDescriptorDiscovery(chr, err)
             return
         }
         
         startTimer(timerId, timeout)
         {
             let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endDescriptorDiscovery(characteristic, err)
+            self.endDescriptorDiscovery(chr, err)
         }
         
-        underlyingPeripheral.discoverDescriptors(for: characteristic)
+        underlyingPeripheral.discoverDescriptors(for: chr)
     }
     
     private func endDescriptorDiscovery(_ characteristic: CBCharacteristic, _ error: Error?)
@@ -852,41 +862,8 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         completion(result, err)
     }
     
-//    private func finishDiscoverServices(
-//        _ timerBucket: TimerId,
-//        _ services: [CBService]?,
-//        _ error: Error?,
-//        _ completion: @escaping UUDiscoverServicesCompletionBlock)
-//    {
-//        let err = prepareToFinishOperation(timerBucket, error)
-//        completion(services, err)
-//    }
     
-    private func finishDiscoverCharacteristics(
-        _ timerBucket: TimerId,
-        _ error: Error?,
-        _ service: CBService,
-        _ completion: @escaping UUDiscoverCharacteristicsCompletionBlock)
-    {
-        let err = prepareToFinishOperation(timerBucket, error)
-        completion(service.characteristics, err)
-    }
-    
-    private func finishDiscoverDescriptors(
-        _ timerBucket: TimerId,
-        _ error: Error?,
-        _ characteristic: CBCharacteristic,
-        _ completion: @escaping UUDiscoverDescriptorsCompletionBlock)
-    {
-        let err = prepareToFinishOperation(timerBucket, error)
-        completion(characteristic.descriptors, err)
-    }
-    
-    
-    
-    
-    
-    // MARK:- Timers
+    // MARK: Timers
     
     
     private enum TimerId: String

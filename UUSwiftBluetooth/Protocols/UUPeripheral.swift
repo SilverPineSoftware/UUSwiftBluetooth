@@ -17,8 +17,7 @@ public typealias UUPeripheralCharacteristicErrorBlock = ((UUPeripheral, CBCharac
 public typealias UUPeripheralDescriptorErrorBlock = ((UUPeripheral, CBDescriptor, Error?)->())
 public typealias UUPeripheralIntegerErrorBlock = ((UUPeripheral, Int, Error?)->())
 
-public typealias UUDiscoverCharacteristicsCompletionBlock = (([CBCharacteristic]?, Error?)->())
-public typealias UUDiscoverDescriptorsCompletionBlock = (([CBDescriptor]?, Error?)->())
+
 
 public protocol UUPeripheral
 {
@@ -59,10 +58,10 @@ public protocol UUPeripheral
         timeout: TimeInterval,
         completion: @escaping UUListErrorBlock<CBService>)
     
-    func discoverDescriptorsForCharacteristic(
-        for characteristic: CBCharacteristic,
+    func discoverDescriptors(
+        for characteristic: CBUUID,
         timeout: TimeInterval,
-        completion: @escaping UUDiscoverDescriptorsCompletionBlock)
+        completion: @escaping UUListErrorBlock<CBDescriptor>)
     
 //    func discover(
 //        characteristics: [CBUUID]?,
