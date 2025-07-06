@@ -49,9 +49,9 @@ public protocol UUPeripheral
     
     func discoverCharacteristics(
         characteristicUUIDs: [CBUUID]?,
-        for service: CBService,
+        for service: CBUUID,
         timeout: TimeInterval,
-        completion: @escaping UUDiscoverCharacteristicsCompletionBlock)
+        completion: @escaping UUListErrorBlock<CBCharacteristic>)
     
     func discoverIncludedServices(
         includedServiceUUIDs: [CBUUID]?,
@@ -124,7 +124,7 @@ public extension UUPeripheral
     // Convenience wrapper to perform both service and characteristic discovery at
     // one time.  This method is useful when you know both service and characteristic
     // UUID's ahead of time.
-    func discover(
+    /*func discover(
         characteristics: [CBUUID]?,
         for serviceUuid: CBUUID,
         timeout: TimeInterval,
@@ -153,7 +153,7 @@ public extension UUPeripheral
             
             self.discoverCharacteristics(characteristicUUIDs: characteristics, for: foundService, timeout: remainingTimeout, completion: completion)
         }
-    }
+    }*/
 }
 
 

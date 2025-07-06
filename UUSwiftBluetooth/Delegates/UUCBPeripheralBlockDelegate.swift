@@ -32,8 +32,8 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     public var didReadRssiBlock: UUObjectErrorBlock<Int>? = nil
     public var discoverServicesBlock: UUListErrorBlock<CBService>? = nil
     public var discoverIncludedServicesBlock: UUListErrorBlock<CBService>? = nil
+    public var discoverCharacteristicsBlock: UUListErrorBlock<CBCharacteristic>? = nil
     
-    private var discoverCharacteristicsBlock: UUCBPeripheralServiceErrorBlock? = nil
     private var updateValueForCharacteristicBlocks: [String:UUCBPeripheralCharacteristicErrorBlock] = [:]
     private var readValueForCharacteristicBlocks: [String:UUCBPeripheralCharacteristicErrorBlock] = [:]
     private var writeValueForCharacteristicBlocks: [String:UUCBPeripheralCharacteristicErrorBlock] = [:]
@@ -55,8 +55,8 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         didReadRssiBlock = nil
         discoverServicesBlock = nil
         discoverIncludedServicesBlock = nil
-        
         discoverCharacteristicsBlock = nil
+        
         updateValueForCharacteristicBlocks.removeAll()
         readValueForCharacteristicBlocks.removeAll()
         writeValueForCharacteristicBlocks.removeAll()
@@ -86,16 +86,6 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         UULog.debug(tag: LOG_TAG, message: "setNotifyValueForCharacteristicBlock: \(String(describing: setNotifyValueForCharacteristicBlock))")
         UULog.debug(tag: LOG_TAG, message: "discoverDescriptorsBlock: \(String(describing: discoverDescriptorsBlock))")
         UULog.debug(tag: LOG_TAG, message: "didOpenL2ChannelBlock: \(String(describing: didOpenL2ChannelBlock))")
-    }
-    
-    public func registerDiscoverCharacteristicsHandler(_ handler: UUCBPeripheralServiceErrorBlock?)
-    {
-        discoverCharacteristicsBlock = handler
-    }
-    
-    public func clearDiscoverCharacteristicsHandler()
-    {
-        discoverCharacteristicsBlock = nil
     }
 
     public func registerDiscoverDescriptorsHandler(_ handler: UUCBPeripheralCharacteristicErrorBlock?)
@@ -236,7 +226,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     {
         let block = discoverCharacteristicsBlock
         discoverCharacteristicsBlock = nil
-        block?(peripheral, service, error)
+        block?(service.characteristics, error)
     }
     
     public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?)

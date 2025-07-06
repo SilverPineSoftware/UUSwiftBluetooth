@@ -316,7 +316,7 @@ fileprivate extension UUPeripheralSession
         
         peripheral.discoverCharacteristics(
             characteristicUUIDs: charsToDiscover,
-            for: service,
+            for: service.uuid,
             timeout: configuration.characteristicDiscoveryTimeout)
         { characteristics, error in
             

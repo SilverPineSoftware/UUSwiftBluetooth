@@ -143,7 +143,11 @@ public class UUMockPeripheral: UUPeripheral
         }
     }
     
-    public func discoverCharacteristics(characteristicUUIDs: [CBUUID]?, for service: CBService, timeout: TimeInterval, completion: @escaping UUDiscoverCharacteristicsCompletionBlock)
+    public func discoverCharacteristics(
+        characteristicUUIDs: [CBUUID]?,
+        for service: CBUUID,
+        timeout: TimeInterval,
+        completion: @escaping UUListErrorBlock<CBCharacteristic>)
     {
         dispatch
         {
@@ -151,7 +155,7 @@ public class UUMockPeripheral: UUPeripheral
             // the chars and return them here.
             //let servicesWithNoChars = self.mockServices.map { CBMutableService(type: $0.uuid, primary: $0.isPrimary) }
             
-            let lookup = self.lookupCharacteristics(service.uuid)
+            let lookup = self.lookupCharacteristics(service)
             var result = lookup?.map {
                 CBMutableCharacteristic(type: $0.uuid, properties: $0.properties, value: nil, permissions: [])
             }

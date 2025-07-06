@@ -350,8 +350,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         
         XCTAssertNil(delegate.didReadRssiBlock)
     }
-    
-    
+        
     // MARK: didDiscoverIncludedServices
     
     func test_didDiscoverIncludedServices_success() throws
@@ -460,7 +459,118 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         XCTAssertNil(delegate.discoverIncludedServicesBlock)
     }
 
+    // MARK: didDiscoverCharacteristics
     
+    func test_didDiscoverCharacteristics_success() throws
+    {
+        let exp = uuExpectationForMethod()
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        var callbackResult: [CBCharacteristic]? = nil
+        var callbackError: Error? = nil
+        
+        delegate.discoverCharacteristicsBlock =
+        { characteristics, err in
+            
+            callbackResult = characteristics
+            callbackError = err
+            exp.fulfill()
+        }
+        
+        let mockService = CBMutableService(type: CBUUID(), primary: true)
+        mockService.characteristics = [
+            CBMutableCharacteristic(type: CBUUID(), properties: [.read, .write], value: nil, permissions: [.readable, .writeable]),
+            CBMutableCharacteristic(type: CBUUID(), properties: [.write], value: nil, permissions: [.writeable]),
+            CBMutableCharacteristic(type: CBUUID(), properties: [.writeWithoutResponse, .notify], value: nil, permissions: [.writeable]),
+        ]
+        
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral(services: [mockService]))
+
+        XCTAssertNotNil(delegate.discoverCharacteristicsBlock)
+        
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didDiscoverCharacteristicsFor: mockService, error: nil)
+        }
+        
+        uuWaitForExpectations()
+        
+        XCTAssertNil(callbackError)
+        XCTAssertNotNil(callbackResult)
+        
+        let result = try XCTUnwrap(callbackResult)
+        XCTAssertEqual(3, result.count)
+        
+        XCTAssertNil(delegate.discoverCharacteristicsBlock)
+    }
+    
+    func test_didDiscoverCharacteristics_error() throws
+    {
+        let exp = uuExpectationForMethod()
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        var callbackResult: [CBCharacteristic]? = nil
+        var callbackError: Error? = nil
+        
+        delegate.discoverCharacteristicsBlock =
+        { services, err in
+            
+            callbackResult = services
+            callbackError = err
+            exp.fulfill()
+        }
+        
+        let mockService = CBMutableService(type: CBUUID(), primary: true)
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        XCTAssertNotNil(delegate.discoverCharacteristicsBlock)
+        
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
+
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didDiscoverCharacteristicsFor: mockService, error: inputError)
+        }
+        
+        uuWaitForExpectations()
+        
+        XCTAssertNotNil(callbackError)
+        XCTAssertNil(callbackResult)
+        
+        let result = try XCTUnwrap(callbackError) as NSError
+        XCTAssertEqual(inputError.domain, result.domain)
+        XCTAssertEqual(inputError.code, result.code)
+        
+        XCTAssertNil(delegate.discoverCharacteristicsBlock)
+    }
+    
+    func test_didDiscoverCharacteristics_notRegistered() throws
+    {
+        let exp = uuExpectationForMethod()
+        exp.isInverted = true
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        delegate.discoverCharacteristicsBlock = nil
+        
+        let mockService = CBMutableService(type: CBUUID(), primary: true)
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        XCTAssertNil(delegate.discoverCharacteristicsBlock)
+        
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
+
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didDiscoverCharacteristicsFor: mockService, error: inputError)
+        }
+        
+        uuWaitForExpectations(0.2)
+        
+        XCTAssertNil(delegate.discoverCharacteristicsBlock)
+    }
     
     
 
