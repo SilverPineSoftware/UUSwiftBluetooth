@@ -40,7 +40,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     internal var readValueForCharacteristicBlocks: [String:UUObjectErrorBlock<Data>] = [:]
     internal var writeValueForCharacteristicBlocks: [String:UUErrorBlock] = [:]
     internal var readValueForDescriptorBlocks: [String:UUObjectErrorBlock<Any>] = [:]
-    internal var writeValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
+    internal var writeValueForDescriptorBlocks: [String:UUErrorBlock] = [:]
     
     
     private var didOpenL2ChannelBlock: UUCBL2CapChannelOpenedBlock? = nil
@@ -152,12 +152,12 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         readValueForDescriptorBlocks.removeValue(forKey: descriptor.uuid.uuidString)
     }
 
-    public func registerWriteHandler(_ handler: UUCBPeripheralDescriptorErrorBlock?, _ descriptor: CBDescriptor)
+    public func registerWriteHandler(for descriptor: CBDescriptor, handler: UUErrorBlock?)
     {
         writeValueForDescriptorBlocks[descriptor.uuid.uuidString] = handler
     }
 
-    public func removeWriteHandler(_ descriptor: CBDescriptor)
+    public func removeWriteHandler(for descriptor: CBDescriptor)
     {
         writeValueForDescriptorBlocks.removeValue(forKey: descriptor.uuid.uuidString)
     }
@@ -263,7 +263,8 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     {
         if let writeBlock = writeValueForDescriptorBlocks[descriptor.uuid.uuidString]
         {
-            writeBlock(peripheral, descriptor, error)
+            removeWriteHandler(for: descriptor)
+            writeBlock(error)
         }
     }
     

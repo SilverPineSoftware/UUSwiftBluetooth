@@ -1205,7 +1205,98 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         XCTAssertNil(delegate.readValueForDescriptorBlocks[mockDescriptor.uuid.uuidString])
     }
     
+    // MARK: didWriteValueForDescriptor
     
+    func test_didWriteValueForDescriptor_success() throws
+    {
+        let exp = uuExpectationForMethod()
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        let mockDescriptor = CBMutableDescriptor(type: CBUUID(), value: nil)
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        var callbackError: Error? = nil
+        
+        delegate.registerWriteHandler(for: mockDescriptor)
+        { err in
+            callbackError = err
+            exp.fulfill()
+        }
+        
+        XCTAssertNotNil(delegate.writeValueForDescriptorBlocks[mockDescriptor.uuid.uuidString])
+        
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didWriteValueFor: mockDescriptor, error: nil)
+        }
+        
+        uuWaitForExpectations(0.2)
+        
+        XCTAssertNil(callbackError)
+        
+        XCTAssertNil(delegate.writeValueForDescriptorBlocks[mockDescriptor.uuid.uuidString])
+    }
+    
+    func test_didWriteValueForDescriptor_error() throws
+    {
+        let exp = uuExpectationForMethod(tag: "update")
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        let mockDescriptor = CBMutableDescriptor(type: CBUUID(), value: nil)
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        var callbackError: Error? = nil
+        
+        delegate.registerWriteHandler(for: mockDescriptor)
+        { err in
+            callbackError = err
+            exp.fulfill()
+        }
+        
+        XCTAssertNotNil(delegate.writeValueForDescriptorBlocks[mockDescriptor.uuid.uuidString])
+        
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
+
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didWriteValueFor: mockDescriptor, error: inputError)
+        }
+        
+        uuWaitForExpectations(0.2)
+        
+        XCTAssertNotNil(callbackError)
+        
+        let result = try XCTUnwrap(callbackError) as NSError
+        XCTAssertEqual(inputError.domain, result.domain)
+        XCTAssertEqual(inputError.code, result.code)
+        
+        XCTAssertNil(delegate.writeValueForDescriptorBlocks[mockDescriptor.uuid.uuidString])
+    }
+    
+    func test_didWriteValueForDescriptor_notRegistered() throws
+    {
+        let exp = uuExpectationForMethod()
+        exp.isInverted = true
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        let mockDescriptor = CBMutableDescriptor(type: CBUUID(), value: nil)
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        delegate.registerWriteHandler(for: mockDescriptor, handler: nil)
+        
+        XCTAssertNil(delegate.writeValueForDescriptorBlocks[mockDescriptor.uuid.uuidString])
+        
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
+
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didWriteValueFor: mockDescriptor, error: inputError)
+        }
+        
+        uuWaitForExpectations(0.2)
+        
+        XCTAssertNil(delegate.writeValueForDescriptorBlocks[mockDescriptor.uuid.uuidString])
+    }
     
     
     

@@ -101,7 +101,7 @@ public protocol UUPeripheral
         data: Data,
         for descriptor: CBDescriptor,
         timeout: TimeInterval,
-        completion: @escaping UUPeripheralDescriptorErrorBlock)
+        completion: @escaping UUErrorBlock)
     
     func readRSSI(
         timeout: TimeInterval,

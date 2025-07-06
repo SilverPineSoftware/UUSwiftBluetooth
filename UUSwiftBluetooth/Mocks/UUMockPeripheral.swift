@@ -282,12 +282,17 @@ public class UUMockPeripheral: UUPeripheral
         }
     }
     
-    public func writeValue(data: Data, for descriptor: CBDescriptor, timeout: TimeInterval, completion: @escaping UUPeripheralDescriptorErrorBlock)
+    public func writeValue(
+        data: Data,
+        for descriptor:
+        CBDescriptor,
+        timeout: TimeInterval,
+        completion: @escaping UUErrorBlock)
     {
         dispatch
         {
             self.replaceDescriptor(descriptor, data)
-            completion(self, descriptor, self.mockCallbackError)
+            completion(self.mockCallbackError)
         }
     }
     

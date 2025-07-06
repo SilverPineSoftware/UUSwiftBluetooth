@@ -651,21 +651,17 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         data: Data,
         for descriptor: CBDescriptor,
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
-        completion: @escaping UUPeripheralDescriptorErrorBlock)
+        completion: @escaping UUErrorBlock)
     {
         UULog.debug(tag: LOG_TAG, message: "Write value \(data.uuToHexString()), for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
         
         let timerId = TimerId.writeDescriptor
         
-        delegate.registerWriteHandler(
-            { peripheral, descriptor, error in
-                
-                let err = self.prepareToFinishOperation(timerId, error)
-                
-                self.delegate.removeWriteHandler(descriptor)
-                completion(self, descriptor, err)
-                
-            }, descriptor)
+        delegate.registerWriteHandler(for: descriptor)
+        { error in
+            
+            self.finishOperation(timerId, error, completion)
+        }
         
         if let err = canAttemptOperation
         {
