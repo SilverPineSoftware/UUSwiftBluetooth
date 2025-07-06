@@ -38,7 +38,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     
     internal var updateValueForCharacteristicBlocks: [String:UUObjectErrorBlock<Data>] = [:]
     internal var readValueForCharacteristicBlocks: [String:UUObjectErrorBlock<Data>] = [:]
-    internal var writeValueForCharacteristicBlocks: [String:UUCBPeripheralCharacteristicErrorBlock] = [:]
+    internal var writeValueForCharacteristicBlocks: [String:UUErrorBlock] = [:]
     internal var updateValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
     internal var readValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
     internal var writeValueForDescriptorBlocks: [String:UUCBPeripheralDescriptorErrorBlock] = [:]
@@ -131,12 +131,14 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         readValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuid.uuidString)
     }
 
-    public func registerWriteHandler(_ handler: UUCBPeripheralCharacteristicErrorBlock?, _ characteristic: CBCharacteristic)
+    public func registerWriteHandler(
+        for characteristic: CBCharacteristic,
+        handler: UUErrorBlock?)
     {
         writeValueForCharacteristicBlocks[characteristic.uuid.uuidString] = handler
     }
 
-    public func removeWriteHandler(_ characteristic: CBCharacteristic)
+    public func removeWriteHandler(for characteristic: CBCharacteristic)
     {
         writeValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuid.uuidString)
     }
@@ -240,7 +242,8 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     {
         if let writeBlock = writeValueForCharacteristicBlocks[characteristic.uuid.uuidString]
         {
-            writeBlock(peripheral, characteristic, error)
+            removeWriteHandler(for: characteristic)
+            writeBlock(error)
         }
     }
     

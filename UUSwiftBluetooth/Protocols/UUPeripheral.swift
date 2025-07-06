@@ -89,7 +89,7 @@ public protocol UUPeripheral
         data: Data,
         for characteristic: CBCharacteristic,
         timeout: TimeInterval,
-        completion: @escaping UUPeripheralCharacteristicErrorBlock)
+        completion: @escaping UUErrorBlock)
     
     func writeValueWithoutResponse(
         data: Data,

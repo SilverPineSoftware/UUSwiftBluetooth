@@ -249,7 +249,11 @@ public class UUMockPeripheral: UUPeripheral
         }
     }
     
-    public func writeValue(data: Data, for characteristic: CBCharacteristic, timeout: TimeInterval, completion: @escaping UUPeripheralCharacteristicErrorBlock)
+    public func writeValue(
+        data: Data,
+        for characteristic: CBCharacteristic,
+        timeout: TimeInterval,
+        completion: @escaping UUErrorBlock)
     {
         dispatch
         {
@@ -258,7 +262,7 @@ public class UUMockPeripheral: UUPeripheral
                 mutableChar.value = data
             }
             
-            completion(self, characteristic, self.mockCallbackError)
+            completion(self.mockCallbackError)
         }
     }
     

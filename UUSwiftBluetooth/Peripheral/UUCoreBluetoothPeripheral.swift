@@ -583,20 +583,17 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         data: Data,
         for characteristic: CBCharacteristic,
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
-        completion: @escaping UUPeripheralCharacteristicErrorBlock)
+        completion: @escaping UUErrorBlock)
     {
         UULog.debug(tag: LOG_TAG, message: "Write value \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
         
         let timerId = TimerId.writeCharacteristic
         
-        delegate.registerWriteHandler(
-            { peripheral, characteristic, error in
-                
-                let err = self.prepareToFinishOperation(timerId, error)
-                self.delegate.removeWriteHandler(characteristic)
-                completion(self, characteristic, err)
-                
-            }, characteristic)
+        delegate.registerWriteHandler(for: characteristic)
+        { error in
+            
+            self.finishOperation(timerId, error, completion)
+        }
         
         if let err = canAttemptOperation
         {

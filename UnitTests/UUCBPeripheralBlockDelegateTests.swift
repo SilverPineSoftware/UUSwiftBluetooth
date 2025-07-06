@@ -1008,6 +1008,99 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         XCTAssertNil(delegate.updateValueForCharacteristicBlocks[mockCharacteristic.uuid.uuidString])
     }
     
+    // MARK: didWriteValueForCharacteristic
+    
+    func test_didWriteValueForCharacteristic_success() throws
+    {
+        let exp = uuExpectationForMethod()
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        let mockCharacteristic = CBMutableCharacteristic(type: CBUUID(), properties: [.read, .write], value: "ABCD".uuToHexData()!, permissions: [.readable, .writeable])
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        var callbackError: Error? = nil
+        
+        delegate.registerWriteHandler(for: mockCharacteristic)
+        { err in
+            callbackError = err
+            exp.fulfill()
+        }
+        
+        XCTAssertNotNil(delegate.writeValueForCharacteristicBlocks[mockCharacteristic.uuid.uuidString])
+        
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didWriteValueFor: mockCharacteristic, error: nil)
+        }
+        
+        uuWaitForExpectations(0.2)
+        
+        XCTAssertNil(callbackError)
+        
+        XCTAssertNil(delegate.writeValueForCharacteristicBlocks[mockCharacteristic.uuid.uuidString])
+    }
+    
+    func test_didWriteValueForCharacteristic_error() throws
+    {
+        let exp = uuExpectationForMethod(tag: "update")
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        let mockCharacteristic = CBMutableCharacteristic(type: CBUUID(), properties: [.read, .write], value: nil, permissions: [.readable, .writeable])
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        var callbackError: Error? = nil
+        
+        delegate.registerWriteHandler(for: mockCharacteristic)
+        { err in
+            callbackError = err
+            exp.fulfill()
+        }
+        
+        XCTAssertNotNil(delegate.writeValueForCharacteristicBlocks[mockCharacteristic.uuid.uuidString])
+        
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
+
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didWriteValueFor: mockCharacteristic, error: inputError)
+        }
+        
+        uuWaitForExpectations(0.2)
+        
+        XCTAssertNotNil(callbackError)
+        
+        let result = try XCTUnwrap(callbackError) as NSError
+        XCTAssertEqual(inputError.domain, result.domain)
+        XCTAssertEqual(inputError.code, result.code)
+        
+        XCTAssertNil(delegate.writeValueForCharacteristicBlocks[mockCharacteristic.uuid.uuidString])
+    }
+    
+    func test_didWriteValueForCharacteristic_notRegistered() throws
+    {
+        let exp = uuExpectationForMethod()
+        exp.isInverted = true
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        let mockCharacteristic = CBMutableCharacteristic(type: CBUUID(), properties: [.read, .write], value: nil, permissions: [.readable, .writeable])
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        delegate.registerWriteHandler(for: mockCharacteristic, handler: nil)
+        
+        XCTAssertNil(delegate.writeValueForCharacteristicBlocks[mockCharacteristic.uuid.uuidString])
+        
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
+
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didWriteValueFor: mockCharacteristic, error: inputError)
+        }
+        
+        uuWaitForExpectations(0.2)
+        
+        XCTAssertNil(delegate.writeValueForCharacteristicBlocks[mockCharacteristic.uuid.uuidString])
+    }
+    
 
     
     

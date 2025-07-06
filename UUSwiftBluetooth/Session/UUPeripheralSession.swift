@@ -105,7 +105,7 @@ open class UUPeripheralSession
         if (withResponse)
         {
             peripheral.writeValue(data: data, for: char, timeout: configuration.writeTimeout)
-            { p, char, error in
+            { error in
                 
                 completion(self, error)
             }
