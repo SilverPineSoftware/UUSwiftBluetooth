@@ -304,36 +304,43 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     
     // Block based wrapper around CBPeripheral discoverIncludedServices:forService,
     // with an optional timeout value.  A negative timeout value will disable the timeout.
-    public func discoverIncludedServices(
+    func discoverIncludedServices(
         includedServiceUUIDs: [CBUUID]?,
-        for service: CBService,
-        timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
-        completion: @escaping UUPeripheralErrorBlock)
+        for service: CBUUID,
+        timeout: TimeInterval,
+        completion: @escaping UUListErrorBlock<CBService>)
     {
+        guard let svc = underlyingPeripheral.services?.first(where: { $0.uuid == service }) else
+        {
+            let err = NSError.uuRequiredServiceNotFoundError(service)
+            completion(nil, err)
+            return
+            
+        }
+        
         UULog.debug(tag: LOG_TAG, message: "Discovering included services for \(self.debugName), timeout: \(timeout), service: \(service), service list: \(String(describing: includedServiceUUIDs))")
         
         let timerId = TimerId.includedServicesDiscovery
         
-        delegate.registerDiscoverIncludedServicesHandler(
-        { peripheral, service, error in
+        delegate.discoverIncludedServicesBlock =
+        { services, error in
             
-            self.underlyingPeripheral = peripheral
-            self.finishOperation(timerId, peripheral, error, completion)
-        })
+            self.finishOperation(timerId, services, error, completion)
+        }
         
         if let err = canAttemptOperation
         {
-            endDiscoverIncludedServices(service, err)
+            endDiscoverIncludedServices(svc, err)
             return
         }
         
         startTimer(timerId, timeout)
         {
             let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endDiscoverIncludedServices(service, err)
+            self.endDiscoverIncludedServices(svc, err)
         }
         
-        underlyingPeripheral.discoverIncludedServices(includedServiceUUIDs, for: service)
+        underlyingPeripheral.discoverIncludedServices(includedServiceUUIDs, for: svc)
     }
     
     private func endDiscoverIncludedServices(_ service: CBService, _ error: Error?)
@@ -818,6 +825,27 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     {
         let err = prepareToFinishOperation(timerBucket, error)
         completion(self, characteristic, err)
+    }
+    
+    
+    private func finishOperation<T>(
+        _ timerBucket: TimerId,
+        _ result: T?,
+        _ error: Error?,
+        _ completion: @escaping UUObjectErrorBlock<T>)
+    {
+        let err = prepareToFinishOperation(timerBucket, error)
+        completion(result, err)
+    }
+    
+    private func finishOperation<T>(
+        _ timerBucket: TimerId,
+        _ result: [T]?,
+        _ error: Error?,
+        _ completion: @escaping UUListErrorBlock<T>)
+    {
+        let err = prepareToFinishOperation(timerBucket, error)
+        completion(result, err)
     }
     
     private func finishDiscoverServices(

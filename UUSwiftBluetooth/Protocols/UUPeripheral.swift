@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreBluetooth
+import UUSwiftCore
 
 public typealias UUPeripheralConnectedBlock = (()->())
 public typealias UUPeripheralDisconnectedBlock = ((Error?)->())
@@ -54,9 +55,9 @@ public protocol UUPeripheral
     
     func discoverIncludedServices(
         includedServiceUUIDs: [CBUUID]?,
-        for service: CBService,
+        for service: CBUUID,
         timeout: TimeInterval,
-        completion: @escaping UUPeripheralErrorBlock)
+        completion: @escaping UUListErrorBlock<CBService>)
     
     func discoverDescriptorsForCharacteristic(
         for characteristic: CBCharacteristic,

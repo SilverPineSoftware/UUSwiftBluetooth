@@ -167,12 +167,24 @@ public class UUMockPeripheral: UUPeripheral
         }
     }
     
-    public func discoverIncludedServices(includedServiceUUIDs: [CBUUID]?, for service: CBService, timeout: TimeInterval, completion: @escaping UUPeripheralErrorBlock)
+    public func discoverIncludedServices(
+        includedServiceUUIDs: [CBUUID]?,
+        for service: CBUUID,
+        timeout: TimeInterval,
+        completion: @escaping UUListErrorBlock<CBService>)
     {
         dispatch
         {
-            //completion(self.mockIncludedServicesToDiscover?[service.uuid], self.mockIncludedServicesDiscoveryResult)
-            completion(self, self.mockCallbackError)
+            // In iOS initial service discovery won't include any characteristics, so we'll extract out just
+            // the services and return them here.
+            let filteredServices = self.mockServices.filter { $0.uuid == service }
+            var servicesWithNoChars: [CBMutableService]? = filteredServices.map { CBMutableService(type: $0.uuid, primary: $0.isPrimary) }
+            if (self.mockCallbackError != nil)
+            {
+                servicesWithNoChars = nil
+            }
+            
+            completion(servicesWithNoChars, self.mockCallbackError)
         }
     }
     

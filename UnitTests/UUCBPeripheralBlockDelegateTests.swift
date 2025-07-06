@@ -352,6 +352,113 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
     }
     
     
+    // MARK: didDiscoverIncludedServices
+    
+    func test_didDiscoverIncludedServices_success() throws
+    {
+        let exp = uuExpectationForMethod()
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        var callbackResult: [CBService]? = nil
+        var callbackError: Error? = nil
+        
+        delegate.discoverIncludedServicesBlock =
+        { services, err in
+            
+            callbackResult = services
+            callbackError = err
+            exp.fulfill()
+        }
+        
+        let mockService = CBMutableService(type: CBUUID(), primary: true)
+        mockService.includedServices = [CBMutableService(type: CBUUID(), primary: true), CBMutableService(type: CBUUID(), primary: false)]
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral(services: [mockService]))
+
+        XCTAssertNotNil(delegate.discoverIncludedServicesBlock)
+        
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didDiscoverIncludedServicesFor: mockService, error: nil)
+        }
+        
+        uuWaitForExpectations()
+        
+        XCTAssertNil(callbackError)
+        XCTAssertNotNil(callbackResult)
+        
+        let result = try XCTUnwrap(callbackResult)
+        XCTAssertEqual(2, result.count)
+        
+        XCTAssertNil(delegate.discoverIncludedServicesBlock)
+    }
+    
+    func test_didDiscoverIncludedServices_error() throws
+    {
+        let exp = uuExpectationForMethod()
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        var callbackResult: [CBService]? = nil
+        var callbackError: Error? = nil
+        
+        delegate.discoverIncludedServicesBlock =
+        { services, err in
+            
+            callbackResult = services
+            callbackError = err
+            exp.fulfill()
+        }
+        
+        let mockService = CBMutableService(type: CBUUID(), primary: true)
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        XCTAssertNotNil(delegate.discoverIncludedServicesBlock)
+        
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
+
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didDiscoverIncludedServicesFor: mockService, error: inputError)
+        }
+        
+        uuWaitForExpectations()
+        
+        XCTAssertNotNil(callbackError)
+        XCTAssertNil(callbackResult)
+        
+        let result = try XCTUnwrap(callbackError) as NSError
+        XCTAssertEqual(inputError.domain, result.domain)
+        XCTAssertEqual(inputError.code, result.code)
+        
+        XCTAssertNil(delegate.discoverIncludedServicesBlock)
+    }
+    
+    func test_didDiscoverIncludedServices_notRegistered() throws
+    {
+        let exp = uuExpectationForMethod()
+        exp.isInverted = true
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        delegate.discoverIncludedServicesBlock = nil
+        
+        let mockService = CBMutableService(type: CBUUID(), primary: true)
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        XCTAssertNil(delegate.discoverIncludedServicesBlock)
+        
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
+
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didDiscoverIncludedServicesFor: mockService, error: inputError)
+        }
+        
+        uuWaitForExpectations(0.2)
+        
+        XCTAssertNil(delegate.discoverIncludedServicesBlock)
+    }
 
     
     

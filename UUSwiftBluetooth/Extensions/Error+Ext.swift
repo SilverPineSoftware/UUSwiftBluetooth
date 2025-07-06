@@ -91,6 +91,15 @@ extension NSError
         return uuInvalidParamError(param, reason)
     }
     
+    static func uuRequiredServiceNotFoundError(_ service: CBUUID) -> NSError
+    {
+        var md: [String:AnyHashable] = [:]
+        md["service"] = service
+        md[NSLocalizedDescriptionKey] = "Service \(service) not discovered"
+        
+        return uuCoreBluetoothError(.serviceNotDiscovered, userInfo: md)
+    }
+    
     static func uuRequiredCharacteristicNotFoundError(_ characteristic: CBUUID) -> NSError
     {
         var md: [String:AnyHashable] = [:]

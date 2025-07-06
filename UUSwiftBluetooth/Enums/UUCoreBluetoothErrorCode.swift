@@ -37,8 +37,11 @@ public enum UUCoreBluetoothErrorCode: Int
     // A service discovery operation did not discover any services
     case noServicesDiscovered = 8
     
+    // An attempt was made to perform an operation on a service that has not been discovered
+    case serviceNotDiscovered = 9
+    
     // An attempt was made to read from a characterstic that has not been discovered
-    case characteristicNotDiscovered = 9
+    case characteristicNotDiscovered = 10
 }
 
 internal extension UUCoreBluetoothErrorCode
@@ -70,6 +73,9 @@ internal extension UUCoreBluetoothErrorCode
             
             case .noServicesDiscovered:
                 return "NoServicesDiscovered"
+            
+            case .serviceNotDiscovered:
+                return "ServiceNotDiscovered"
             
             case .characteristicNotDiscovered:
                 return "CharacteristicNotDiscovered"
@@ -103,6 +109,9 @@ internal extension UUCoreBluetoothErrorCode
             
             case .noServicesDiscovered:
                 return "No services were discovered on the peripheral."
+            
+            case .serviceNotDiscovered:
+                return "A service was not discovered on the peripheral."
             
             case .characteristicNotDiscovered:
                 return "A characteristic was not discovered on the peripheral."

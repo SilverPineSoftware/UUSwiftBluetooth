@@ -21,10 +21,6 @@ public typealias UUCBPeripheralServiceListBlock = ((CBPeripheral, [CBService])->
 public typealias UUCBL2CapChannelOpenedBlock = ((CBPeripheral, CBL2CAPChannel?, Error?)->())
 
 
-
-public typealias UUObjectErrorBlock<T> = ((T?, Error?) -> Void)
-public typealias UUListErrorBlock<T> = (([T]?, Error?) -> Void)
-
 public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
 {
     // ////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,7 +31,8 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     public var didModifyServicesBlock: UUCBPeripheralServiceListBlock? = nil
     public var didReadRssiBlock: UUObjectErrorBlock<Int>? = nil
     public var discoverServicesBlock: UUListErrorBlock<CBService>? = nil
-    private var discoverIncludedServicesBlock: UUCBPeripheralServiceErrorBlock? = nil
+    public var discoverIncludedServicesBlock: UUListErrorBlock<CBService>? = nil
+    
     private var discoverCharacteristicsBlock: UUCBPeripheralServiceErrorBlock? = nil
     private var updateValueForCharacteristicBlocks: [String:UUCBPeripheralCharacteristicErrorBlock] = [:]
     private var readValueForCharacteristicBlocks: [String:UUCBPeripheralCharacteristicErrorBlock] = [:]
@@ -57,8 +54,8 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         didModifyServicesBlock = nil
         didReadRssiBlock = nil
         discoverServicesBlock = nil
-        
         discoverIncludedServicesBlock = nil
+        
         discoverCharacteristicsBlock = nil
         updateValueForCharacteristicBlocks.removeAll()
         readValueForCharacteristicBlocks.removeAll()
@@ -100,17 +97,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     {
         discoverCharacteristicsBlock = nil
     }
-    
-    public func registerDiscoverIncludedServicesHandler(_ handler: UUCBPeripheralServiceErrorBlock?)
-    {
-        discoverIncludedServicesBlock = handler
-    }
-    
-    public func clearDiscoverIncludedServicesHandler()
-    {
-        discoverIncludedServicesBlock = nil
-    }
-    
+
     public func registerDiscoverDescriptorsHandler(_ handler: UUCBPeripheralCharacteristicErrorBlock?)
     {
         discoverDescriptorsBlock = handler
@@ -239,7 +226,10 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     {
         let block = discoverIncludedServicesBlock
         discoverIncludedServicesBlock = nil
-        block?(peripheral, service, error)
+        
+        let updatedService = peripheral.services?.first { $0.uuid == service.uuid }
+        
+        block?(updatedService?.includedServices, error)
     }
     
     public func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?)
