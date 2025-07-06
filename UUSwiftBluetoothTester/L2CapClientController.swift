@@ -273,7 +273,7 @@ class L2CapClientController:L2CapController
     
     private func discoverL2CapCharacteristics(service:CBService, completion: @escaping ((CBL2CAPPSM?, Bool?, Error?) -> Void))
     {
-        self.peripheral?.discoverCharacteristics(characteristicUUIDs: [UUL2CapConstants.UU_L2CAP_PSM_CHARACTERISTIC_UUID, UUL2CapConstants.UU_L2CAP_CHANNEL_ENCRYPTED_CHARACTERISTIC_UUID], for: service, timeout: 10)
+        self.peripheral?.discoverCharacteristics(characteristicUUIDs: [UUL2CapConstants.UU_L2CAP_PSM_CHARACTERISTIC_UUID, UUL2CapConstants.UU_L2CAP_CHANNEL_ENCRYPTED_CHARACTERISTIC_UUID], for: service.uuid, timeout: 10)
         { discoveredCharacteristics, error in
             
             guard let psmCharacteristic = discoveredCharacteristics?.first(where: { $0.uuid == UUL2CapConstants.UU_L2CAP_PSM_CHARACTERISTIC_UUID }),

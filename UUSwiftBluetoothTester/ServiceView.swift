@@ -44,7 +44,7 @@ class ServiceViewModel: ObservableObject
     
     func onDiscoverCharacteristics()
     {
-        peripheral.discoverCharacteristics(characteristicUUIDs: nil, for: service, timeout: 20.0)
+        peripheral.discoverCharacteristics(characteristicUUIDs: nil, for: service.uuid, timeout: 20.0)
         { characteristics, errOpt in
             
             UULog.debug(tag: LOG_TAG, message: "Characteristic discovery complete, found \(characteristics?.count ?? 0) characteristics")
@@ -65,7 +65,7 @@ class ServiceViewModel: ObservableObject
     
     func onDiscoverIncludedServices()
     {
-        peripheral.discoverIncludedServices(includedServiceUUIDs: nil, for: service, timeout: 20.0)
+        peripheral.discoverIncludedServices(includedServiceUUIDs: nil, for: service.uuid, timeout: 20.0)
         { updatedPeripheral, errOpt in
             
             DispatchQueue.main.async
