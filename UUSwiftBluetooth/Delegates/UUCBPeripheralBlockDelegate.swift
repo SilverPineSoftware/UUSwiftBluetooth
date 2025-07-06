@@ -30,10 +30,10 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     // MARK: Private member variables
     // ////////////////////////////////////////////////////////////////////////////////////////////
     
-    private var peripheralNameUpdatedBlock: UUCBPeripheralBlock? = nil
+    public var peripheralNameUpdatedBlock: UUCBPeripheralBlock? = nil
     private var didModifyServicesBlock: UUCBPeripheralServiceListBlock? = nil
     private var didReadRssiBlock: UUCBPeripheralIntErrorBlock? = nil
-    private var discoverServicesBlock: UUListErrorBlock<CBService>? = nil
+    public var discoverServicesBlock: UUListErrorBlock<CBService>? = nil
     private var discoverIncludedServicesBlock: UUCBPeripheralServiceErrorBlock? = nil
     private var discoverCharacteristicsBlock: UUCBPeripheralServiceErrorBlock? = nil
     private var updateValueForCharacteristicBlocks: [String:UUCBPeripheralCharacteristicErrorBlock] = [:]
@@ -53,6 +53,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     public func clearBlocks()
     {
         peripheralNameUpdatedBlock = nil
+        
         didModifyServicesBlock = nil
         didReadRssiBlock = nil
         discoverServicesBlock = nil
@@ -87,26 +88,6 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         UULog.debug(tag: LOG_TAG, message: "setNotifyValueForCharacteristicBlock: \(String(describing: setNotifyValueForCharacteristicBlock))")
         UULog.debug(tag: LOG_TAG, message: "discoverDescriptorsBlock: \(String(describing: discoverDescriptorsBlock))")
         UULog.debug(tag: LOG_TAG, message: "didOpenL2ChannelBlock: \(String(describing: didOpenL2ChannelBlock))")
-    }
-    
-    public func registerNameUpdateHandler(_ handler: UUCBPeripheralBlock?)
-    {
-        peripheralNameUpdatedBlock = handler
-    }
-    
-    public func clearNameUpdateHandler()
-    {
-        peripheralNameUpdatedBlock = nil
-    }
-    
-    public func registerDiscoverServicesHandler(_ handler: UUListErrorBlock<CBService>?)
-    {
-        discoverServicesBlock = handler
-    }
-    
-    public func clearDiscoverServicesHandler()
-    {
-        discoverServicesBlock = nil
     }
     
     public func registerDiscoverCharacteristicsHandler(_ handler: UUCBPeripheralServiceErrorBlock?)
@@ -239,6 +220,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     
     public func peripheralDidUpdateName(_ peripheral: CBPeripheral)
     {
+        // Don't clear this one because it's an async event not invoked in direct response to a method call.
         peripheralNameUpdatedBlock?(peripheral)
     }
     

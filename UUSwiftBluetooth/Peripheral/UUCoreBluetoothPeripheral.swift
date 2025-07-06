@@ -230,12 +230,12 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         let timerId = TimerId.serviceDiscovery
         
-        delegate.registerDiscoverServicesHandler(
+        delegate.discoverServicesBlock =
         { services, errOpt in
             
             //self.underlyingPeripheral = peripheral
             self.finishDiscoverServices(timerId, services, errOpt, completion)
-        })
+        }
         
         if let err = canAttemptOperation
         {

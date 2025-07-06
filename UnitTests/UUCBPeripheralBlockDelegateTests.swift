@@ -11,11 +11,76 @@ import CoreBluetooth
 
 final class UUCBPeripheralBlockDelegateTests: XCTestCase
 {
+    // MARK: Miscellaneous
+    
     func testMakeMockCBPeripheral() throws
     {
         let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
         XCTAssertNotNil(mockPeripheral)
     }
+    
+    // MARK: peripheralDidUpdateName
+    
+    func testDidUpdateName() throws
+    {
+        let exp = uuExpectationForMethod()
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        var callbackResult: CBPeripheral? = nil
+        
+        delegate.peripheralNameUpdatedBlock =
+        { peripheral in
+            
+            callbackResult = peripheral
+            exp.fulfill()
+        }
+        
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral(name: "Before"))
+
+        XCTAssertNotNil(delegate.peripheralNameUpdatedBlock)
+        
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            mockPeripheral.setValue("After", forKey: "name")
+            delegate.peripheralDidUpdateName(mockPeripheral)
+        }
+        
+        uuWaitForExpectations()
+        
+        XCTAssertNotNil(callbackResult)
+        
+        let result = try XCTUnwrap(callbackResult)
+        XCTAssertEqual("After", result.name)
+        
+        XCTAssertNotNil(delegate.peripheralNameUpdatedBlock)
+    }
+    
+    func testDidUpdateName_notRegistered() throws
+    {
+        let exp = uuExpectationForMethod()
+        exp.isInverted = true
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        delegate.peripheralNameUpdatedBlock = nil
+        
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral(name: "Before"))
+
+        XCTAssertNil(delegate.peripheralNameUpdatedBlock)
+        
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            mockPeripheral.setValue("After", forKey: "name")
+            delegate.peripheralDidUpdateName(mockPeripheral)
+        }
+        
+        uuWaitForExpectations(1.0)
+        
+        XCTAssertNil(delegate.peripheralNameUpdatedBlock)
+    }
+    
+    // MARK: didDiscoverServices
     
     func testDiscoverServicesHandler_success() throws
     {
@@ -26,7 +91,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         var callbackResult: [CBService]? = nil
         var callbackError: Error? = nil
         
-        delegate.registerDiscoverServicesHandler
+        delegate.discoverServicesBlock =
         { services, err in
             
             callbackResult = services
@@ -38,6 +103,8 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         
         let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral(services: [mockService]))
 
+        XCTAssertNotNil(delegate.discoverServicesBlock)
+        
         DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
         {
             delegate.peripheral(mockPeripheral, didDiscoverServices: nil)
@@ -50,6 +117,8 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         
         let result = try XCTUnwrap(callbackResult)
         XCTAssertEqual(1, result.count)
+        
+        XCTAssertNil(delegate.discoverServicesBlock)
     }
     
     func testDiscoverServicesHandler_error() throws
@@ -61,7 +130,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         var callbackResult: [CBService]? = nil
         var callbackError: Error? = nil
         
-        delegate.registerDiscoverServicesHandler
+        delegate.discoverServicesBlock =
         { services, err in
             
             callbackResult = services
@@ -70,6 +139,8 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         }
         
         let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        XCTAssertNotNil(delegate.discoverServicesBlock)
         
         let inputError = NSError(domain: "test", code: 1, userInfo: nil)
 
@@ -86,258 +157,40 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         let result = try XCTUnwrap(callbackError) as NSError
         XCTAssertEqual(inputError.domain, result.domain)
         XCTAssertEqual(inputError.code, result.code)
+        
+        XCTAssertNil(delegate.discoverServicesBlock)
     }
     
-    
-    
-
-    
-    
-    
-    
-    /*
-    func testClearBlocksRemovesAllHandlers()
+    func testDiscoverServicesHandler_notRegistered() throws
     {
-        // Register a couple of handlers
-        var didCallNameHandler = false
-        delegate.registerNameUpdateHandler { _ in didCallNameHandler = true }
+        let exp = uuExpectationForMethod()
+        exp.isInverted = true
+        
+        let delegate = UUCBPeripheralBlockDelegate()
+        
+        delegate.discoverServicesBlock = nil
+        
+        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
+        
+        XCTAssertNil(delegate.discoverServicesBlock)
+        
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
 
-        var didCallDiscoverServices = false
-        delegate.registerDiscoverServicesHandler { _, _ in didCallDiscoverServices = true }
-
-        // Clear everything
-        delegate.clearBlocks()
-
-        // Invoke both callbacks
-        delegate.peripheralDidUpdateName(fakePeripheral)
-        delegate.peripheral(fakePeripheral, didDiscoverServices: nil)
-
-        XCTAssertFalse(didCallNameHandler)
-        XCTAssertFalse(didCallDiscoverServices)
-    }
-
-    func testNameUpdateHandler()
-    {
-        let exp = expectation(description: "name update")
-        delegate.registerNameUpdateHandler { p in
-            XCTAssert(p === self.fakePeripheral)
-            exp.fulfill()
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
+        {
+            delegate.peripheral(mockPeripheral, didDiscoverServices: inputError)
         }
-        delegate.peripheralDidUpdateName(fakePeripheral)
-        wait(for: [exp], timeout: 0.1)
+        
+        uuWaitForExpectations(1.0)
+        
+        XCTAssertNil(delegate.discoverServicesBlock)
     }
+    
 
-    func testDidModifyServicesHandler()
-    {
-        let exp = expectation(description: "modify services")
-        let dummyServices = [CBMutableService(type: CBUUID(string: "A"))]
-        delegate.didModifyServicesBlock = nil
-        delegate.registerDiscoverServicesHandler(nil) // just to ensure no leakage
+    
+    
+    
 
-        // use the public didModifyServicesBlock via clearBlocks test above;
-        // actually we need register a custom block... it's private, so test via discoverServicesBlock
-        // Instead use registerDiscoverIncludedServicesHandler to test didDiscoverIncludedServicesFor:
-        delegate.registerDiscoverIncludedServicesHandler { p, s, e in
-            XCTAssert(p === self.fakePeripheral)
-            XCTAssert(s.uuid == dummyServices[0].uuid)
-            XCTAssertNil(e)
-            exp.fulfill()
-        }
-        delegate.peripheral(fakePeripheral, didDiscoverIncludedServicesFor: dummyServices[0], error: nil)
-        wait(for: [exp], timeout: 0.1)
-    }
-
-    func testReadRSSIHandler() {
-        let exp = expectation(description: "read RSSI")
-        delegate.registerReadRssiaHandler { p, rssi, err in
-            XCTAssert(p === self.fakePeripheral)
-            XCTAssertEqual(rssi, 42)
-            XCTAssertNil(err)
-            exp.fulfill()
-        }
-        delegate.peripheral(fakePeripheral, didReadRSSI: 42 as NSNumber, error: nil)
-        wait(for: [exp], timeout: 0.1)
-    }
-
-    func testDiscoverServicesHandler() {
-        let exp = expectation(description: "discover services")
-        delegate.registerDiscoverServicesHandler { p, err in
-            XCTAssert(p === self.fakePeripheral)
-            XCTAssertNil(err)
-            exp.fulfill()
-        }
-        delegate.peripheral(fakePeripheral, didDiscoverServices: nil)
-        wait(for: [exp], timeout: 0.1)
-    }
-
-    func testDiscoverCharacteristicsHandler() {
-        let exp = expectation(description: "discover characteristics")
-        let svc = CBMutableService(type: CBUUID(string: "B"))
-        delegate.registerDiscoverCharacteristicsHandler { p, service, err in
-            XCTAssert(p === self.fakePeripheral)
-            XCTAssert(service.uuid == svc.uuid)
-            XCTAssertNil(err)
-            exp.fulfill()
-        }
-        delegate.peripheral(fakePeripheral, didDiscoverCharacteristicsFor: svc, error: nil)
-        wait(for: [exp], timeout: 0.1)
-    }
-
-    func testUpdateAndReadValueForCharacteristic() {
-        let svc = CBMutableService(type: CBUUID(string: "C"))
-        let char = CBMutableCharacteristic(
-            type: CBUUID(string: "C1"),
-            properties: [.read, .notify],
-            value: nil,
-            permissions: [.readable]
-        )
-        svc.characteristics = [char]
-
-        let updateExp = expectation(description: "update value")
-        delegate.registerUpdateHandler({ p, characteristic, err in
-            XCTAssert(p === self.fakePeripheral)
-            XCTAssert(characteristic.uuid == char.uuid)
-            XCTAssertNil(err)
-            updateExp.fulfill()
-        }, char)
-
-        let readExp = expectation(description: "read value")
-        delegate.registerReadHandler({ p, characteristic, err in
-            XCTAssert(p === self.fakePeripheral)
-            XCTAssert(characteristic.uuid == char.uuid)
-            XCTAssertNil(err)
-            readExp.fulfill()
-        }, char)
-
-        delegate.peripheral(fakePeripheral, didUpdateValueFor: char, error: nil)
-        wait(for: [updateExp, readExp], timeout: 0.1)
-    }
-
-    func testWriteValueForCharacteristic() {
-        let char = CBMutableCharacteristic(
-            type: CBUUID(string: "D1"),
-            properties: [], value: nil, permissions: []
-        )
-        let exp = expectation(description: "write characteristic")
-        delegate.registerWriteHandler({ p, characteristic, err in
-            XCTAssert(p === self.fakePeripheral)
-            XCTAssert(characteristic.uuid == char.uuid)
-            XCTAssertNil(err)
-            exp.fulfill()
-        }, char)
-        delegate.peripheral(fakePeripheral, didWriteValueFor: char, error: nil)
-        wait(for: [exp], timeout: 0.1)
-    }
-
-    func testNotifyStateChangeForCharacteristic() {
-        let char = CBMutableCharacteristic(
-            type: CBUUID(string: "E1"),
-            properties: [], value: nil, permissions: []
-        )
-        let exp = expectation(description: "notify state")
-        delegate.registerSetNotifyValueHandler { p, characteristic, err in
-            XCTAssert(p === self.fakePeripheral)
-            XCTAssert(characteristic.uuid == char.uuid)
-            XCTAssertNil(err)
-            exp.fulfill()
-        }
-        delegate.peripheral(fakePeripheral, didUpdateNotificationStateFor: char, error: nil)
-        wait(for: [exp], timeout: 0.1)
-    }
-
-    func testDiscoverDescriptorsForCharacteristic() {
-        let char = CBMutableCharacteristic(
-            type: CBUUID(string: "F1"),
-            properties: [], value: nil, permissions: []
-        )
-        let exp = expectation(description: "discover descriptors")
-        delegate.registerDiscoverDescriptorsHandler { p, characteristic, err in
-            XCTAssert(p === self.fakePeripheral)
-            XCTAssert(characteristic.uuid == char.uuid)
-            XCTAssertNil(err)
-            exp.fulfill()
-        }
-        delegate.peripheral(fakePeripheral, didDiscoverDescriptorsFor: char, error: nil)
-        wait(for: [exp], timeout: 0.1)
-    }
-
-    func testUpdateAndReadValueForDescriptor() {
-        let descriptor = CBMutableDescriptor(
-            type: CBUUID(string: "G1"),
-            value: "X" as NSString
-        )
-        let updateExp = expectation(description: "update descriptor")
-        delegate.registerUpdateHandler({ p, desc, err in
-            XCTAssert(p === self.fakePeripheral)
-            XCTAssert(desc.uuid == descriptor.uuid)
-            XCTAssertNil(err)
-            updateExp.fulfill()
-        }, descriptor)
-
-        let readExp = expectation(description: "read descriptor")
-        delegate.registerReadHandler({ p, desc, err in
-            XCTAssert(p === self.fakePeripheral)
-            XCTAssert(desc.uuid == descriptor.uuid)
-            XCTAssertNil(err)
-            readExp.fulfill()
-        }, descriptor)
-
-        delegate.peripheral(fakePeripheral, didUpdateValueFor: descriptor, error: nil)
-        wait(for: [updateExp, readExp], timeout: 0.1)
-    }
-
-    func testWriteValueForDescriptor() {
-        let descriptor = CBMutableDescriptor(
-            type: CBUUID(string: "H1"),
-            value: "Y" as NSString
-        )
-        let exp = expectation(description: "write descriptor")
-        delegate.registerWriteHandler({ p, desc, err in
-            XCTAssert(p === self.fakePeripheral)
-            XCTAssert(desc.uuid == descriptor.uuid)
-            XCTAssertNil(err)
-            exp.fulfill()
-        }, descriptor)
-        delegate.peripheral(fakePeripheral, didWriteValueFor: descriptor, error: nil)
-        wait(for: [exp], timeout: 0.1)
-    }
-
-    func testDidOpenL2CAPChannel() {
-        let exp = expectation(description: "open L2CAP")
-        let channel: CBL2CAPChannel? = nil
-        delegate.registerDidOpenL2CAPChannelHandler { p, ch, err in
-            XCTAssert(p === self.fakePeripheral)
-            XCTAssert(ch === channel)
-            XCTAssertNil(err)
-            exp.fulfill()
-        }
-        delegate.peripheral(fakePeripheral, didOpen: channel, error: nil)
-        wait(for: [exp], timeout: 0.1)
-    }
-
-    func testLogBlocksDoesNotCrash() {
-        // just exercise logBlocks
-        delegate.logBlocks()
-    }*/
+    
+    
 }
-
-
-//private class MockCBPeripheral: CBPeripheral {
-//  override var identifier: UUID { UUID() }
-//  override var name: String?   { "Mock" }
-//}
-
-
-
-//class MockCBPeripheralImplementation: CBPeripheral {
-//    let identifier: UUID
-//    let name: String?
-//    let state: CBPeripheralState
-//
-//    init(identifier: UUID, name: String?, state: CBPeripheralState) {
-//        self.identifier = identifier
-//        self.name = name
-//        self.state = state
-//    }
-//    // ... Implement other methods and properties
-//}
