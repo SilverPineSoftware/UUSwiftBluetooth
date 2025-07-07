@@ -141,11 +141,6 @@ public class UUCentralManager
     {
         UULog.debug(tag: LOG_TAG, message: "starting scan")
         
-        //var opts: [String:Any] = [:]
-        //opts[CBCentralManagerScanOptionAllowDuplicatesKey] = allowDuplicates
-        
-        //scanUuidList = serviceUuids
-        //scanOptions = opts
         scanConfig = config
         isScanning = true
         UULog.debug(tag: LOG_TAG, message: "isScanning: \(isScanning)")
