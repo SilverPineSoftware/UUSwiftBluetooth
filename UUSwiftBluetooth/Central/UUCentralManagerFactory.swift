@@ -29,10 +29,18 @@ class UUCentralManagerFactory
         if (_sharedCentralManager == nil)
         {
             let opts = _sharedCentralManagerInitOptions ?? defaultOptions()
-            _sharedCentralManager = UUCentralManager(opts)
+            _sharedCentralManager = UUCentralManager(options: opts, injection: injectCentral)
         }
         
         return _sharedCentralManager!
+    }
+    
+    private static func injectCentral(_ dispatchQueue: DispatchQueue, _ options: [String:Any]?) -> (UUCentralManagerDelegate, UUCBCentralManager)
+    {
+        let isConfiguredForStateRestoration = (options?.uuGetString(CBCentralManagerOptionRestoreIdentifierKey) != nil)
+        let delegate = isConfiguredForStateRestoration ? UUCentralManagerRestoringDelegate() : UUCentralManagerDelegate()
+        let centralManager = CBCentralManager(delegate: delegate, queue: dispatchQueue, options: options)
+        return (delegate, centralManager)
     }
     
     public static func setSharedCentralManagerInitOptions(_ options: [String:Any]?)

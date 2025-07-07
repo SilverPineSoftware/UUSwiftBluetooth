@@ -44,14 +44,13 @@ public class UUCentralManager
         return UUCentralManagerFactory.sharedCentralManager
     }
     
-    required init(_ opts: [String:Any]?)
+    required init(options: [String:Any]? = nil, injection: (DispatchQueue, [String:Any]?)->(UUCentralManagerDelegate, UUCBCentralManager))
     {
-        UULog.debug(tag: LOG_TAG, message: "Initializing UUCoreBluetooth with options: \(String(describing: opts))")
+        UULog.debug(tag: LOG_TAG, message: "Initializing UUCoreBluetooth with options: \(String(describing: options))")
         
-        options = opts
-        let isConfiguredForStateRestoration = (options?.uuGetString(CBCentralManagerOptionRestoreIdentifierKey) != nil)
-        delegate = isConfiguredForStateRestoration ? UUCentralManagerRestoringDelegate() : UUCentralManagerDelegate()
-        centralManager = CBCentralManager(delegate: delegate, queue: dispatchQueue, options: options)
+        let injected = injection(dispatchQueue, options)
+        delegate = injected.0
+        centralManager = injected.1
         delegate.centralStateChangedBlock = handleCentralStateChanged
     }
     
