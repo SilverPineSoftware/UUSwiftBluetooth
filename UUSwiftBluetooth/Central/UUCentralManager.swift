@@ -14,17 +14,9 @@ fileprivate let LOG_TAG = "UUCentralManager"
 // MARK:- Common Type Alias Definitions
 
 public typealias UUCentralStateChangedBlock = ((CBManagerState)->())
-//public typealias UUPeripheralFoundBlock = ((CBPeripheral, [String:Any], Int)->())
 public typealias UUBluetoothAdvertisementBlock = ((UUAdvertisement)->())
 public typealias UUWillRestoreStateBlock = (([String:Any])->())
 public typealias UUPeripheralListBlock = (([UUPeripheral])->())
-
-
-/**
- 
- UUCentralManager is a wrapper for CBCentralManager.   It provides a block based interface to CoreBluetooth operations.
- 
- */
 
 /**
  *  @class CBCentralManager
@@ -37,7 +29,7 @@ public class UUCentralManager
     private(set) internal var dispatchQueue = DispatchQueue(label: "UUCentralManagerQueue", qos: .userInteractive, attributes: [], autoreleaseFrequency: .inherit, target: nil)
     
     private var delegate: UUCentralManagerDelegate
-    var centralManager: CBCentralManager
+    var centralManager: UUCBCentralManager
     
     private var scanUuidList: [CBUUID]? = nil
     private var scanOptions: [String:Any]? = nil
@@ -89,6 +81,11 @@ public class UUCentralManager
     
     
     // PRIVATE
+    
+    private var canStartScanning: Bool
+    {
+        return centralManager.state == .poweredOn
+    }
     
     private func handleCentralStateChanged(_ state: CBManagerState)
     {
@@ -161,7 +158,7 @@ public class UUCentralManager
     
     private func resumeScanning()
     {
-        if (self.centralManager.uuCanStartScanning)
+        if (self.canStartScanning)
         {
             centralManager.scanForPeripherals(withServices: scanUuidList, options: scanOptions)
         }
