@@ -39,19 +39,13 @@ public class UUCentralManager
     private var delegate: UUCentralManagerDelegate
     var centralManager: CBCentralManager
     
-    // Keep track of connected peripherals
-    //private var peripherals: [UUID: UUPeripheral] = [:]
-    //private var peripheralsMutex = NSRecursiveLock()
-    
     private var scanUuidList: [CBUUID]? = nil
     private var scanOptions: [String:Any]? = nil
-    //private var scanFilters: [UUPeripheralFilter]? = nil
     private(set) public var isScanning: Bool = false
     private var isConfiguredForStateRestoration: Bool = false
     
     private var centralStateChangedBlock: UUCentralStateChangedBlock? = nil
     private var rssiPollingBlocks: [String:UUPeripheralBlock] = [:]
-    //private var peripheralFoundBlock: UUPeripheralBlock? = nil
     private var willRestoreStateBlock: UUWillRestoreStateBlock? = nil
     private var options: [String:Any]? = nil
     
@@ -151,9 +145,6 @@ public class UUCentralManager
         advertisementHandler: @escaping UUBluetoothAdvertisementBlock,
         willRestoreCallback: UUWillRestoreStateBlock? = nil)
     {
-        //UUDebugLog("Clearing nearby peripherals")
-        //clearNearbyPeripherals()
-        
         UULog.debug(tag: LOG_TAG, message: "starting scan")
         
         var opts: [String:Any] = [:]
@@ -164,62 +155,10 @@ public class UUCentralManager
         isScanning = true
         UULog.debug(tag: LOG_TAG, message: "isScanning: \(isScanning)")
         willRestoreStateBlock = willRestoreCallback
-        //peripheralFoundBlock = peripheralFoundCallback
         delegate.didDiscoverPeripheralBlock = advertisementHandler
         resumeScanning()
     }
     
-    /*
-    private func handleAdvertisement(_ advertisement: UUBluetoothAdvertisement)
-    {
-        defer { peripheralsMutex.unlock() }
-        peripheralsMutex.lock()
-        
-        let uuid = advertisement.peripheral.identifier
-        
-        var lookup = peripherals[uuid]
-        if (lookup == nil)
-        {
-            lookup = UUPeripheral(dispatchQueue: self.dispatchQueue, centralManager: self, peripheral: advertisement.peripheral)
-        }
-        
-        guard let p = lookup else
-        {
-            // Should never happen, but we are safe coders!
-            return
-        }
-        
-        //p.appendAdvertisement(advertisement)
-        p.updateAdvertisement(advertisement)
-        peripherals[uuid] = p
-        
-        guard let block = peripheralFoundBlock else
-        {
-            return
-        }
-        
-        block(p)
-    }
-    
-    private func clearNearbyPeripherals()
-    {
-        defer { peripheralsMutex.unlock() }
-        peripheralsMutex.lock()
-        
-        let keep = peripherals.values.filter
-        { p in
-            p.peripheralState != .disconnected
-        }
-        
-        peripherals.removeAll()
-        
-        for p in keep
-        {
-            //p.clearAdvertisements()
-            peripherals[p.identifier] = p
-        }
-    }*/
-
     private func resumeScanning()
     {
         if (self.centralManager.uuCanStartScanning)
@@ -232,35 +171,10 @@ public class UUCentralManager
         }
     }
     
-//    internal func restartScanning()
-//    {
-//        pauseScanning()
-//        resumeScanning()
-//    }
-    
     private func handleWillRestoreState(_ options: [String:Any])
     {
         willRestoreStateBlock?(options)
     }
-    
-    /*
-    private func shouldDiscoverPeripheral(_ peripheral: UUPeripheral) -> Bool
-    {
-        guard let filters = scanFilters else
-        {
-            return true
-        }
-        
-        for f in filters
-        {
-            if (!f.shouldDiscover(peripheral))
-            {
-                return false
-            }
-        }
-        
-        return true
-    }*/
     
     public func stopScan()
     {
@@ -268,8 +182,6 @@ public class UUCentralManager
         
         isScanning = false
         UULog.debug(tag: LOG_TAG, message: "isScanning: \(isScanning)")
-        //peripheralFoundBlock = nil
-        //handlePeripheralFound = nil
         delegate.didDiscoverPeripheralBlock = nil
         centralManager.stopScan()
     }
@@ -339,117 +251,4 @@ public class UUCentralManager
            UULog.debug(tag: LOG_TAG, message: "No delegate to notify disconnected")
        }
     }
-    
-    
-    /*private func getOrCreatePeripheral(_ cbPeripheral: CBPeripheral) -> UUPeripheral?
-    {
-        var p = findPeripheralFromCbPeripheral(cbPeripheral)
-        if (p == nil)
-        {
-            p = UUPeripheral(dispatchQueue: self.dispatchQueue, centralManager: self, peripheral: cbPeripheral)
-        }
-        
-        return p
-    }*/
-    
-    /*private func findPeripheralFromCbPeripheral(_ peripheral: CBPeripheral) -> UUPeripheral?
-    {
-        defer { peripheralsMutex.unlock() }
-        peripheralsMutex.lock()
-        
-        return peripherals[peripheral.identifier]
-    }*/
-    
-    /*private func updatePeripheralFromScan(_ advertisement: UUBluetoothAdvertisement) -> UUPeripheral?
-    {
-        guard let uuPeripheral = getOrCreatePeripheral(advertisement.peripheral) else
-        {
-            return nil
-        }
-        
-        uuPeripheral.appendAdvertisement(advertisement)
-        updatePeripheral(uuPeripheral)
-        return uuPeripheral
-    }*/
-    
-    /*private func updatePeripheral(_ peripheral: UUPeripheral)
-    {
-        defer { peripheralsMutex.unlock() }
-        peripheralsMutex.lock()
-        
-        peripherals[peripheral.identifier] = peripheral
-    }*/
-    
-    /*private func removePeripheral(_ peripheral: UUPeripheral)
-    {
-        defer { peripheralsMutex.unlock() }
-        peripheralsMutex.lock()
-        
-        peripherals.removeValue(forKey: peripheral.identifier)
-    }*/
 }
-
-// MARK:- Global Helper functions
-
-/*
-func UUIsCBCharacteristicPropertySet(_ props: CBCharacteristicProperties, _ check: CBCharacteristicProperties) -> Bool
-{
-    return props.contains(check)
-}
-
-public func UUCBCharacteristicPropertiesToString(_ props: CBCharacteristicProperties) -> String
-{
-    var parts: [String] = []
-    
-    if (UUIsCBCharacteristicPropertySet(props, .broadcast))
-    {
-        parts.append("Broadcast")
-    }
-    
-    if (UUIsCBCharacteristicPropertySet(props, .read))
-    {
-        parts.append("Read")
-    }
-    
-    if (UUIsCBCharacteristicPropertySet(props, .writeWithoutResponse))
-    {
-        parts.append("WriteWithoutResponse")
-    }
-    
-    if (UUIsCBCharacteristicPropertySet(props, .write))
-    {
-        parts.append("Write")
-    }
-    
-    if (UUIsCBCharacteristicPropertySet(props, .notify))
-    {
-        parts.append("Notify")
-    }
-    
-    if (UUIsCBCharacteristicPropertySet(props, .indicate))
-    {
-        parts.append("Indicate")
-    }
-    
-    if (UUIsCBCharacteristicPropertySet(props, .authenticatedSignedWrites))
-    {
-        parts.append("AuthenticatedSignedWrites")
-    }
-    
-    if (UUIsCBCharacteristicPropertySet(props, .extendedProperties))
-    {
-        parts.append("ExtendedProperties")
-    }
-    if (UUIsCBCharacteristicPropertySet(props, .notifyEncryptionRequired))
-    {
-        parts.append("NotifyEncryptionRequired")
-    }
-    
-    if (UUIsCBCharacteristicPropertySet(props, .indicateEncryptionRequired))
-    {
-        parts.append("IndicateEncryptionRequired")
-    }
-    
-    return parts.joined(separator: ", ")
-}
-*/
