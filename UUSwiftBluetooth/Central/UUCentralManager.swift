@@ -31,10 +31,8 @@ public class UUCentralManager
     private var delegate: UUCentralManagerDelegate
     private var centralManager: UUCBCentralManager
     
-    private var scanUuidList: [CBUUID]? = nil
-    private var scanOptions: [String:Any]? = nil
+    private var scanConfig: UUPeripheralScannerConfig = UUPeripheralScannerConfig()
     private(set) public var isScanning: Bool = false
-    private var isConfiguredForStateRestoration: Bool = false
     
     private var centralStateChangedBlock: UUCentralStateChangedBlock? = nil
     private var rssiPollingBlocks: [String:UUPeripheralBlock] = [:]
@@ -51,7 +49,7 @@ public class UUCentralManager
         UULog.debug(tag: LOG_TAG, message: "Initializing UUCoreBluetooth with options: \(String(describing: opts))")
         
         options = opts
-        isConfiguredForStateRestoration = (options?.uuGetString(CBCentralManagerOptionRestoreIdentifierKey) != nil)
+        let isConfiguredForStateRestoration = (options?.uuGetString(CBCentralManagerOptionRestoreIdentifierKey) != nil)
         delegate = isConfiguredForStateRestoration ? UUCentralManagerRestoringDelegate() : UUCentralManagerDelegate()
         centralManager = CBCentralManager(delegate: delegate, queue: dispatchQueue, options: options)
         delegate.centralStateChangedBlock = handleCentralStateChanged
@@ -137,18 +135,18 @@ public class UUCentralManager
     }
     
     public func startScan(
-        serviceUuids: [CBUUID]?,
-        allowDuplicates: Bool,
+        config: UUPeripheralScannerConfig,
         advertisementHandler: @escaping UUBluetoothAdvertisementBlock,
         willRestoreCallback: UUWillRestoreStateBlock? = nil)
     {
         UULog.debug(tag: LOG_TAG, message: "starting scan")
         
-        var opts: [String:Any] = [:]
-        opts[CBCentralManagerScanOptionAllowDuplicatesKey] = allowDuplicates
+        //var opts: [String:Any] = [:]
+        //opts[CBCentralManagerScanOptionAllowDuplicatesKey] = allowDuplicates
         
-        scanUuidList = serviceUuids
-        scanOptions = opts
+        //scanUuidList = serviceUuids
+        //scanOptions = opts
+        scanConfig = config
         isScanning = true
         UULog.debug(tag: LOG_TAG, message: "isScanning: \(isScanning)")
         willRestoreStateBlock = willRestoreCallback
@@ -160,7 +158,7 @@ public class UUCentralManager
     {
         if (self.canStartScanning)
         {
-            centralManager.scanForPeripherals(withServices: scanUuidList, options: scanOptions)
+            centralManager.scanForPeripherals(withServices: scanConfig.serviceUUIDs, options: scanConfig.scanOptions)
         }
         else
         {

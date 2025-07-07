@@ -61,8 +61,7 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
         
         notifyScanStarted()
         centralManager.startScan(
-            serviceUuids: config.serviceUUIDs,
-            allowDuplicates: config.allowDuplicates,
+            config: config,
             advertisementHandler: handleAdvertisement,
             willRestoreCallback: handleWillRestoreState)
     }

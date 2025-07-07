@@ -58,4 +58,15 @@ open class UUPeripheralScannerConfig
      Sorting method used.  Common sorting comparators are provided by UUSwiftBluetooth.  See UUPeripheralRssiSortComparator, UUPeripheralFirstDiscoveryTimeComparator, and UUPeripheralFriendlyNameComparator
      */
     public var peripheralSorting: (any UUPeripheralComparator)? = nil
+    
+    
+    /**
+     Builds the scanning options used to pass into CBCentralManager
+     */
+    public var scanOptions: [String:Any]
+    {
+        var opts: [String:Any] = [:]
+        opts[CBCentralManagerScanOptionAllowDuplicatesKey] = allowDuplicates
+        return opts
+    }
 }
