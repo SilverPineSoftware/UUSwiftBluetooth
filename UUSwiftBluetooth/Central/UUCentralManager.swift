@@ -29,7 +29,7 @@ public class UUCentralManager
     private(set) internal var dispatchQueue = DispatchQueue(label: "UUCentralManagerQueue", qos: .userInteractive, attributes: [], autoreleaseFrequency: .inherit, target: nil)
     
     private var delegate: UUCentralManagerDelegate
-    var centralManager: UUCBCentralManager
+    private var centralManager: UUCBCentralManager
     
     private var scanUuidList: [CBUUID]? = nil
     private var scanOptions: [String:Any]? = nil
