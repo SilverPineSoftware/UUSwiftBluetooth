@@ -18,7 +18,7 @@ public protocol UUCBCharacteristic : UUCBAttribute
      *      A back-pointer to the service this characteristic belongs to.
      *
      */
-    //weak open var service: CBService? { get }
+    var service: CBService? { get }
 
     /**
      * @property properties

@@ -18,7 +18,7 @@ public protocol UUCBService : UUCBAttribute
      *      A back-pointer to the peripheral this service belongs to.
      *
      */
-    //weak open var peripheral: CBPeripheral? { get }
+    var peripheral: CBPeripheral? { get }
 
     /**
      * @property isPrimary

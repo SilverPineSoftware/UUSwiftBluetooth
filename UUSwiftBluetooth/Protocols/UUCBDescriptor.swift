@@ -19,7 +19,7 @@ public protocol UUCBDescriptor : UUCBAttribute
     *      A back-pointer to the characteristic this descriptor belongs to.
     *
     */
-   //var characteristic: CBCharacteristic? { get }
+   var characteristic: CBCharacteristic? { get }
 
    /**
     *  @property value
