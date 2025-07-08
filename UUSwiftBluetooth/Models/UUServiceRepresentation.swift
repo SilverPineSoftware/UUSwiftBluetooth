@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import CoreBluetooth
 
 /// A representation of a CoreBluetooth service.
 ///
@@ -103,7 +102,7 @@ final public class UUServiceRepresentation: Codable
 
     /// Convenience initializer to create a service representation from a CoreBluetooth `CBService`.
     /// - Parameter service: A `CBService` object from CoreBluetooth.
-    public convenience init(from service: CBService)
+    public convenience init(from service: UUCBService)
     {
         self.init(uuid: service.uuid.uuidString, name: service.uuid.uuCommonName, isPrimary: service.isPrimary)
 

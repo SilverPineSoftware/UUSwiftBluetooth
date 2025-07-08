@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import CoreBluetooth
 
 /// A representation of a CoreBluetooth characteristic.
 ///
@@ -102,7 +101,7 @@ final public class UUCharacteristicRepresentation: Codable
 
     /// Convenience initializer to create a characteristic representation from a CoreBluetooth `CBCharacteristic`.
     /// - Parameter characteristic: A `CBCharacteristic` object from CoreBluetooth.
-    public convenience init(from characteristic: CBCharacteristic)
+    public convenience init(from characteristic: UUCBCharacteristic)
     {
         self.init(
             uuid: characteristic.uuid.uuidString,

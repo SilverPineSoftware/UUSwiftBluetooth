@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import CoreBluetooth
 import UUSwiftCore
 
 /// A representation of a CoreBluetooth peripheral.
@@ -89,7 +88,7 @@ final public class UUPeripheralRepresentation: Codable
 
     /// Convenience initializer to create a peripheral representation from a CoreBluetooth `CBPeripheral`.
     /// - Parameter peripheral: A `CBPeripheral` object from CoreBluetooth.
-    public convenience init(from peripheral: CBPeripheral)
+    public convenience init(from peripheral: UUCBPeripheral)
     {
         self.init()
 

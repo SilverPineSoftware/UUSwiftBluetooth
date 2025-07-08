@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import CoreBluetooth
 
 /// A representation of a CoreBluetooth descriptor.
 ///
@@ -80,7 +79,7 @@ final public class UUDescriptorRepresentation: Codable
 
     /// Convenience initializer to create a descriptor representation from a CoreBluetooth `CBDescriptor`.
     /// - Parameter descriptor: A `CBDescriptor` object from CoreBluetooth.
-    public convenience init(from descriptor: CBDescriptor)
+    public convenience init(from descriptor: UUCBDescriptor)
     {
         self.init(uuid: descriptor.uuid.uuidString, name: descriptor.uuid.uuCommonName)
     }
