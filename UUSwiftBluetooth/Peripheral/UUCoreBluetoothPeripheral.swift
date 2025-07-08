@@ -130,8 +130,8 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     // from the phone
     public func connect(
         timeout: TimeInterval = UUCoreBluetooth.Defaults.connectTimeout,
-        connected: @escaping UUPeripheralConnectedBlock,
-        disconnected: @escaping UUPeripheralDisconnectedBlock)
+        connected: @escaping UUVoidBlock,
+        disconnected: @escaping UUErrorBlock)
     {
         guard centralManager.isPoweredOn else
         {

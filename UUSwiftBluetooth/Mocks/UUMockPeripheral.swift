@@ -75,7 +75,7 @@ public class UUMockPeripheral: UUPeripheral
     
     public var mockRssi: Int = 0
     
-    private var disconnectCallback: UUPeripheralDisconnectedBlock? = nil
+    private var disconnectCallback: UUErrorBlock? = nil
     private var notifyHandlers: [CBUUID:UUObjectErrorBlock<Data>] = [:]
     private var charNotifyMap: [CBUUID:Bool] = [:]
     
@@ -97,7 +97,7 @@ public class UUMockPeripheral: UUPeripheral
         return mockMaximumWriteValueLengths[writeType] ?? 0
     }
     
-    public func connect(timeout: TimeInterval, connected: @escaping UUPeripheralConnectedBlock, disconnected: @escaping UUPeripheralDisconnectedBlock)
+    public func connect(timeout: TimeInterval, connected: @escaping UUVoidBlock, disconnected: @escaping UUErrorBlock)
     {
         self.disconnectCallback = disconnected
         

@@ -9,8 +9,6 @@ import Foundation
 import CoreBluetooth
 import UUSwiftCore
 
-public typealias UUPeripheralConnectedBlock = (()->())
-public typealias UUPeripheralDisconnectedBlock = ((Error?)->())
 public typealias UUPeripheralBlock = ((UUPeripheral)->())
 public typealias UUPeripheralErrorBlock = ((UUPeripheral, Error?)->())
 public typealias UUPeripheralCharacteristicErrorBlock = ((UUPeripheral, CBCharacteristic, Error?)->())
@@ -37,8 +35,8 @@ public protocol UUPeripheral
     func maximumWriteValueLength(for writeType: CBCharacteristicWriteType) -> Int
     
     func connect(timeout: TimeInterval,
-                 connected: @escaping UUPeripheralConnectedBlock,
-                 disconnected: @escaping UUPeripheralDisconnectedBlock)
+                 connected: @escaping UUVoidBlock,
+                 disconnected: @escaping UUErrorBlock)
     
     func disconnect(timeout: TimeInterval)
     
