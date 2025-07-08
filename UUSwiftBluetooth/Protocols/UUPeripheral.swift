@@ -103,7 +103,7 @@ public protocol UUPeripheral
     
     func readRSSI(
         timeout: TimeInterval,
-        completion: @escaping UUPeripheralIntegerErrorBlock)
+        completion: @escaping UUObjectErrorBlock<Int>)
     
     // These need to be internal
     func openL2CAPChannel(psm: CBL2CAPPSM)

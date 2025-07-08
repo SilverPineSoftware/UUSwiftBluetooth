@@ -299,12 +299,12 @@ public class UUMockPeripheral: UUPeripheral
         }
     }
     
-    public func readRSSI(timeout: TimeInterval, completion: @escaping UUPeripheralIntegerErrorBlock)
+    public func readRSSI(timeout: TimeInterval, completion: @escaping UUObjectErrorBlock<Int>)
     {
         dispatch
         {
             self.rssi = self.mockRssi
-            completion(self, self.rssi, self.mockCallbackError)
+            completion(self.rssi, self.mockCallbackError)
         }
     }
     

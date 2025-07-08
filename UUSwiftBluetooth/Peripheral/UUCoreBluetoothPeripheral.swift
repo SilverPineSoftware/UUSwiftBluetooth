@@ -694,7 +694,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     // timeout value.  A negative timeout value will disable the timeout.
     public func readRSSI(
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
-        completion: @escaping UUPeripheralIntegerErrorBlock)
+        completion: @escaping UUObjectErrorBlock<Int>)
     {
         UULog.debug(tag: LOG_TAG, message: "Reading RSSI for \(self.debugName), timeout: \(timeout)")
         
@@ -704,7 +704,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         { rssi, error in
             
             let err = self.prepareToFinishOperation(timerId, error)
-            completion(self, rssi ?? UUCoreBluetooth.Constants.noRssi, err)
+            completion(rssi, err)
         }
         
         if let err = canAttemptOperation
