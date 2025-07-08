@@ -797,7 +797,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         var callbackResult: Data? = nil
         var callbackError: Error? = nil
         
-        delegate.registerReadHandler(for: mockCharacteristic)
+        delegate.registerCharacteristicReadHandler(mockCharacteristic.uuid)
         { data, err in
             callbackResult = data
             callbackError = err
@@ -837,7 +837,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         var callbackResult: Data? = nil
         var callbackError: Error? = nil
         
-        delegate.registerReadHandler(for: mockCharacteristic)
+        delegate.registerCharacteristicReadHandler(mockCharacteristic.uuid)
         { data, err in
             callbackResult = data
             callbackError = err
@@ -877,8 +877,8 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         let mockCharacteristic = CBMutableCharacteristic(type: CBUUID(), properties: [.read, .write], value: nil, permissions: [.readable, .writeable])
         let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
         
-        delegate.registerReadHandler(for: mockCharacteristic, handler: nil)
-        delegate.registerUpdateHandler(for: mockCharacteristic, handler: nil)
+        delegate.registerCharacteristicReadHandler(mockCharacteristic.uuid, nil)
+        delegate.registerCharacteristicUpdateHandler(mockCharacteristic.uuid, nil)
         
         XCTAssertNil(delegate.readValueForCharacteristicBlocks[mockCharacteristic.uuid.uuidString])
         
@@ -909,7 +909,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         var callbackResult: Data? = nil
         var callbackError: Error? = nil
         
-        delegate.registerUpdateHandler(for: mockCharacteristic)
+        delegate.registerCharacteristicUpdateHandler(mockCharacteristic.uuid)
         { data, err in
             callbackResult = data
             callbackError = err
@@ -949,7 +949,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         var callbackResult: Data? = nil
         var callbackError: Error? = nil
         
-        delegate.registerUpdateHandler(for: mockCharacteristic)
+        delegate.registerCharacteristicUpdateHandler(mockCharacteristic.uuid)
         { data, err in
             callbackResult = data
             callbackError = err
@@ -989,8 +989,8 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         let mockCharacteristic = CBMutableCharacteristic(type: CBUUID(), properties: [.read, .write], value: nil, permissions: [.readable, .writeable])
         let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
         
-        delegate.registerReadHandler(for: mockCharacteristic, handler: nil)
-        delegate.registerUpdateHandler(for: mockCharacteristic, handler: nil)
+        delegate.registerCharacteristicReadHandler(mockCharacteristic.uuid, nil)
+        delegate.registerCharacteristicUpdateHandler(mockCharacteristic.uuid, nil)
         
         XCTAssertNil(delegate.readValueForCharacteristicBlocks[mockCharacteristic.uuid.uuidString])
         XCTAssertNil(delegate.updateValueForCharacteristicBlocks[mockCharacteristic.uuid.uuidString])
@@ -1020,7 +1020,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         
         var callbackError: Error? = nil
         
-        delegate.registerWriteHandler(for: mockCharacteristic)
+        delegate.registerCharacteristicWriteHandler(mockCharacteristic.uuid)
         { err in
             callbackError = err
             exp.fulfill()
@@ -1050,7 +1050,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         
         var callbackError: Error? = nil
         
-        delegate.registerWriteHandler(for: mockCharacteristic)
+        delegate.registerCharacteristicWriteHandler(mockCharacteristic.uuid)
         { err in
             callbackError = err
             exp.fulfill()
@@ -1085,7 +1085,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         let mockCharacteristic = CBMutableCharacteristic(type: CBUUID(), properties: [.read, .write], value: nil, permissions: [.readable, .writeable])
         let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
         
-        delegate.registerWriteHandler(for: mockCharacteristic, handler: nil)
+        delegate.registerCharacteristicWriteHandler(mockCharacteristic.uuid, nil)
         
         XCTAssertNil(delegate.writeValueForCharacteristicBlocks[mockCharacteristic.uuid.uuidString])
         
@@ -1114,7 +1114,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         var callbackResult: Any? = nil
         var callbackError: Error? = nil
         
-        delegate.registerReadHandler(for: mockDescriptor)
+        delegate.registerDescriptorReadHandler(mockDescriptor.uuid)
         { data, err in
             callbackResult = data
             callbackError = err
@@ -1152,7 +1152,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         var callbackResult: Any? = nil
         var callbackError: Error? = nil
         
-        delegate.registerReadHandler(for: mockDescriptor)
+        delegate.registerDescriptorReadHandler(mockDescriptor.uuid)
         { data, err in
             callbackResult = data
             callbackError = err
@@ -1189,7 +1189,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         let mockDescriptor = CBMutableDescriptor(type: CBUUID(), value: nil)
         let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
         
-        delegate.registerReadHandler(for: mockDescriptor, handler: nil)
+        delegate.registerDescriptorReadHandler(mockDescriptor.uuid, nil)
         
         XCTAssertNil(delegate.readValueForDescriptorBlocks[mockDescriptor.uuid.uuidString])
         
@@ -1217,7 +1217,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         
         var callbackError: Error? = nil
         
-        delegate.registerWriteHandler(for: mockDescriptor)
+        delegate.registerDescriptorWriteHandler(mockDescriptor.uuid)
         { err in
             callbackError = err
             exp.fulfill()
@@ -1247,7 +1247,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         
         var callbackError: Error? = nil
         
-        delegate.registerWriteHandler(for: mockDescriptor)
+        delegate.registerDescriptorWriteHandler(mockDescriptor.uuid)
         { err in
             callbackError = err
             exp.fulfill()
@@ -1282,7 +1282,7 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
         let mockDescriptor = CBMutableDescriptor(type: CBUUID(), value: nil)
         let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
         
-        delegate.registerWriteHandler(for: mockDescriptor, handler: nil)
+        delegate.registerDescriptorWriteHandler(mockDescriptor.uuid, nil)
         
         XCTAssertNil(delegate.writeValueForDescriptorBlocks[mockDescriptor.uuid.uuidString])
         

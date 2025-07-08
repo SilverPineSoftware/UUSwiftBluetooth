@@ -467,11 +467,11 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         if (enabled)
         {
-            delegate.registerUpdateHandler(for: characteristic, handler: notifyHandler)
+            delegate.registerCharacteristicUpdateHandler(characteristic.uuid, notifyHandler)
         }
         else
         {
-            delegate.removeUpdateHandlerForCharacteristic(characteristic)
+            delegate.removeUpdateHandlerForCharacteristic(characteristic.uuid)
         }
         
         if let err = canAttemptOperation
@@ -508,7 +508,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         let timerId = TimerId.readCharacteristic
         
-        delegate.registerReadHandler(for: characteristic)
+        delegate.registerCharacteristicReadHandler(characteristic.uuid)
         { data, error in
             
             self.finishOperation(timerId, data, error, completion)
@@ -548,7 +548,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         let timerId = TimerId.readDescriptor
         
-        delegate.registerReadHandler(for: descriptor)
+        delegate.registerDescriptorReadHandler(descriptor.uuid)
         { data, error in
             
             self.finishOperation(timerId, data, error, completion)
@@ -590,7 +590,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         let timerId = TimerId.writeCharacteristic
         
-        delegate.registerWriteHandler(for: characteristic)
+        delegate.registerCharacteristicWriteHandler(characteristic.uuid)
         { error in
             
             self.finishOperation(timerId, error, completion)
@@ -661,7 +661,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         let timerId = TimerId.writeDescriptor
         
-        delegate.registerWriteHandler(for: descriptor)
+        delegate.registerDescriptorWriteHandler(descriptor.uuid)
         { error in
             
             self.finishOperation(timerId, error, completion)
