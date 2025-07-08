@@ -315,9 +315,9 @@ class L2CapClientController:L2CapController
     private func readL2CapPSMValue(characteristic:CBCharacteristic, completion: @escaping ((CBL2CAPPSM?, Error?) -> Void))
     {
         self.peripheral?.readValue(for: characteristic, timeout: 20.0)
-        { _, characteristic, error in
+        { dataOpt, error in
             
-            guard let psmData = characteristic.value else
+            guard let psmData = dataOpt else
             {
                 completion(nil, error)
                 return
@@ -332,9 +332,9 @@ class L2CapClientController:L2CapController
     private func readL2CapEncryptionValue(characteristic:CBCharacteristic, completion: @escaping ((Bool?, Error?) -> Void))
     {
         self.peripheral?.readValue(for: characteristic, timeout: 20.0)
-        { _, characteristic, error in
+        { dataOpt, error in
             
-            guard let encryptedData = characteristic.value else
+            guard let encryptedData = dataOpt else
             {
                 completion(nil, error)
                 return

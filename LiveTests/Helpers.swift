@@ -11,6 +11,7 @@ import UUSwiftBluetooth
 import UUSwiftTestCore
 import XCTest
 
+/*
 public extension UUPeripheralScanner
 {
     mutating func scanForPeripheral(timeout: TimeInterval, filter: @escaping (UUPeripheral)->Bool) async -> UUPeripheral?
@@ -47,10 +48,18 @@ public extension UUPeripheralScanner
             }
         }
     }
-}
+}*/
 
 public extension XCTestCase
 {
+    func scanForPeripheral(name: String, timeout: TimeInterval = 10.0) throws -> (any UUPeripheral)
+    {
+        let scanner = UUBluetooth.scanner
+        let peripheralOpt = scanForPeripheral(scanner: scanner, timeout: timeout, filter: UUPeripheralNameFilter(name))
+        let peripheral = try XCTUnwrap(peripheralOpt)
+        return peripheral
+    }
+    
     func scanForPeripheral(
         scanner: UUPeripheralScanner,
         timeout: TimeInterval,
@@ -81,6 +90,7 @@ public extension XCTestCase
         
         scanner.ended =
         { scanner, error in
+            NSLog("Scan Ended")
             exp.fulfill()
         }
         
@@ -92,7 +102,8 @@ public extension XCTestCase
             scanner.stop()
         }
         
-        uuWaitForExpectations(30.0)
+        //uuWaitForExpectations(30.0)
+        wait(for: [exp], timeout: 30.0)
         
         return foundPeripheral
     }

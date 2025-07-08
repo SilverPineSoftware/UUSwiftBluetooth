@@ -100,21 +100,21 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     }
     
     public func registerUpdateHandler(
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         handler: UUObjectErrorBlock<Data>?)
     {
         UULog.verbose(tag: LOG_TAG, message: "Adding Update Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
         updateValueForCharacteristicBlocks[characteristic.uuid.uuidString] = handler
     }
 
-    public func removeUpdateHandlerForCharacteristic(_ characteristic: CBCharacteristic)
+    public func removeUpdateHandlerForCharacteristic(_ characteristic: UUCBCharacteristic)
     {
         UULog.verbose(tag: LOG_TAG, message: "Removing Update Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
         updateValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuid.uuidString)
     }
 
     public func registerReadHandler(
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         handler: UUObjectErrorBlock<Data>?)
     {
         UULog.verbose(tag: LOG_TAG, message: "Adding Read Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
@@ -122,42 +122,42 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     }
 
     public func removeReadHandler(
-        for characteristic: CBCharacteristic)
+        for characteristic: UUCBCharacteristic)
     {
         UULog.verbose(tag: LOG_TAG, message: "Removing Read Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
         readValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuid.uuidString)
     }
 
     public func registerWriteHandler(
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         handler: UUErrorBlock?)
     {
         writeValueForCharacteristicBlocks[characteristic.uuid.uuidString] = handler
     }
 
-    public func removeWriteHandler(for characteristic: CBCharacteristic)
+    public func removeWriteHandler(for characteristic: UUCBCharacteristic)
     {
         writeValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuid.uuidString)
     }
 
     public func registerReadHandler(
-        for descriptor: CBDescriptor,
+        for descriptor: UUCBDescriptor,
         handler: UUObjectErrorBlock<Any>?)
     {
         readValueForDescriptorBlocks[descriptor.uuid.uuidString] = handler
     }
 
-    public func removeReadHandler(for descriptor: CBDescriptor)
+    public func removeReadHandler(for descriptor: UUCBDescriptor)
     {
         readValueForDescriptorBlocks.removeValue(forKey: descriptor.uuid.uuidString)
     }
 
-    public func registerWriteHandler(for descriptor: CBDescriptor, handler: UUErrorBlock?)
+    public func registerWriteHandler(for descriptor: UUCBDescriptor, handler: UUErrorBlock?)
     {
         writeValueForDescriptorBlocks[descriptor.uuid.uuidString] = handler
     }
 
-    public func removeWriteHandler(for descriptor: CBDescriptor)
+    public func removeWriteHandler(for descriptor: UUCBDescriptor)
     {
         writeValueForDescriptorBlocks.removeValue(forKey: descriptor.uuid.uuidString)
     }
@@ -180,92 +180,52 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     
     public func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?)
     {
-        let block = didReadRssiBlock
-        didReadRssiBlock = nil
-        block?(RSSI.intValue, error)
+        handleRssiRead(peripheral, RSSI, error)
     }
     
     public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?)
     {
-        let block = discoverServicesBlock
-        discoverServicesBlock = nil
-        block?(peripheral.services, error)
+        handleServicesDiscovered(peripheral, error)
     }
     
     public func peripheral(_ peripheral: CBPeripheral, didDiscoverIncludedServicesFor service: CBService, error: Error?)
     {
-        let block = discoverIncludedServicesBlock
-        discoverIncludedServicesBlock = nil
-        
-        let updatedService = peripheral.services?.first { $0.uuid == service.uuid }
-        
-        block?(updatedService?.includedServices, error)
+        handleDiscoverIncludedServices(peripheral, service, error)
     }
     
     public func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?)
     {
-        let block = discoverCharacteristicsBlock
-        discoverCharacteristicsBlock = nil
-        block?(service.characteristics, error)
+        handleDiscoverCharacteristics(peripheral, service, error)
     }
     
     public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?)
     {
-        let key = characteristic.uuid.uuidString
-        if let updateBlock = updateValueForCharacteristicBlocks[key]
-        {
-            UULog.verbose(tag: LOG_TAG, message: "Invoking Update Block for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
-            // Do not clear the block because updates can come in async
-            updateBlock(characteristic.value, error)
-        }
-        
-        if let readBlock = readValueForCharacteristicBlocks[key]
-        {
-            UULog.verbose(tag: LOG_TAG, message: "Invoking Read Block for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
-            removeReadHandler(for: characteristic)
-            readBlock(characteristic.value, error)
-        }
+        handleCharacteristicValueUpdated(peripheral, characteristic, error)
     }
     
     public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?)
     {
-        if let writeBlock = writeValueForCharacteristicBlocks[characteristic.uuid.uuidString]
-        {
-            removeWriteHandler(for: characteristic)
-            writeBlock(error)
-        }
+        handleCharacteristicValueWritten(peripheral, characteristic, error)
     }
     
     public func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?)
     {
-        let block = setNotifyValueForCharacteristicBlock
-        setNotifyValueForCharacteristicBlock = nil
-        block?(error)
+        handleDidUpdateNotificationState(peripheral, characteristic, error)
     }
     
     public func peripheral(_ peripheral: CBPeripheral, didDiscoverDescriptorsFor characteristic: CBCharacteristic, error: Error?)
     {
-        let block = discoverDescriptorsBlock
-        discoverDescriptorsBlock = nil
-        block?(characteristic.descriptors, error)
+        handleDescriptorDiscovery(peripheral, characteristic, error)
     }
     
     public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor descriptor: CBDescriptor, error: Error?)
     {
-        if let readBlock = readValueForDescriptorBlocks[descriptor.uuid.uuidString]
-        {
-            removeReadHandler(for: descriptor)
-            readBlock(descriptor.value, error)
-        }
+        handleDescriptorValueUpdated(peripheral, descriptor, error)
     }
     
     public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor descriptor: CBDescriptor, error: Error?)
     {
-        if let writeBlock = writeValueForDescriptorBlocks[descriptor.uuid.uuidString]
-        {
-            removeWriteHandler(for: descriptor)
-            writeBlock(error)
-        }
+        handleDescriptorValueWritten(peripheral, descriptor, error)
     }
     
     /**
@@ -285,5 +245,111 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     public func peripheral(_ peripheral: CBPeripheral, didOpen channel: CBL2CAPChannel?, error: Error?)
     {
         didOpenL2ChannelBlock?(peripheral, channel, error)
+    }
+    
+    
+    
+    // MARK: Handlers
+    
+    /*public func handlePeripheralNameUpdated(_ peripheral: UUCBPeripheral)
+    {
+        // Don't clear this one because it's an async event not invoked in direct response to a method call.
+        peripheralNameUpdatedBlock?(peripheral)
+    }
+    
+    public func handlePeripheralServicesUpdated(_ peripheral: UUCBPeripheral, _ invalidatedServices: [UUCBService])
+    {
+        // Don't clear this one because it's an async event not invoked in direct response to a method call.
+        didModifyServicesBlock?(peripheral, invalidatedServices)
+    }*/
+    
+    public func handleRssiRead(_ peripheral: UUCBPeripheral, _ rssi: NSNumber, _ error: Error?)
+    {
+        let block = didReadRssiBlock
+        didReadRssiBlock = nil
+        block?(rssi.intValue, error)
+    }
+    
+    public func handleServicesDiscovered(_ peripheral: UUCBPeripheral, _ error: Error?)
+    {
+        let block = discoverServicesBlock
+        discoverServicesBlock = nil
+        block?(peripheral.services, error)
+    }
+    
+    public func handleDiscoverIncludedServices(_ peripheral: UUCBPeripheral, _ service: UUCBService, _ error: Error?)
+    {
+        let block = discoverIncludedServicesBlock
+        discoverIncludedServicesBlock = nil
+        
+        let updatedService = peripheral.services?.first { $0.uuid == service.uuid }
+        
+        block?(updatedService?.includedServices, error)
+    }
+    
+    public func handleDiscoverCharacteristics(_ peripheral: UUCBPeripheral, _ service: UUCBService, _ error: Error?)
+    {
+        let block = discoverCharacteristicsBlock
+        discoverCharacteristicsBlock = nil
+        block?(service.characteristics, error)
+    }
+    
+    public func handleCharacteristicValueUpdated(_ peripheral: UUCBPeripheral, _ characteristic: CBCharacteristic, _ error: Error?)
+    {
+        let key = characteristic.uuid.uuidString
+        if let updateBlock = updateValueForCharacteristicBlocks[key]
+        {
+            UULog.verbose(tag: LOG_TAG, message: "Invoking Update Block for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
+            // Do not clear the block because updates can come in async
+            updateBlock(characteristic.value, error)
+        }
+        
+        if let readBlock = readValueForCharacteristicBlocks[key]
+        {
+            UULog.verbose(tag: LOG_TAG, message: "Invoking Read Block for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
+            removeReadHandler(for: characteristic)
+            readBlock(characteristic.value, error)
+        }
+    }
+    
+    public func handleCharacteristicValueWritten(_ peripheral: UUCBPeripheral, _ characteristic: UUCBCharacteristic, _ error: Error?)
+    {
+        if let writeBlock = writeValueForCharacteristicBlocks[characteristic.uuid.uuidString]
+        {
+            removeWriteHandler(for: characteristic)
+            writeBlock(error)
+        }
+    }
+    
+    public func handleDidUpdateNotificationState(_ peripheral: UUCBPeripheral, _ characteristic: UUCBCharacteristic, _ error: Error?)
+    {
+        let block = setNotifyValueForCharacteristicBlock
+        setNotifyValueForCharacteristicBlock = nil
+        block?(error)
+    }
+    
+    public func handleDescriptorDiscovery(_ peripheral: UUCBPeripheral, _ characteristic: UUCBCharacteristic, _ error: Error?)
+    {
+        let block = discoverDescriptorsBlock
+        discoverDescriptorsBlock = nil
+        block?(characteristic.descriptors, error)
+    }
+    
+    public func handleDescriptorValueUpdated(_ peripheral: UUCBPeripheral, _ descriptor: UUCBDescriptor, _ error: Error?)
+    {
+        if let readBlock = readValueForDescriptorBlocks[descriptor.uuid.uuidString]
+        {
+            removeReadHandler(for: descriptor)
+            readBlock(descriptor.value, error)
+        }
+    }
+    
+    public func handleDescriptorValueWritten(_ peripheral: UUCBPeripheral, _ descriptor: UUCBDescriptor, _ error: Error?)
+    {
+        if let writeBlock = writeValueForDescriptorBlocks[descriptor.uuid.uuidString]
+        {
+            removeWriteHandler(for: descriptor)
+            writeBlock(error)
+        }
     }
 }

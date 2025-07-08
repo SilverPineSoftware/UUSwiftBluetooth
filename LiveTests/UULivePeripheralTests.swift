@@ -18,8 +18,10 @@ final class UULivePeripheralTests: UUPeripheralTests
 {
     override func acquireTestPeripheral() throws -> (any UUPeripheral)
     {
+        //let peripheralName = "CC2650 SensorTag"
+        let peripheralName = "Code Ninja Mac"
         let scanner = UUBluetooth.scanner
-        let peripheralOpt = scanForPeripheral(scanner: scanner, timeout: 10.0, filter: UUPeripheralNameFilter("CC2650 SensorTag"))
+        let peripheralOpt = scanForPeripheral(scanner: scanner, timeout: 10.0, filter: UUPeripheralNameFilter(peripheralName))
         let peripheral = try XCTUnwrap(peripheralOpt)
         return peripheral
     }

@@ -22,7 +22,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     private let timerPool: UUTimerPool
 
     // Reference to the underlying CBPeripheral
-    public var underlyingPeripheral: CBPeripheral
+    public var underlyingPeripheral: UUCBPeripheral
 
     private(set) public var advertisement: UUAdvertisement
     private(set) public var rssi: Int
@@ -30,7 +30,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     
     public required init(
         centralManager: UUCentralManager,
-        peripheral: CBPeripheral,
+        peripheral: UUCBPeripheral,
         advertisement: UUAdvertisement)
     {
         self.dispatchQueue = centralManager.dispatchQueue
@@ -259,7 +259,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     {
         dispatchQueue.async
         {
-            self.delegate.peripheral(self.underlyingPeripheral, didDiscoverServices: error)
+            self.delegate.handleServicesDiscovered(self.underlyingPeripheral, error)
         }
     }
     
@@ -300,7 +300,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     {
         dispatchQueue.async
         {
-            self.delegate.peripheral(self.underlyingPeripheral, didDiscoverCharacteristicsFor: service, error: error)
+            self.delegate.handleDiscoverCharacteristics(self.underlyingPeripheral, service, error)
         }
     }
     
@@ -341,7 +341,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     {
         dispatchQueue.async
         {
-            self.delegate.peripheral(self.underlyingPeripheral, didDiscoverIncludedServicesFor: service, error: error)
+            self.delegate.handleDiscoverIncludedServices(self.underlyingPeripheral, service, error)
         }
     }
     
@@ -381,7 +381,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     {
         dispatchQueue.async
         {
-            self.delegate.peripheral(self.underlyingPeripheral, didDiscoverDescriptorsFor: characteristic, error: error)
+            self.delegate.handleDescriptorDiscovery(self.underlyingPeripheral, characteristic, error)
         }
     }
     
@@ -493,7 +493,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     {
         dispatchQueue.async
         {
-            self.delegate.peripheral(self.underlyingPeripheral, didUpdateNotificationStateFor: characteristic, error: error)
+            self.delegate.handleDidUpdateNotificationState(self.underlyingPeripheral, characteristic, error)
         }
     }
     
@@ -533,7 +533,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     {
         dispatchQueue.async
         {
-            self.delegate.peripheral(self.underlyingPeripheral, didUpdateValueFor: characteristic, error: error)
+            self.delegate.handleCharacteristicValueUpdated(self.underlyingPeripheral, characteristic, error)
         }
     }
     
@@ -573,7 +573,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     {
         dispatchQueue.async
         {
-            self.delegate.peripheral(self.underlyingPeripheral, didUpdateValueFor: descriptor, error: error)
+            self.delegate.handleDescriptorValueUpdated(self.underlyingPeripheral, descriptor, error)
         }
     }
     
@@ -605,7 +605,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         startTimer(timerId, timeout)
         {
             let err = NSError.uuCoreBluetoothError(.timeout)
-            self.delegate.peripheral(self.underlyingPeripheral, didWriteValueFor: characteristic, error: err)
+            self.endWriteValue(characteristic, err)
         }
         
         underlyingPeripheral.writeValue(data, for: characteristic, type: .withResponse)
@@ -615,7 +615,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     {
         dispatchQueue.async
         {
-            self.delegate.peripheral(self.underlyingPeripheral, didWriteValueFor: characteristic, error: error)
+            self.delegate.handleCharacteristicValueWritten(self.underlyingPeripheral, characteristic, error)
         }
     }
     
@@ -686,7 +686,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     {
         dispatchQueue.async
         {
-            self.delegate.peripheral(self.underlyingPeripheral, didWriteValueFor: descriptor, error: error)
+            self.delegate.handleDescriptorValueWritten(self.underlyingPeripheral, descriptor, error)
         }
     }
     
@@ -709,24 +709,24 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         
         if let err = canAttemptOperation
         {
-            endReadRssi(err)
+            endReadRssi(UUCoreBluetooth.Constants.noRssi, err)
             return
         }
         
         startTimer(timerId, timeout)
         {
             let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endReadRssi(err)
+            self.endReadRssi(UUCoreBluetooth.Constants.noRssi, err)
         }
         
         underlyingPeripheral.readRSSI()
     }
     
-    private func endReadRssi(_ error: Error?)
+    private func endReadRssi(_ rssi: Int, _ error: Error?)
     {
         dispatchQueue.async
         {
-            self.delegate.peripheral(self.underlyingPeripheral, didReadRSSI: NSNumber(127), error: error)
+            self.delegate.handleRssiRead(self.underlyingPeripheral, NSNumber(integerLiteral: rssi), error)
         }
     }
     

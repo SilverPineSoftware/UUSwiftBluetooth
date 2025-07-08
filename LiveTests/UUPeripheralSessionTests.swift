@@ -31,24 +31,7 @@ final class UUPeripheralSessionTests: XCTestCase
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    func testExample() throws
-    {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-    }
-
-    func testPerformanceExample() throws
-    {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
-    }
-    
-    func test_0001_sessionConnect() async throws
+    func test_0001_sessionConnect() throws
     {
         UUTestSetTitle("Peripheral Session Test")
         
@@ -56,13 +39,15 @@ final class UUPeripheralSessionTests: XCTestCase
         let endExp = uuExpectationForMethod(tag: "session_end")
         
         UUTestAddLine("Scanning for peripheral")
-        var scanner = UUBluetooth.scanner
-        let peripheralOpt = await scanner.scanForPeripheral(timeout: 10, filter: UUPeripheralNameFilter("CC2650 SensorTag"))
-        let peripheral = try XCTUnwrap(peripheralOpt)
+        let peripheralName = "Code Ninja Mac"
+        //var scanner = UUBluetooth.scanner
+        //let peripheralOpt = await scanner.scanForPeripheral(timeout: 10, filter: UUPeripheralNameFilter(peripheralName))
+        let peripheral = try scanForPeripheral(name: peripheralName)
         
         UUTestAddLine("Found peripheral")
         //let session = UUCoreBluetoothPeripheralSession(peripheral: peripheral)
-        let session = TiSensorTagCoreBluetoothSession(peripheral: peripheral)
+        //let session = TiSensorTagCoreBluetoothSession(peripheral: peripheral)
+        let session = TestPeripheralSessionImplementation(peripheral: peripheral)
         
         session.started =
         { s in
@@ -79,21 +64,20 @@ final class UUPeripheralSessionTests: XCTestCase
         UUTestAddLine("Starting session")
         session.start()
         
-        await fulfillment(of: [startExp], timeout: 30)
+        wait(for: [startExp], timeout: 30.0)
         
         UUTestAddLine("Waiting a while...")
-        session.startTimer(name: "test", timeout: 10.0)
-        {
-            UUTestAddLine("Ending session")
-            session.end(error: nil)
-        }
+        uuTestWait(10.0)
         
-        await fulfillment(of: [endExp], timeout: 30)
+        UUTestAddLine("Ending session")
+        session.end(error: nil)
+        
+        wait(for: [endExp], timeout: 30.0)
         
         UUTestAddLine("Test done")
     }
     
-    func test_0002_discoverServices() async throws
+    func test_0002_discoverServices() throws
     {
         UUTestSetTitle("Peripheral Session Test")
         
@@ -101,13 +85,16 @@ final class UUPeripheralSessionTests: XCTestCase
         let endExp = uuExpectationForMethod(tag: "session_end")
         
         UUTestAddLine("Scanning for peripheral")
-        var scanner = UUBluetooth.scanner
-        let peripheralOpt = await scanner.scanForPeripheral(timeout: 10, filter: UUPeripheralNameFilter("CC2650 SensorTag"))
-        let peripheral = try XCTUnwrap(peripheralOpt)
+        let peripheralName = "Code Ninja Mac"
+//        var scanner = UUBluetooth.scanner
+//        let peripheralOpt = await scanner.scanForPeripheral(timeout: 10, filter: UUPeripheralNameFilter(peripheralName))
+//        let peripheral = try XCTUnwrap(peripheralOpt)
+        let peripheral = try scanForPeripheral(name: peripheralName)
         
         UUTestAddLine("Found peripheral")
         //let session = UUCoreBluetoothPeripheralSession(peripheral: peripheral)
-        let session = TiSensorTagCoreBluetoothSession(peripheral: peripheral)
+        //let session = TiSensorTagCoreBluetoothSession(peripheral: peripheral)
+        let session = TestPeripheralSessionImplementation(peripheral: peripheral)
         
         session.started =
         { s in
@@ -124,19 +111,80 @@ final class UUPeripheralSessionTests: XCTestCase
         UUTestAddLine("Starting session")
         session.start()
         
-        await fulfillment(of: [startExp], timeout: 30)
-        
+        wait(for: [startExp], timeout: 30.0)
         
         UUTestAddLine("Waiting a while...")
-        session.startTimer(name: "test", timeout: 10.0)
-        {
-            UUTestAddLine("Ending session")
-            session.end(error: nil)
-        }
+        uuTestWait(10.0)
         
-        await fulfillment(of: [endExp], timeout: 30)
+        UUTestAddLine("Ending session")
+        session.end(error: nil)
+        
+        wait(for: [endExp], timeout: 30.0)
         
         UUTestAddLine("Test done")
     }
 
 }
+
+
+
+fileprivate protocol TestPeripheralSession
+{
+    func readManufacturerName(_ completion: @escaping UUObjectErrorBlock<String>)
+    func readModelNumber(_ completion: @escaping UUObjectErrorBlock<String>)
+}
+
+fileprivate class TestPeripheralSessionImplementation: UUPeripheralSession, TestPeripheralSession
+{
+    public required init(peripheral: UUPeripheral)
+    {
+        super.init(peripheral: peripheral)
+        
+        configuration.servicesToDiscover = [ UUCoreBluetooth.Constants.Services.deviceInformation ]
+        configuration.characteristicsToDiscover =
+        [
+            UUCoreBluetooth.Constants.Services.deviceInformation:
+            [
+                UUCoreBluetooth.Constants.Characteristics.manufacturerNameString,
+                UUCoreBluetooth.Constants.Characteristics.modelNumberString
+        ]   ]
+    }
+    
+    public var manufacturerName: String? = nil
+    public var modelNumber: String? = nil
+    
+    public override func finishSessionStart(_ completion: @escaping () -> Void)
+    {
+        readManufacturerName
+        { deviceNameOpt, deviceNameErrOpt in
+            self.manufacturerName = deviceNameOpt
+            NSLog("Manufacturer Name: \(String(describing: deviceNameOpt))")
+            
+            self.readModelNumber
+            { modelNumberOpt, modelNumberErrOpt in
+            
+                self.modelNumber = modelNumberOpt
+                NSLog("Model Number: \(String(describing: modelNumberOpt))")
+                
+                completion()
+            }
+        }
+    }
+    
+    func readManufacturerName(_ completion: @escaping UUObjectErrorBlock<String>)
+    {
+        readUtf8(from: UUCoreBluetooth.Constants.Characteristics.manufacturerNameString)
+        { session, stringOpt, errorOpt in
+            completion(stringOpt, errorOpt)
+        }
+    }
+    
+    func readModelNumber(_ completion: @escaping UUObjectErrorBlock<String>)
+    {
+        readUtf8(from: UUCoreBluetooth.Constants.Characteristics.modelNumberString)
+        { session, stringOpt, errorOpt in
+            completion(stringOpt, errorOpt)
+        }
+    }
+}
+

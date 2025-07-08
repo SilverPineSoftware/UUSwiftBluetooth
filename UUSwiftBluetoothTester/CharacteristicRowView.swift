@@ -90,23 +90,23 @@ class CharacteristicRowViewModel: ObservableObject
     func onToggleNotify()
     {
         peripheral.setNotifyValue(enabled: !characteristic.isNotifying, for: characteristic, timeout: 20.0)
-        { updatedPeripheral, updatedCharacteristic, errOpt in
+        { dataOpt, errOpt in
             
-            UULog.debug(tag: LOG_TAG, message: "Characteristic \(updatedCharacteristic.uuid.uuidString) value changed to \(updatedCharacteristic.value?.uuToHexString() ?? "<nil>")")
+            //UULog.debug(tag: LOG_TAG, message: "Characteristic \(updatedCharacteristic.uuid.uuidString) value changed to \(updatedCharacteristic.value?.uuToHexString() ?? "<nil>")")
             DispatchQueue.main.async
             {
-                self.peripheral = updatedPeripheral
-                self.characteristic = updatedCharacteristic
+                //self.peripheral = updatedPeripheral
+                //self.characteristic = updatedCharacteristic
                 self.editText = self.dataAsText
             }
             
         } completion:
-        { updatedPeripheral, updatedCharacteristic, errOpt in
+        { errOpt in
             
             DispatchQueue.main.async
             {
-                self.peripheral = updatedPeripheral
-                self.characteristic = updatedCharacteristic
+                //self.peripheral = updatedPeripheral
+                //self.characteristic = updatedCharacteristic
                 self.editText = self.dataAsText
             }
         }
@@ -115,12 +115,12 @@ class CharacteristicRowViewModel: ObservableObject
     func onReadData()
     {
         peripheral.readValue(for: characteristic, timeout: 20.0)
-        { updatedPeripheral, updatedCharacteristic, errOpt in
+        { dataOpt, errOpt in
             
             DispatchQueue.main.async
             {
-                self.peripheral = updatedPeripheral
-                self.characteristic = updatedCharacteristic
+                //self.peripheral = updatedPeripheral
+                //self.characteristic = updatedCharacteristic
                 self.editText = self.dataAsText
             }
         }
@@ -131,12 +131,12 @@ class CharacteristicRowViewModel: ObservableObject
         if let data = editTextAsData
         {
             peripheral.writeValue(data: data, for: characteristic, timeout: 20.0)
-            { updatedPeripheral, updatedCharacteristic, errOpt in
+            { errOpt in
                 
                 DispatchQueue.main.async
                 {
-                    self.peripheral = updatedPeripheral
-                    self.characteristic = updatedCharacteristic
+                    //self.peripheral = updatedPeripheral
+                    //self.characteristic = updatedCharacteristic
                     self.editText = self.dataAsText
                 }
             }
