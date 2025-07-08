@@ -296,7 +296,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         underlyingPeripheral.discoverCharacteristics(characteristicUUIDs, for: service)
     }
     
-    private func endCharacteristicDiscovery(_ service: CBService, _ error: Error?)
+    private func endCharacteristicDiscovery(_ service: UUCBService, _ error: Error?)
     {
         dispatchQueue.async
         {
@@ -337,7 +337,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         underlyingPeripheral.discoverIncludedServices(includedServiceUUIDs, for: service)
     }
     
-    private func endDiscoverIncludedServices(_ service: CBService, _ error: Error?)
+    private func endDiscoverIncludedServices(_ service: UUCBService, _ error: Error?)
     {
         dispatchQueue.async
         {
@@ -377,7 +377,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         underlyingPeripheral.discoverDescriptors(for: characteristic)
     }
     
-    private func endDescriptorDiscovery(_ characteristic: CBCharacteristic, _ error: Error?)
+    private func endDescriptorDiscovery(_ characteristic: UUCBCharacteristic, _ error: Error?)
     {
         dispatchQueue.async
         {
@@ -489,7 +489,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         underlyingPeripheral.setNotifyValue(enabled, for: characteristic)
     }
     
-    private func endSetNotify(_ characteristic: CBCharacteristic, _ error: Error?)
+    private func endSetNotify(_ characteristic: UUCBCharacteristic, _ error: Error?)
     {
         dispatchQueue.async
         {
@@ -529,7 +529,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         underlyingPeripheral.readValue(for: characteristic)
     }
     
-    private func endReadValue(_ characteristic: CBCharacteristic, _ error: Error?)
+    private func endReadValue(_ characteristic: UUCBCharacteristic, _ error: Error?)
     {
         dispatchQueue.async
         {
@@ -569,7 +569,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         underlyingPeripheral.readValue(for: descriptor)
     }
     
-    private func endReadDescriptor(_ descriptor: CBDescriptor, _ error: Error?)
+    private func endReadDescriptor(_ descriptor: UUCBDescriptor, _ error: Error?)
     {
         dispatchQueue.async
         {
@@ -611,7 +611,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         underlyingPeripheral.writeValue(data, for: characteristic, type: .withResponse)
     }
     
-    private func endWriteValue(_ characteristic: CBCharacteristic, _ error: Error?)
+    private func endWriteValue(_ characteristic: UUCBCharacteristic, _ error: Error?)
     {
         dispatchQueue.async
         {
@@ -682,7 +682,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         underlyingPeripheral.writeValue(data, for: descriptor)
     }
     
-    private func endWriteValue(_ descriptor: CBDescriptor, _ error: Error?)
+    private func endWriteValue(_ descriptor: UUCBDescriptor, _ error: Error?)
     {
         dispatchQueue.async
         {

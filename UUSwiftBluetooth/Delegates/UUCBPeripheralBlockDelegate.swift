@@ -295,7 +295,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         block?(service.characteristics, error)
     }
     
-    public func handleCharacteristicValueUpdated(_ peripheral: UUCBPeripheral, _ characteristic: CBCharacteristic, _ error: Error?)
+    public func handleCharacteristicValueUpdated(_ peripheral: UUCBPeripheral, _ characteristic: UUCBCharacteristic, _ error: Error?)
     {
         let key = characteristic.uuid.uuidString
         if let updateBlock = updateValueForCharacteristicBlocks[key]
