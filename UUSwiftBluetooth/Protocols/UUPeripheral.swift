@@ -93,7 +93,7 @@ public protocol UUPeripheral
     func writeValueWithoutResponse(
         data: Data,
         for characteristic: CBCharacteristic,
-        completion: @escaping UUPeripheralCharacteristicErrorBlock)
+        completion: @escaping UUErrorBlock)
     
     func writeValue(
         data: Data,

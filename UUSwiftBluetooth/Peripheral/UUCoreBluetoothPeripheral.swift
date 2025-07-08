@@ -625,7 +625,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     public func writeValueWithoutResponse(
         data: Data,
         for characteristic: CBCharacteristic,
-        completion: @escaping UUPeripheralCharacteristicErrorBlock)
+        completion: @escaping UUErrorBlock)
     {
         UULog.debug(tag: LOG_TAG, message: "Write value without response \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic)")
         
@@ -633,7 +633,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         {
             dispatchQueue.async
             {
-                completion(self, characteristic, err)
+                completion(err)
             }
             
             return
@@ -644,7 +644,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         // Immediately invoke the completion callback because write without response will not trigger a delegate callback
         dispatchQueue.async
         {
-            completion(self, characteristic, nil)
+            completion(nil)
         }
     }
     

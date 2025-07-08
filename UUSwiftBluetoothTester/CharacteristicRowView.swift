@@ -148,12 +148,12 @@ class CharacteristicRowViewModel: ObservableObject
         if let data = editTextAsData
         {
             peripheral.writeValueWithoutResponse(data: data, for: characteristic)
-            { updatedPeripheral, updatedCharacteristic, errOpt in
+            { errOpt in
                 
                 DispatchQueue.main.async
                 {
-                    self.peripheral = updatedPeripheral
-                    self.characteristic = updatedCharacteristic
+//                    self.peripheral = updatedPeripheral
+//                    self.characteristic = updatedCharacteristic
                     self.editText = self.dataAsText
                 }
             }

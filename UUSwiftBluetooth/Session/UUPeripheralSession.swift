@@ -113,7 +113,7 @@ open class UUPeripheralSession
         else
         {
             peripheral.writeValueWithoutResponse(data: data, for: char)
-            { p, char, error in
+            { error in
                 
                 completion(self, error)
             }
