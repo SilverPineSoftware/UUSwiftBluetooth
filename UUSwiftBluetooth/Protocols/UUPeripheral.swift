@@ -9,14 +9,6 @@ import Foundation
 import CoreBluetooth
 import UUSwiftCore
 
-public typealias UUPeripheralBlock = ((UUPeripheral)->())
-public typealias UUPeripheralErrorBlock = ((UUPeripheral, Error?)->())
-public typealias UUPeripheralCharacteristicErrorBlock = ((UUPeripheral, CBCharacteristic, Error?)->())
-public typealias UUPeripheralDescriptorErrorBlock = ((UUPeripheral, CBDescriptor, Error?)->())
-public typealias UUPeripheralIntegerErrorBlock = ((UUPeripheral, Int, Error?)->())
-
-
-
 public protocol UUPeripheral
 {
     var advertisement: UUAdvertisement { get }

@@ -34,7 +34,7 @@ public class UUCentralManager
     private(set) public var isScanning: Bool = false
     
     private var centralStateChangedBlock: UUCentralStateChangedBlock? = nil
-    private var rssiPollingBlocks: [String:UUPeripheralBlock] = [:]
+    //private var rssiPollingBlocks: [String:UUPeripheralBlock] = [:]
     private var willRestoreStateBlock: UUWillRestoreStateBlock? = nil
     private var options: [String:Any]? = nil
     

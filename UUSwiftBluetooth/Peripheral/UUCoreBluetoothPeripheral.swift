@@ -387,13 +387,13 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     
     
     private func discoverNextCharacteristics(
-        _ services: [CBService], timeout: TimeInterval, completion: @escaping UUPeripheralErrorBlock)
+        _ services: [CBService], timeout: TimeInterval, completion: @escaping UUErrorBlock)
     {
         var tmpServices = services
         
         guard let nextService = tmpServices.popLast() else
         {
-            completion(self, nil)
+            completion(nil)
             return
         }
         
@@ -402,7 +402,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             
             if let err = error
             {
-                completion(self, err)
+                completion(err)
                 return
             }
             
@@ -412,7 +412,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     
     public func discoverAllServicesAndCharacteristics(
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
-        completion: @escaping UUPeripheralErrorBlock)
+        completion: @escaping UUErrorBlock)
     {
         connect(timeout: timeout)
         {
@@ -421,18 +421,18 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
                 
                 if let err = discoverServicesError
                 {
-                    completion(self, err)
+                    completion(err)
                     return
                 }
                 
                 guard let actualServices = services else
                 {
-                    completion(self, nil)
+                    completion(nil)
                     return
                 }
                 
                 self.discoverNextCharacteristics(actualServices, timeout: timeout)
-                { _, error in
+                { error in
                     
                     self.disconnect()
                 }
@@ -441,7 +441,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         disconnected:
         { disconnectError in
             
-            completion(self, disconnectError)
+            completion(disconnectError)
         }
     }
     
@@ -780,28 +780,6 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         cancelTimer(timerBucket)
         return err
     }
-    
-    private func finishOperation(
-        _ timerBucket: TimerId,
-        _ peripheral: CBPeripheral,
-        _ error: Error?,
-        _ completion: @escaping UUPeripheralErrorBlock)
-    {
-        let err = prepareToFinishOperation(timerBucket, error)
-        completion(self, err)
-    }
-    
-    private func finishOperation(
-        _ timerBucket: TimerId,
-        _ peripheral: CBPeripheral,
-        _ characteristic: CBCharacteristic,
-        _ error: Error?,
-        _ completion: @escaping UUPeripheralCharacteristicErrorBlock)
-    {
-        let err = prepareToFinishOperation(timerBucket, error)
-        completion(self, characteristic, err)
-    }
-    
     
     private func finishOperation(
         _ timerBucket: TimerId,
