@@ -16,7 +16,6 @@ fileprivate let LOG_TAG = "UUCentralManager"
 public typealias UUCentralStateChangedBlock = ((CBManagerState)->())
 public typealias UUBluetoothAdvertisementBlock = ((UUAdvertisement)->())
 public typealias UUWillRestoreStateBlock = (([String:Any])->())
-public typealias UUPeripheralListBlock = (([UUPeripheral])->())
 
 /**
  *  @class CBCentralManager
@@ -182,51 +181,51 @@ public class UUCentralManager
     }
     
     
-    func registerConnectionBlocks(_ peripheral: UUPeripheral, _ connectedBlock: @escaping UUCBPeripheralBlock, _ disconnectedBlock: @escaping UUCBPeripheralErrorBlock)
+    func registerConnectionBlocks(_ identifier: UUID, _ connectedBlock: @escaping UUCBPeripheralBlock, _ disconnectedBlock: @escaping UUCBPeripheralErrorBlock)
     {
-        let key = peripheral.identifier
+        let key = identifier
         delegate.connectBlocks[key] = connectedBlock
         delegate.disconnectBlocks[key] = disconnectedBlock
     }
     
-    func removeConnectionBlocks(_ peripheral: UUPeripheral)
+    func removeConnectionBlocks(_ identifier: UUID)
     {
-        let key = peripheral.identifier
+        let key = identifier
         delegate.connectBlocks.removeValue(forKey: key)
         delegate.disconnectBlocks.removeValue(forKey: key)
     }
     
-    func connect(_ peripheral: UUPeripheral, _ options: [String:Any]?)
+    func connect(_ identifier: UUID, _ options: [String:Any]?)
     {
-        guard let cbPeripheral = centralManager.retrievePeripherals(withIdentifiers: [peripheral.identifier]).first else
+        guard let cbPeripheral = centralManager.retrievePeripherals(withIdentifiers: [identifier]).first else
         {
-            UULog.debug(tag: LOG_TAG, message: "Unable to find CBPeripheral for \(peripheral.identifier)")
+            UULog.debug(tag: LOG_TAG, message: "Unable to find CBPeripheral for \(identifier)")
             return
         }
         
         centralManager.connect(cbPeripheral, options: options)
     }
     
-    func cancelPeripheralConnection(_ peripheral: UUPeripheral)
+    func cancelPeripheralConnection(_ identifier: UUID)
     {
-        guard let cbPeripheral = centralManager.retrievePeripherals(withIdentifiers: [peripheral.identifier]).first else
+        guard let cbPeripheral = centralManager.retrievePeripherals(withIdentifiers: [identifier]).first else
         {
-            UULog.debug(tag: LOG_TAG, message: "Unable to find CBPeripheral for \(peripheral.identifier)")
+            UULog.debug(tag: LOG_TAG, message: "Unable to find CBPeripheral for \(identifier)")
             return
         }
         
         centralManager.cancelPeripheralConnection(cbPeripheral)
     }
     
-    func notifyDisconnect(_ peripheral: UUPeripheral, _ error: Error?)
+    func notifyDisconnect(_ identifier: UUID, _ error: Error?)
     {
-        guard let cbPeripheral = centralManager.retrievePeripherals(withIdentifiers: [peripheral.identifier]).first else
+        guard let cbPeripheral = centralManager.retrievePeripherals(withIdentifiers: [identifier]).first else
         {
-            UULog.debug(tag: LOG_TAG, message: "Unable to find CBPeripheral for \(peripheral.identifier)")
+            UULog.debug(tag: LOG_TAG, message: "Unable to find CBPeripheral for \(identifier)")
             return
         }
         
-       let key = peripheral.identifier
+       let key = identifier
        let disconnectBlock = delegate.disconnectBlocks[key]
        delegate.disconnectBlocks.removeValue(forKey: key)
        delegate.connectBlocks.removeValue(forKey: key)
