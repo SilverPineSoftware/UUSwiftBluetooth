@@ -27,7 +27,7 @@ public class UUMockPeripheral: UUPeripheral
     
     public var peripheralState: CBPeripheralState = .disconnected
     
-    public var services: [CBService]? = nil
+    public var services: [UUCBService]? = nil
     
     public init(identifier: UUID = UUID(),
          advertisement: UUAdvertisement = UUAdvertisement(),
@@ -36,7 +36,7 @@ public class UUMockPeripheral: UUPeripheral
          friendlyName: String = "",
          firstDiscoveryTime: Date = Date(),
          peripheralState: CBPeripheralState = .disconnected,
-         services: [CBService]? = nil)
+         services: [UUCBService]? = nil)
     {
         self.advertisement = advertisement
         self.rssi = rssi

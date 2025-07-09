@@ -15,9 +15,9 @@ fileprivate let LOG_TAG = "ServiceViewModel"
 class ServiceViewModel: ObservableObject
 {
     @Published var peripheral: UUPeripheral
-    @Published var service: CBService
+    @Published var service: UUCBService
     
-    init(_ peripheral: UUPeripheral, _ service: CBService)
+    init(_ peripheral: UUPeripheral, _ service: UUCBService)
     {
         self.peripheral = peripheral
         self.service = service

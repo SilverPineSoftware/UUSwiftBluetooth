@@ -19,7 +19,7 @@ public protocol UUPeripheral
     var name: String { get }
     var friendlyName: String { get }
     var peripheralState: CBPeripheralState { get }
-    var services: [CBService]? { get }
+    var services: [UUCBService]? { get }
     
     func startTimer(name: String, timeout: TimeInterval, block: @escaping ()->())
     func cancelTimer(name: String)

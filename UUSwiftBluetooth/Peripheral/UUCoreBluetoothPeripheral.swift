@@ -71,7 +71,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         return underlyingPeripheral.state
     }
     
-    public var services: [CBService]?
+    public var services: [UUCBService]?
     {
         return underlyingPeripheral.services
     }

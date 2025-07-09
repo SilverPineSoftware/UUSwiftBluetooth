@@ -171,7 +171,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }
     }
     
-    private func handleServiceTapped(_ peripheral: UUPeripheral, _ service: CBService)
+    private func handleServiceTapped(_ peripheral: UUPeripheral, _ service: UUCBService)
     {
         let viewModel = ServiceViewModel(peripheral, service)
         let view = ServiceView(viewModel: viewModel)

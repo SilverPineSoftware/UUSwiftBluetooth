@@ -16,7 +16,7 @@ class PeripheralViewModel: ObservableObject
 {
     @Published var peripheral: UUPeripheral
     
-    var serviceTapHandler: ((UUPeripheral, CBService)->()) = { _,_ in }
+    var serviceTapHandler: ((UUPeripheral, UUCBService)->()) = { _,_ in }
     
     init(_ peripheral: UUPeripheral)
     {
@@ -66,7 +66,7 @@ class PeripheralViewModel: ObservableObject
         }
     }
     
-    func onServiceTapped(_ service: CBService)
+    func onServiceTapped(_ service: UUCBService)
     {
         serviceTapHandler(peripheral, service)
     }

@@ -14,11 +14,11 @@ fileprivate let LOG_TAG = "ServiceRowView"
 
 class ServiceRowViewModel: ObservableObject
 {
-    @Published var service: CBService
-    var tapHandler: ((CBService)->())?
+    @Published var service: UUCBService
+    var tapHandler: ((UUCBService)->())?
     @Published var showDivider: Bool
     
-    required init(_ service: CBService, tapHandler: ((CBService)->())? = nil, showDivider: Bool = true)
+    required init(_ service: UUCBService, tapHandler: ((UUCBService)->())? = nil, showDivider: Bool = true)
     {
         self.service = service
         self.tapHandler = tapHandler
