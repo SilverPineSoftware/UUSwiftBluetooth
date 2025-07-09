@@ -22,38 +22,10 @@ final class UUPeripheralSessionTests: XCTestCase
         UULog.setLogger(logger)
     }
     
-    private func loadMockPeripheral() -> UUMockPeripheral?
-    {
-        let bundle = Bundle(for: Self.self)
-        
-        //guard let path = bundle.path(forResource: "atmotube_pro", ofType: "json") else
-        guard let path = bundle.path(forResource: "ti_sensor_tag", ofType: "json") else
-        {
-            NSLog("Unable to load file from bundle")
-            return nil
-        }
-        
-        guard let data = try? Data(contentsOf: URL(fileURLWithPath: path)) else
-        {
-            NSLog("Unable to create data from file")
-            return nil
-        }
-        
-        guard let peripheralData = try? JSONDecoder().decode(UUPeripheralRepresentation.self, from: data) else
-        {
-            NSLog("Unable to load JSON representation")
-            return nil
-        }
-        
-        let check = peripheralData.uuToJsonString()
-        UULog.debug(tag: "Import", message: check)
-        
-        return peripheralData.mockPeripheral
-    }
-    
     private func setupMockPeripheral() throws -> UUMockPeripheral
     {
-        let peripheral = try XCTUnwrap(loadMockPeripheral())
+        let peripheralOpt = UUMockPeripheral.loadFromJson(bundle: Bundle(for: Self.self), fileName: "ti_sensor_tag")
+        let peripheral = try XCTUnwrap(peripheralOpt)
         
         return peripheral
     }
@@ -65,6 +37,9 @@ final class UUPeripheralSessionTests: XCTestCase
         let startExp = uuExpectationForMethod(tag: "start")
         let endExp = uuExpectationForMethod(tag: "end")
         
+        // Inject a full 'discovered' GATT db tree
+        //peripheral.mockPeripheral.backingPeripheral.setValue(peripheral.mockPeripheral.mockServices, forKey: "services")
+        
         let session = TiSensorTagCoreBluetoothSession(peripheral: peripheral)
         //let session = UUPeripheralSession(peripheral: peripheral)
         session.started =
@@ -75,7 +50,7 @@ final class UUPeripheralSessionTests: XCTestCase
 
         session.ended =
         { endedSession, error in
-            NSLog("Session was ended, error: $error")
+            NSLog("Session was ended, error: \(String(describing: error))")
             endExp.fulfill()
         }
 
@@ -111,7 +86,7 @@ final class UUPeripheralSessionTests: XCTestCase
 
         session.ended =
         { endedSession, error in
-            NSLog("Session was ended, error: $error")
+            NSLog("Session was ended, error: \(String(describing: error))")
             endExp.fulfill()
         }
 

@@ -481,3 +481,32 @@ public extension UUPeripheralRepresentation // Mock Support
     }
 }
 
+
+public extension UUMockPeripheral
+{
+    static func loadFromJson(bundle: Bundle, fileName: String) -> UUMockPeripheral?
+    {
+        guard let path = bundle.path(forResource: fileName, ofType: "json") else
+        {
+            NSLog("Unable to load file from bundle")
+            return nil
+        }
+        
+        guard let data = try? Data(contentsOf: URL(fileURLWithPath: path)) else
+        {
+            NSLog("Unable to create data from file")
+            return nil
+        }
+        
+        guard let peripheralData = try? JSONDecoder().decode(UUPeripheralRepresentation.self, from: data) else
+        {
+            NSLog("Unable to load JSON representation")
+            return nil
+        }
+        
+        let check = peripheralData.uuToJsonString()
+        //UULog.debug(tag: "Import", message: check)
+        
+        return peripheralData.mockPeripheral
+    }
+}

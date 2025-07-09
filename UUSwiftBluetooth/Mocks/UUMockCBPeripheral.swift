@@ -10,22 +10,50 @@ import CoreBluetooth
 
 public class UUMockCBPeripheral: UUCBPeripheral
 {
-    public var delegate: (any CBPeripheralDelegate)? = nil
-    public var identifier: UUID = UUID()
-    public var name: String? = nil
-    public var state: CBPeripheralState = .disconnected
+    public var delegate: (any CBPeripheralDelegate)?
+    {
+        get
+        {
+            return backingPeripheral.delegate
+        }
+        
+        set (val)
+        {
+            backingPeripheral.delegate = val
+        }
+    }
+    
+    public var identifier: UUID
+    {
+        return backingPeripheral.identifier
+    }
+    
+    public var name: String?
+    {
+        return backingPeripheral.name
+    }
+    
+    public var state: CBPeripheralState
+    {
+        return backingPeripheral.state
+    }
     
     public var services: [CBService]?
     {
         return backingPeripheral.services
     }
     
-    public var canSendWriteWithoutResponse: Bool = true
-    public var ancsAuthorized: Bool = true
+    public var canSendWriteWithoutResponse: Bool
+    {
+        return backingPeripheral.canSendWriteWithoutResponse
+    }
+    
+    public var ancsAuthorized: Bool
+    {
+        return backingPeripheral.ancsAuthorized
+    }
     
     public var backingPeripheral: CBPeripheral
-    
-    
     
     // Configuration
     public var mockDispatchQueue: DispatchQueue = DispatchQueue(label: "UUMockCBPeripheral_DispatchQueue", qos: .userInitiated, attributes: [], autoreleaseFrequency: .inherit, target: nil)
@@ -53,7 +81,14 @@ public class UUMockCBPeripheral: UUCBPeripheral
     
     public var mockL2CapChannel: CBL2CAPChannel? = nil
     
+    // Maintain a single copy of the 'discovered' GATT database
+    private var discoveredServices: [CBMutableService] = []
     
+    
+    public func mockSetState(_ state: CBPeripheralState)
+    {
+        backingPeripheral.setValue(NSNumber(integerLiteral: state.rawValue), forKey: "state")
+    }
     
     
     public init(
@@ -62,14 +97,10 @@ public class UUMockCBPeripheral: UUCBPeripheral
         state: CBPeripheralState = .disconnected,
         services: [CBMutableService]? = nil)
     {
-        self.identifier = identifier
-        self.name = name
-        self.state = state
-        //self.services = services
-        
         backingPeripheral = UUMockCBPeripheral.makeCBPeripheral(
             uuid: identifier,
             name: name,
+            state: state,
             services: services
         )!
     }
@@ -78,6 +109,7 @@ public class UUMockCBPeripheral: UUCBPeripheral
     private class func makeCBPeripheral(
         uuid: UUID? = nil,
         name: String? = nil,
+        state: CBPeripheralState? = nil,
         services: [CBMutableService]? = nil) -> CBPeripheral?
     {
         let peripheralClass = NSClassFromString("CBPeripheral") as? NSObject.Type
@@ -105,6 +137,11 @@ public class UUMockCBPeripheral: UUCBPeripheral
             peripheral.setValue(services, forKey: "services")
         }
         
+        if let state = state
+        {
+            peripheral.setValue(NSNumber(integerLiteral: state.rawValue), forKey: "state")
+        }
+        
         return peripheral
     }
     
@@ -127,11 +164,10 @@ public class UUMockCBPeripheral: UUCBPeripheral
             }
             else
             {
-                let servicesWithNoChars = self.mockServices.map { CBMutableService(type: $0.uuid, primary: $0.isPrimary) }
+                self.discoveredServices = self.mockServices.map { CBMutableService(type: $0.uuid, primary: $0.isPrimary) }
                 
-                // Fill in the services of the backing peripheral with our 'mock' services, but exclude any characteristics because
-                // they have not been discovered yet.
-                self.backingPeripheral.setValue(servicesWithNoChars, forKey: "services")
+                // Fill in the services of the backing peripheral with the updated 'discovered' services
+                self.backingPeripheral.setValue(self.discoveredServices, forKey: "services")
                 self.delegate?.peripheral?(self.backingPeripheral, didDiscoverServices: nil)
             }
         }
@@ -158,13 +194,59 @@ public class UUMockCBPeripheral: UUCBPeripheral
                 let svc = self.mockServices.first { $0.uuid == service.uuid }
                 
                 let chars = svc?.characteristics
-                let resultChars = chars?.map { CBMutableCharacteristic(type: $0.uuid, properties: $0.properties, value: nil, permissions: []) }
+                let resultChars = chars?.map {
+                    let mc = CBMutableCharacteristic(type: $0.uuid, properties: $0.properties, value: nil, permissions: [])
+                    mc.setValue(service, forKey: "service")
+                    return mc
+                }
                 
+                var resultServiceOpt: CBService? = nil
+                
+                // Add the 'discovered' chars to the appropriate service
+                for svc in self.discoveredServices
+                {
+                    if svc.uuid == service.uuid
+                    {
+                        svc.characteristics = resultChars
+                        resultServiceOpt = svc
+                        break
+                    }
+                }
+                
+                
+                
+                /*
                 let resultService = CBMutableService(type: service.uuid, primary: service.isPrimary)
                 resultService.characteristics = resultChars
                 
+                var servicesCopyNoDescriptors: [CBMutableService] = []
                 
-                self.delegate?.peripheral?(self.backingPeripheral, didDiscoverCharacteristicsFor: resultService, error: nil)
+                for s in self.mockServices {
+                    
+                    if (s.uuid == service.uuid)
+                    {
+                        servicesCopyNoDescriptors.append(resultService)
+                    }
+                    else
+                    {
+                        servicesCopyNoDescriptors.append(s)
+                    }
+                }*/
+                
+                // Update our backing peripheral with an updated service with all mock characteristics added
+                //self.backingPeripheral.setValue(servicesCopyNoDescriptors, forKey: "services")
+                
+                // Fill in the services of the backing peripheral with the updated 'discovered' services
+                self.backingPeripheral.setValue(self.discoveredServices, forKey: "services")
+                
+                if let resultService = resultServiceOpt
+                {
+                    self.delegate?.peripheral?(self.backingPeripheral, didDiscoverCharacteristicsFor: resultService, error: nil)
+                }
+                else
+                {
+                    self.delegate?.peripheral?(self.backingPeripheral, didDiscoverCharacteristicsFor: service, error: nil)
+                }
             }
         }
     }
@@ -202,7 +284,62 @@ public class UUMockCBPeripheral: UUCBPeripheral
     {
         dispatch
         {
-            self.delegate?.peripheral?(self.backingPeripheral, didDiscoverDescriptorsFor: characteristic, error: self.mockCallbackError)
+            if let err = self.mockCallbackError
+            {
+                // Create a charactistic copy with no descriptors
+                let mc = CBMutableCharacteristic(type: characteristic.uuid, properties: characteristic.properties, value: characteristic.value, permissions: [])
+                mc.setValue(characteristic.service, forKey: "service")
+                
+                self.delegate?.peripheral?(self.backingPeripheral, didDiscoverDescriptorsFor: mc, error: err)
+            }
+            else
+            {
+                // Find the descriptor list in the source mock Gatt db
+                let svc = self.mockServices.first { $0.uuid == characteristic.serviceUUID }
+                let char = svc?.characteristics?.first { $0.uuid == characteristic.uuid }
+                
+                let descs = char?.descriptors
+                let resultDescs = descs?.map {
+                    let mc = CBMutableDescriptor(type: $0.uuid, value: $0.value)
+                    mc.setValue(char, forKey: "characteristic")
+                    return mc
+                }
+                
+                var resultCharOpt: CBCharacteristic? = nil
+                
+                // Add the 'discovered' chars to the appropriate service
+                for svc in self.discoveredServices
+                {
+                    if svc.uuid == characteristic.serviceUUID
+                    {
+                        for char in svc.characteristics ?? []
+                        {
+                            if char.uuid == characteristic.uuid
+                            {
+                                if let mutableChar = char as? CBMutableCharacteristic
+                                {
+                                    resultCharOpt = mutableChar
+                                    mutableChar.descriptors = resultDescs
+                                    break
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Fill in the services of the backing peripheral with the updated 'discovered' services
+                self.backingPeripheral.setValue(self.discoveredServices, forKey: "services")
+                
+                
+                if let resultChar = resultCharOpt
+                {
+                    self.delegate?.peripheral?(self.backingPeripheral, didDiscoverDescriptorsFor: resultChar, error: nil)
+                }
+                else
+                {
+                    self.delegate?.peripheral?(self.backingPeripheral, didDiscoverDescriptorsFor: characteristic, error: nil)
+                }
+            }
         }
     }
     

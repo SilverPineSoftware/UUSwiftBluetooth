@@ -67,6 +67,8 @@ public class UUMockCBCentralManager: UUCBCentralManager
     
     public func connect(_ peripheral: CBPeripheral, options: [String : Any]?)
     {
+        peripheral.setValue(NSNumber(integerLiteral: CBPeripheralState.connecting.rawValue), forKey: "state")
+        
         dispatch
         {
             if let err = self.mockCallbackError
@@ -75,6 +77,8 @@ public class UUMockCBCentralManager: UUCBCentralManager
             }
             else
             {
+                peripheral.setValue(NSNumber(integerLiteral: CBPeripheralState.connected.rawValue), forKey: "state")
+                
                 self.delegate?.centralManager?(self.backingCentral, didConnect: peripheral)
             }
         }
@@ -82,8 +86,11 @@ public class UUMockCBCentralManager: UUCBCentralManager
     
     public func cancelPeripheralConnection(_ peripheral: CBPeripheral)
     {
+        peripheral.setValue(NSNumber(integerLiteral: CBPeripheralState.disconnecting.rawValue), forKey: "state")
+        
         dispatch
         {
+            peripheral.setValue(NSNumber(integerLiteral: CBPeripheralState.disconnected.rawValue), forKey: "state")
             self.delegate?.centralManager?(self.backingCentral, didDisconnectPeripheral: peripheral, error: self.mockCallbackError)
         }
     }
