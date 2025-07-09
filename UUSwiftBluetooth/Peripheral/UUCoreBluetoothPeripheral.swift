@@ -9,7 +9,7 @@ import Foundation
 import CoreBluetooth
 import UUSwiftCore
 
-fileprivate let LOG_TAG = "UUCoreBluetoothPeripheral"
+fileprivate let LOG_TAG = "UUPeripheral"
 
 // UUPeripheral is a convenience class that wraps a CBPeripheral and it's
 // advertisement data into one object.
@@ -28,7 +28,7 @@ open class UUPeripheral //: UUPeripheral, UUPeripheralInternal
     private(set) public var rssi: Int
     private(set) public var firstDiscoveryTime: Date
     
-    public required init(
+    public init(
         centralManager: UUCentralManager,
         peripheral: UUCBPeripheral,
         advertisement: UUAdvertisement)

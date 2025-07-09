@@ -11,7 +11,7 @@ import UUSwiftCore
 
 fileprivate let LOG_TAG = "UUCentralManagerDelegate"
 
-class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
+public class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
 {
     var centralStateChangedBlock: UUCentralStateChangedBlock? = nil
     var didDiscoverPeripheralBlock: UUBluetoothAdvertisementBlock? = nil
@@ -39,7 +39,7 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
 //    func centralManagerDidUpdateState(_ central: CBCentralManager)
 
     
-    func centralManagerDidUpdateState(_ central: CBCentralManager)
+    public func centralManagerDidUpdateState(_ central: CBCentralManager)
     {
         UULog.info(tag: LOG_TAG, message: "Central state changed to \(central.state.uuName())) (\(central.state))")
         centralStateChangedBlock?(central.state)
@@ -65,7 +65,7 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
 //    optional func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber)
 
     
-    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber)
+    public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber)
     {
         guard let block = didDiscoverPeripheralBlock else
         {
@@ -90,7 +90,7 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
 //    @available(iOS 5.0, *)
 //    optional func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral)
     
-    func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral)
+    public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral)
     {
         UULog.debug(tag: LOG_TAG, message: "didConnect, peripheral: \(peripheral)")
         
@@ -115,7 +115,7 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
 //    optional func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: (any Error)?)
 
     
-    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?)
+    public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?)
     {
         UULog.debug(tag: LOG_TAG, message: "didFailToConnect, peripheral: \(peripheral), error: \(String(describing: error?.localizedDescription))")
               
@@ -173,7 +173,7 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
 //    @available(iOS 5.0, *)
 //    optional func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, timestamp: CFAbsoluteTime, isReconnecting: Bool, error: (any Error)?)
     
-    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, timestamp: CFAbsoluteTime, isReconnecting: Bool, error: (any Error)?)
+    public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, timestamp: CFAbsoluteTime, isReconnecting: Bool, error: (any Error)?)
     {
         UULog.debug(tag: LOG_TAG, message: "didDisconnectPeripheral, peripheral: \(peripheral), timestamp: \(timestamp), isReconnecting: \(isReconnecting), error: \(String(describing: error))")
         
@@ -229,7 +229,7 @@ class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
     }*/
 }
 
-class UUCentralManagerRestoringDelegate: UUCentralManagerDelegate
+public class UUCentralManagerRestoringDelegate: UUCentralManagerDelegate
 {
     var willRestoreBlock: UUWillRestoreStateBlock? = nil
     

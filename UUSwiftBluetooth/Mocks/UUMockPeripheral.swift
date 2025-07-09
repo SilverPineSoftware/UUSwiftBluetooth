@@ -5,6 +5,62 @@
 //  Created by Ryan DeVore on 11/10/24.
 //
 
+import Foundation
+import CoreBluetooth
+import UUSwiftCore
+
+public class UUMockPeripheral: UUPeripheral
+{
+    public var mockPeripheral: UUMockCBPeripheral
+    
+    public var mockCentral: UUCentralManager
+    
+    private static var mockCBCentral: UUMockCBCentralManager? = nil
+    
+    public init(identifier: UUID = UUID(),
+         advertisement: UUAdvertisement = UUAdvertisement(),
+         rssi: Int = 0,
+         name: String = "",
+         friendlyName: String = "",
+         firstDiscoveryTime: Date = Date(),
+         peripheralState: CBPeripheralState = .disconnected,
+         services: [CBMutableService]? = nil)
+    {
+        self.mockPeripheral = UUMockCBPeripheral(
+            identifier: identifier,
+            name: name,
+            state: peripheralState,
+            services: services)
+        
+        let p = self.mockPeripheral.backingPeripheral
+        
+        self.mockCentral = UUCentralManager(injection: { q, o in
+            
+            let delegate = UUCentralManagerDelegate()
+            let mgr = UUMockCBCentralManager(delegate: delegate, queue: q, options: o)
+            mgr.mockPeripherals = [p]
+            UUMockPeripheral.mockCBCentral = mgr
+            return (delegate, mgr)
+        })
+        
+        advertisement.timestamp = firstDiscoveryTime
+        advertisement.rssi = rssi
+        
+        super.init(centralManager: self.mockCentral, peripheral: self.mockPeripheral, advertisement: advertisement)
+        
+    }
+    
+    public var mockCallbackError: Error? = nil
+    {
+        didSet
+        {
+            self.mockPeripheral.mockCallbackError = self.mockCallbackError
+            UUMockPeripheral.mockCBCentral?.mockCallbackError = self.mockCallbackError
+        }
+    }
+}
+
+
 /*
 import Foundation
 import CoreBluetooth
@@ -367,7 +423,7 @@ public class UUMockPeripheral: UUPeripheral
             }
         }
     }
-}
+}*/
 
 public extension UUDescriptorRepresentation // Mock Support
 {
@@ -420,9 +476,8 @@ public extension UUPeripheralRepresentation // Mock Support
     var mockPeripheral: UUMockPeripheral
     {
         let p = UUMockPeripheral()
-        p.mockServices = self.services?.compactMap(\.mockService) ?? []
+        p.mockPeripheral.mockServices = self.services?.compactMap(\.mockService) ?? []
         return p
     }
 }
 
-*/

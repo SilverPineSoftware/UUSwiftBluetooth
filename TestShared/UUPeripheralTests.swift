@@ -34,7 +34,7 @@ open class UUPeripheralTests: XCTestCase
         UULog.setLogger(logger)
     }
     
-    open func acquireTestPeripheral() throws -> (any UUPeripheral)
+    open func acquireTestPeripheral() throws -> UUPeripheral
     {
         fatalError("Derived classes must implement acquireTestPeripheral()")
     }

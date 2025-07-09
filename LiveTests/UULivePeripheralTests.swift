@@ -16,7 +16,7 @@ import UUSwiftTestCoreUX
 
 final class UULivePeripheralTests: UUPeripheralTests
 {
-    override func acquireTestPeripheral() throws -> (any UUPeripheral)
+    override func acquireTestPeripheral() throws -> UUPeripheral
     {
         //let peripheralName = "CC2650 SensorTag"
         let peripheralName = "Code Ninja Mac"

@@ -5,7 +5,7 @@
 //
 //  Created by Ryan DeVore on 7/1/25.
 //
-/*
+
 import XCTest
 import UUSwiftTestCore
 import UUSwiftCore
@@ -72,7 +72,7 @@ final class UUMockPeripheralTests: XCTestCase
         
         let service = CBMutableService(type: mockServiceUuid, primary: true)
         service.characteristics = [characteristic]
-        peripheral.mockServices = [service]
+        peripheral.mockPeripheral.mockServices = [service]
         
         return peripheral
     }
@@ -106,6 +106,7 @@ final class UUMockPeripheralTests: XCTestCase
         let code = 1
         peripheral.mockCallbackError = NSError(domain: domain, code: code)
         
+        
         peripheral.connect(timeout: 10.0)
         {
             XCTFail("Connect block not expected in this case")
@@ -122,8 +123,12 @@ final class UUMockPeripheralTests: XCTestCase
         
         let nsErrorOpt = (error as? NSError)
         let nsErr = try XCTUnwrap(nsErrorOpt)
-        XCTAssertEqual(nsErr.domain, domain)
-        XCTAssertEqual(nsErr.code, code)
+        XCTAssertEqual(nsErr.domain, kUUCoreBluetoothErrorDomain)
+        XCTAssertEqual(nsErr.code, UUCoreBluetoothErrorCode.connectionFailed.rawValue)
+        
+        let nsUnderlyingErr = try XCTUnwrap(nsErr.userInfo[NSUnderlyingErrorKey] as? NSError)
+        XCTAssertEqual(nsUnderlyingErr.domain, domain)
+        XCTAssertEqual(nsUnderlyingErr.code, code)
     }
     
     func test_0003_disconnect_after_connect() throws
@@ -132,6 +137,8 @@ final class UUMockPeripheralTests: XCTestCase
         
         let connectExp = uuExpectationForMethod(tag: "connect")
         let disconnectExp = uuExpectationForMethod(tag: "disconnect")
+        
+        
         
         var error: Error? = nil
         
@@ -152,14 +159,18 @@ final class UUMockPeripheralTests: XCTestCase
         peripheral.mockCallbackError = NSError(domain: domain, code: code)
         peripheral.disconnect(timeout: 10.0)
         
-        wait(for: [disconnectExp], timeout: 20.0)
+        wait(for: [disconnectExp], timeout: 5.0)
         
         XCTAssertNotNil(error)
         
         let nsErrorOpt = (error as? NSError)
         let nsErr = try XCTUnwrap(nsErrorOpt)
-        XCTAssertEqual(nsErr.domain, domain)
-        XCTAssertEqual(nsErr.code, code)
+        XCTAssertEqual(nsErr.domain, kUUCoreBluetoothErrorDomain)
+        XCTAssertEqual(nsErr.code, UUCoreBluetoothErrorCode.disconnected.rawValue)
+        
+        let nsUnderlyingErr = try XCTUnwrap(nsErr.userInfo[NSUnderlyingErrorKey] as? NSError)
+        XCTAssertEqual(nsUnderlyingErr.domain, domain)
+        XCTAssertEqual(nsUnderlyingErr.code, code)
     }
     
     func test_0004_discoverServices_success() throws
@@ -170,6 +181,8 @@ final class UUMockPeripheralTests: XCTestCase
         
         var servicesResult: [UUCBService]? = nil
         var errorResult: Error? = nil
+        
+        peripheral.mockPeripheral.state = .connected
         
         peripheral.discoverServices(serviceUUIDs: nil, timeout: 10.0)
         { operationResult, operationError in
@@ -203,6 +216,8 @@ final class UUMockPeripheralTests: XCTestCase
         let code = 1
         peripheral.mockCallbackError = NSError(domain: domain, code: code)
         
+        peripheral.mockPeripheral.state = .connected
+        
         peripheral.discoverServices(serviceUUIDs: nil, timeout: 10.0)
         { operationResult, operationError in
             servicesResult = operationResult
@@ -214,8 +229,12 @@ final class UUMockPeripheralTests: XCTestCase
         
         let nsErrorOpt = (errorResult as? NSError)
         let nsErr = try XCTUnwrap(nsErrorOpt)
-        XCTAssertEqual(nsErr.domain, domain)
-        XCTAssertEqual(nsErr.code, code)
+        XCTAssertEqual(nsErr.domain, kUUCoreBluetoothErrorDomain)
+        XCTAssertEqual(nsErr.code, UUCoreBluetoothErrorCode.operationFailed.rawValue)
+        
+        let nsUnderlyingErr = try XCTUnwrap(nsErr.userInfo[NSUnderlyingErrorKey] as? NSError)
+        XCTAssertEqual(nsUnderlyingErr.domain, domain)
+        XCTAssertEqual(nsUnderlyingErr.code, code)
         
         XCTAssertNil(servicesResult)
     }
@@ -229,11 +248,19 @@ final class UUMockPeripheralTests: XCTestCase
         var charResult: [UUCBCharacteristic]? = nil
         var errorResult: Error? = nil
         
-        peripheral.discoverCharacteristics(characteristicUUIDs: nil, for: peripheral.mockServices[0], timeout: 10.0)
-        { operationResult, operationError in
-            charResult = operationResult
-            errorResult = operationError
-            exp.fulfill()
+        peripheral.mockPeripheral.state = .connected
+        
+        let service: UUCBService = try XCTUnwrap(peripheral.mockPeripheral.mockServices[0])
+        
+        peripheral.discoverServices(serviceUUIDs: nil, timeout: 10.0)
+        { discoverServicesResult, discoverServicesError in
+        
+            peripheral.discoverCharacteristics(characteristicUUIDs: nil, for: service, timeout: 10.0)
+            { operationResult, operationError in
+                charResult = operationResult
+                errorResult = operationError
+                exp.fulfill()
+            }
         }
         
         wait(for: [exp], timeout: 20.0)
@@ -257,12 +284,32 @@ final class UUMockPeripheralTests: XCTestCase
         var charResult: [UUCBCharacteristic]? = nil
         var errorResult: Error? = nil
         
-        let fakeService = CBMutableService(type: CBUUID(), primary: false)
-        peripheral.discoverCharacteristics(characteristicUUIDs: nil, for: fakeService, timeout: 10.0)
-        { operationResult, operationError in
-            charResult = operationResult
-            errorResult = operationError
-            exp.fulfill()
+        peripheral.mockPeripheral.state = .connected
+        
+        //let fakeService = CBMutableService(type: CBUUID(), primary: false)
+//        peripheral.discoverCharacteristics(characteristicUUIDs: nil, for: fakeService, timeout: 10.0)
+//        { operationResult, operationError in
+//            charResult = operationResult
+//            errorResult = operationError
+//            exp.fulfill()
+//        }
+        
+        peripheral.mockPeripheral.state = .connected
+        
+        let svc = peripheral.mockPeripheral.mockServices[0]
+        svc.characteristics?.removeAll()
+        
+        let service: UUCBService = try XCTUnwrap(svc)
+        
+        peripheral.discoverServices(serviceUUIDs: nil, timeout: 10.0)
+        { discoverServicesResult, discoverServicesError in
+        
+            peripheral.discoverCharacteristics(characteristicUUIDs: nil, for: service, timeout: 10.0)
+            { operationResult, operationError in
+                charResult = operationResult
+                errorResult = operationError
+                exp.fulfill()
+            }
         }
         
         wait(for: [exp], timeout: 20.0)
@@ -274,4 +321,4 @@ final class UUMockPeripheralTests: XCTestCase
     }
     
 }
-*/
+

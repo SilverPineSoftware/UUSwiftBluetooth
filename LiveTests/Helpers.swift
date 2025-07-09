@@ -52,7 +52,7 @@ public extension UUPeripheralScanner
 
 public extension XCTestCase
 {
-    func scanForPeripheral(name: String, timeout: TimeInterval = 10.0) throws -> (any UUPeripheral)
+    func scanForPeripheral(name: String, timeout: TimeInterval = 10.0) throws -> UUPeripheral
     {
         let scanner = UUBluetooth.scanner
         let peripheralOpt = scanForPeripheral(scanner: scanner, timeout: timeout, filter: UUPeripheralNameFilter(name))
@@ -112,14 +112,14 @@ public extension XCTestCase
 
 public class SinglePeripheralFilter: UUPeripheralFilter
 {
-    private let filterMethod: ((any UUPeripheral)->Bool)
+    private let filterMethod: ((UUPeripheral)->Bool)
     
-    init (_ filterMethod: @escaping ((any UUPeripheral) -> Bool))
+    init (_ filterMethod: @escaping ((UUPeripheral) -> Bool))
     {
         self.filterMethod = filterMethod
     }
     
-    public func shouldDiscover(_ peripheral: any UUPeripheral) -> Bool
+    public func shouldDiscover(_ peripheral: UUPeripheral) -> Bool
     {
         return filterMethod(peripheral)
     }
