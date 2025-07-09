@@ -29,9 +29,18 @@ public protocol UUCBDescriptor : UUCBAttribute
     *
     */
    var value: Any? { get }
+    
+    /**
+     The identifier of the parent service
+     */
+    var characteristicUUID: CBUUID? { get }
 }
 
 
 extension CBDescriptor: UUCBDescriptor
 {
+    public var characteristicUUID: CBUUID?
+    {
+        return characteristic?.uuid
+    }
 }

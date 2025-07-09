@@ -65,8 +65,18 @@ public protocol UUCBCharacteristic : UUCBAttribute
      *
      */
     var isNotifying: Bool { get }
+    
+    /**
+     The identifier of the parent service
+     */
+    var serviceUUID: CBUUID? { get }
 }
 
 extension CBCharacteristic: UUCBCharacteristic
 {
+    public var serviceUUID: CBUUID?
+    {
+        return service?.uuid
+    }
 }
+
