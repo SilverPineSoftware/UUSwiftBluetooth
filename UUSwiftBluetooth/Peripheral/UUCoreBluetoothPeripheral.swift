@@ -450,7 +450,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     // timeout value.  A negative timeout value will disable the timeout.
     public func setNotifyValue(
         enabled: Bool,
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
         notifyHandler: UUObjectErrorBlock<Data>?,
         completion: @escaping UUErrorBlock)
@@ -486,7 +486,11 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             self.endSetNotify(characteristic, err)
         }
         
-        underlyingPeripheral.setNotifyValue(enabled, for: characteristic)
+        if let err = underlyingPeripheral.setNotifyValue(enabled, for: characteristic)
+        {
+            self.endSetNotify(characteristic, err)
+            return
+        }
     }
     
     private func endSetNotify(_ characteristic: UUCBCharacteristic, _ error: Error?)
@@ -500,7 +504,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     // Block based wrapper around CBPeripheral readValue:forCharacteristic, with an
     // optional timeout value.  A negative timeout value will disable the timeout.
     public func readValue(
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         timeout: TimeInterval,
         completion: @escaping UUObjectErrorBlock<Data>)
     {
@@ -526,7 +530,11 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             return
         }
         
-        underlyingPeripheral.readValue(for: characteristic)
+        if let err = underlyingPeripheral.readValue(characteristic)
+        {
+            endReadValue(characteristic, err)
+            return
+        }
     }
     
     private func endReadValue(_ characteristic: UUCBCharacteristic, _ error: Error?)
@@ -540,7 +548,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     // Block based wrapper around CBPeripheral readValue:forCharacteristic, with an
     // optional timeout value.  A negative timeout value will disable the timeout.
     public func readValue(
-        for descriptor: CBDescriptor,
+        for descriptor: UUCBDescriptor,
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
         completion: @escaping UUObjectErrorBlock<Any>)
     {
@@ -566,7 +574,11 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             self.endReadDescriptor(descriptor, err)
         }
         
-        underlyingPeripheral.readValue(for: descriptor)
+        if let err = underlyingPeripheral.readValue(descriptor)
+        {
+            endReadDescriptor(descriptor, err)
+            return
+        }
     }
     
     private func endReadDescriptor(_ descriptor: UUCBDescriptor, _ error: Error?)
@@ -582,7 +594,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     // timeout value will disable the timeout.
     public func writeValue(
         data: Data,
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
         completion: @escaping UUErrorBlock)
     {
@@ -608,7 +620,11 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             self.endWriteValue(characteristic, err)
         }
         
-        underlyingPeripheral.writeValue(data, for: characteristic, type: .withResponse)
+        if let err = underlyingPeripheral.writeCharacteristicValue(data, characteristic, .withResponse)
+        {
+            endWriteValue(characteristic, err)
+            return
+        }
     }
     
     private func endWriteValue(_ characteristic: UUCBCharacteristic, _ error: Error?)
@@ -624,7 +640,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     // Per CoreBluetooth documentation, there is no garauntee of delivery.
     public func writeValueWithoutResponse(
         data: Data,
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         completion: @escaping UUErrorBlock)
     {
         UULog.debug(tag: LOG_TAG, message: "Write value without response \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic)")
@@ -639,7 +655,15 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             return
         }
         
-        underlyingPeripheral.writeValue(data, for: characteristic, type: .withoutResponse)
+        if let err = underlyingPeripheral.writeCharacteristicValue(data, characteristic, .withoutResponse)
+        {
+            dispatchQueue.async
+            {
+                completion(err)
+            }
+            
+            return
+        }
         
         // Immediately invoke the completion callback because write without response will not trigger a delegate callback
         dispatchQueue.async
@@ -653,7 +677,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     // timeout value will disable the timeout.
     public func writeValue(
         data: Data,
-        for descriptor: CBDescriptor,
+        for descriptor: UUCBDescriptor,
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
         completion: @escaping UUErrorBlock)
     {
@@ -679,7 +703,11 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             self.endWriteValue(descriptor, err)
         }
         
-        underlyingPeripheral.writeValue(data, for: descriptor)
+        if let err = underlyingPeripheral.writeDescriptorValue(data, descriptor)
+        {
+            endWriteValue(descriptor, err)
+            return
+        }
     }
     
     private func endWriteValue(_ descriptor: UUCBDescriptor, _ error: Error?)

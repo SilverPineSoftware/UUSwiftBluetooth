@@ -222,8 +222,123 @@ public protocol UUCBPeripheral: UUCBPeer
      */
     //@available(iOS 11.0, *)
     func openL2CAPChannel(_ PSM: CBL2CAPPSM)
+    
+    
+    
+    
+    
+    
+    func setNotifyValue(_ enabled: Bool, for characteristic: any UUCBCharacteristic) -> Error?
+    func readValue(_ characteristic: any UUCBCharacteristic) -> Error?
+    func readValue(_ descriptor: any UUCBDescriptor) -> Error?
+    func writeCharacteristicValue(_ data: Data, _ characteristic: UUCBCharacteristic, _ type: CBCharacteristicWriteType) -> Error?
+    func writeDescriptorValue(_ data: Data, _ descriptor: UUCBDescriptor) -> Error?
+    
 }
 
 extension CBPeripheral: UUCBPeripheral
 {
+    private func findService(_ serviceUUID: CBUUID) -> CBService?
+    {
+        return services?.first { $0.uuid == serviceUUID }
+    }
+    
+    private func findCharacteristic(_ serviceUUID: CBUUID, _ characteristicUUID: CBUUID) -> CBCharacteristic?
+    {
+        return findService(serviceUUID)?.characteristics?.first { $0.uuid == characteristicUUID }
+    }
+    
+    private func findDescriptor(_ serviceUUID: CBUUID, _ characteristicUUID: CBUUID, _ descriptorUUID: CBUUID) -> CBDescriptor?
+    {
+        guard let characteristic = findCharacteristic(serviceUUID, characteristicUUID) else
+        {
+            return nil
+        }
+        
+        return characteristic.descriptors?.first { $0.uuid == descriptorUUID }
+    }
+    
+    private func findCharacteristic(_ characteristic: any UUCBCharacteristic) -> CBCharacteristic?
+    {
+        guard let serviceUUID = characteristic.serviceUUID else
+        {
+            return nil
+        }
+        
+        return findCharacteristic(serviceUUID, characteristic.uuid)
+    }
+    
+    private func findDescriptor(_ descriptor: any UUCBDescriptor) -> CBDescriptor?
+    {
+        guard let serviceUUID = descriptor.characteristic?.serviceUUID else
+        {
+            return nil
+        }
+        
+        guard let characteristicUUID = descriptor.characteristicUUID else
+        {
+            return nil
+        }
+        
+        return findDescriptor(serviceUUID, characteristicUUID, descriptor.uuid)
+    }
+    
+    
+    public func setNotifyValue(_ enabled: Bool, for characteristic: any UUCBCharacteristic) -> (any Error)?
+    {
+        guard let cbCharacteristic = self.findCharacteristic(characteristic) else
+        {
+            return NSError.uuRequiredCharacteristicNotFoundError(characteristic.uuid)
+        }
+        
+        setNotifyValue(enabled, for: cbCharacteristic)
+        return nil
+    }
+    
+    public func readValue(_ characteristic: any UUCBCharacteristic) -> Error?
+    {
+        guard let cbCharacteristic = self.findCharacteristic(characteristic) else
+        {
+            return NSError.uuRequiredCharacteristicNotFoundError(characteristic.uuid)
+        }
+        
+        readValue(for: cbCharacteristic)
+        return nil
+    }
+    
+    public func readValue(_ descriptor: any UUCBDescriptor) -> (any Error)?
+    {
+        guard let cbDescriptor = self.findDescriptor(descriptor) else
+        {
+            return NSError.uuRequiredDescriptorNotFoundError(descriptor.uuid)
+        }
+        
+        readValue(for: cbDescriptor)
+        return nil
+    }
+    
+    public func writeCharacteristicValue(_ data: Data, _ characteristic: any UUCBCharacteristic, _ type: CBCharacteristicWriteType) -> (any Error)?
+    {
+        guard let cbCharacteristic = self.findCharacteristic(characteristic) else
+        {
+            return NSError.uuRequiredCharacteristicNotFoundError(characteristic.uuid)
+        }
+        
+        writeValue(data, for: cbCharacteristic, type: type)
+        return nil
+    }
+    
+    public func writeDescriptorValue(_ data: Data, _ descriptor: any UUCBDescriptor) -> (any Error)?
+    {
+        guard let cbDescriptor = self.findDescriptor(descriptor) else
+        {
+            return NSError.uuRequiredDescriptorNotFoundError(descriptor.uuid)
+        }
+        
+        writeValue(data, for: cbDescriptor)
+        return nil
+    }
+    
+    
+    
 }

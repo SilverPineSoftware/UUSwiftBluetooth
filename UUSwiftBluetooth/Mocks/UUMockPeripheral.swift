@@ -215,7 +215,7 @@ public class UUMockPeripheral: UUPeripheral
     
     public func setNotifyValue(
         enabled: Bool,
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         timeout: TimeInterval,
         notifyHandler: UUObjectErrorBlock<Data>?,
         completion: @escaping UUErrorBlock)
@@ -231,7 +231,7 @@ public class UUMockPeripheral: UUPeripheral
     }
     
     public func readValue(
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         timeout: TimeInterval,
         completion: @escaping UUObjectErrorBlock<Data>)
     {
@@ -242,7 +242,7 @@ public class UUMockPeripheral: UUPeripheral
     }
     
     public func readValue(
-        for descriptor: CBDescriptor,
+        for descriptor: UUCBDescriptor,
         timeout: TimeInterval,
         completion: @escaping UUObjectErrorBlock<Any>)
     {
@@ -254,7 +254,7 @@ public class UUMockPeripheral: UUPeripheral
     
     public func writeValue(
         data: Data,
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         timeout: TimeInterval,
         completion: @escaping UUErrorBlock)
     {
@@ -271,7 +271,7 @@ public class UUMockPeripheral: UUPeripheral
     
     public func writeValueWithoutResponse(
         data: Data,
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         completion: @escaping UUErrorBlock)
     {
         dispatch
@@ -287,8 +287,7 @@ public class UUMockPeripheral: UUPeripheral
     
     public func writeValue(
         data: Data,
-        for descriptor:
-        CBDescriptor,
+        for descriptor: UUCBDescriptor,
         timeout: TimeInterval,
         completion: @escaping UUErrorBlock)
     {
@@ -338,7 +337,7 @@ public class UUMockPeripheral: UUPeripheral
         return lookupCharacteristic(uuid)?.descriptors
     }
     
-    private func replaceDescriptor(_ descriptor: CBDescriptor, _ value: Any?)
+    private func replaceDescriptor(_ descriptor: UUCBDescriptor, _ value: Any?)
     {
         for svc in self.mockServices
         {
@@ -348,7 +347,7 @@ public class UUMockPeripheral: UUPeripheral
                 {
                     if var descriptors = mutableChar.descriptors
                     {
-                        if let index = descriptors.firstIndex(of: descriptor)
+                        if let index = descriptors.firstIndex(where: {$0.uuid == descriptor.uuid })
                         {
                             //chr.descriptors?[index] = CBMutableDescriptor(type: descriptor.uuid, value: value)
                             descriptors[index] = CBMutableDescriptor(type: descriptor.uuid, value: value)

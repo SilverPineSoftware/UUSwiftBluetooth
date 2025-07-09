@@ -61,35 +61,35 @@ public protocol UUPeripheral
     
     func setNotifyValue(
         enabled: Bool,
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         timeout: TimeInterval,
         notifyHandler: UUObjectErrorBlock<Data>?,
         completion: @escaping UUErrorBlock)
     
     func readValue(
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         timeout: TimeInterval,
         completion: @escaping UUObjectErrorBlock<Data>)
     
     func readValue(
-        for descriptor: CBDescriptor,
+        for descriptor: UUCBDescriptor,
         timeout: TimeInterval,
         completion: @escaping UUObjectErrorBlock<Any>)
     
     func writeValue(
         data: Data,
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         timeout: TimeInterval,
         completion: @escaping UUErrorBlock)
     
     func writeValueWithoutResponse(
         data: Data,
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         completion: @escaping UUErrorBlock)
     
     func writeValue(
         data: Data,
-        for descriptor: CBDescriptor,
+        for descriptor: UUCBDescriptor,
         timeout: TimeInterval,
         completion: @escaping UUErrorBlock)
     
