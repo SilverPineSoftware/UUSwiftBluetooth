@@ -271,7 +271,7 @@ class L2CapClientController:L2CapController
         }
     }
     
-    private func discoverL2CapCharacteristics(service:CBService, completion: @escaping ((CBL2CAPPSM?, Bool?, Error?) -> Void))
+    private func discoverL2CapCharacteristics(service: UUCBService, completion: @escaping ((CBL2CAPPSM?, Bool?, Error?) -> Void))
     {
         self.peripheral?.discoverCharacteristics(characteristicUUIDs: [UUL2CapConstants.UU_L2CAP_PSM_CHARACTERISTIC_UUID, UUL2CapConstants.UU_L2CAP_CHANNEL_ENCRYPTED_CHARACTERISTIC_UUID], for: service, timeout: 10)
         { discoveredCharacteristics, error in
@@ -289,7 +289,7 @@ class L2CapClientController:L2CapController
         }
     }
     
-    private func readL2CapCharacteristicValues(psmCharacteristic:CBCharacteristic, encryptionCharacteristic:CBCharacteristic, completion: @escaping ((CBL2CAPPSM?, Bool?, Error?) -> Void))
+    private func readL2CapCharacteristicValues(psmCharacteristic: UUCBCharacteristic, encryptionCharacteristic: UUCBCharacteristic, completion: @escaping ((CBL2CAPPSM?, Bool?, Error?) -> Void))
     {
         self.readL2CapPSMValue(characteristic: psmCharacteristic)
         { foundPSM, error in
@@ -312,7 +312,7 @@ class L2CapClientController:L2CapController
     }
     
     
-    private func readL2CapPSMValue(characteristic:CBCharacteristic, completion: @escaping ((CBL2CAPPSM?, Error?) -> Void))
+    private func readL2CapPSMValue(characteristic: UUCBCharacteristic, completion: @escaping ((CBL2CAPPSM?, Error?) -> Void))
     {
         self.peripheral?.readValue(for: characteristic, timeout: 20.0)
         { dataOpt, error in
@@ -329,7 +329,7 @@ class L2CapClientController:L2CapController
         }
     }
     
-    private func readL2CapEncryptionValue(characteristic:CBCharacteristic, completion: @escaping ((Bool?, Error?) -> Void))
+    private func readL2CapEncryptionValue(characteristic: UUCBCharacteristic, completion: @escaping ((Bool?, Error?) -> Void))
     {
         self.peripheral?.readValue(for: characteristic, timeout: 20.0)
         { dataOpt, error in
