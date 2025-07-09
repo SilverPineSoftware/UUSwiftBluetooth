@@ -855,7 +855,7 @@ open class UUPeripheral //: UUPeripheral, UUPeripheralInternal
     {
         dispatchQueue.async
         {
-            self.delegate.handleL2CapChannelOpeneed(self.underlyingPeripheral, channel, error)
+            self.delegate.handleL2CapChannelOpened(self.underlyingPeripheral, channel, error)
         }
     }
     

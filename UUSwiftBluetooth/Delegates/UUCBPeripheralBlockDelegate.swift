@@ -230,7 +230,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     
     public func peripheral(_ peripheral: CBPeripheral, didOpen channel: CBL2CAPChannel?, error: Error?)
     {
-        handleL2CapChannelOpeneed(peripheral, channel, error)
+        handleL2CapChannelOpened(peripheral, channel, error)
     }
     
     
@@ -339,7 +339,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         }
     }
     
-    public func handleL2CapChannelOpeneed(_ peripheral: UUCBPeripheral, _ channel: UUCBL2CAPChannel?, _ error: Error?)
+    public func handleL2CapChannelOpened(_ peripheral: UUCBPeripheral, _ channel: UUCBL2CAPChannel?, _ error: Error?)
     {
         let block = l2CapChannelOpenedBlock
         l2CapChannelOpenedBlock = nil
