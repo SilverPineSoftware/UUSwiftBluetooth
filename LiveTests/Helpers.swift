@@ -129,7 +129,7 @@ public func UUPeripheralNameFilter(_ name: String) -> ((UUPeripheral)->Bool)
 {
     return { peripheral in
         
-        //NSLog("Peripheral: \(peripheral.identifier), \(peripheral.name), \(peripheral.rssi), \(peripheral.advertisement.localName)")
+        NSLog("UUPeripheralNameFilter, checking: \(peripheral.identifier), \(peripheral.name), \(peripheral.rssi), \(peripheral.advertisement.localName)")
         
         return peripheral.advertisement.localName == name
     }

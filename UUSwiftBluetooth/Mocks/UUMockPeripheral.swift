@@ -127,7 +127,7 @@ public class UUMockPeripheral: UUPeripheral
     public func discoverServices(
         serviceUUIDs: [CBUUID]?,
         timeout: TimeInterval,
-        completion: @escaping UUListErrorBlock<CBService>)
+        completion: @escaping UUListErrorBlock<UUCBService>)
     {
         dispatch
         {
@@ -145,9 +145,9 @@ public class UUMockPeripheral: UUPeripheral
     
     public func discoverCharacteristics(
         characteristicUUIDs: [CBUUID]?,
-        for service: CBService,
+        for service: UUCBService,
         timeout: TimeInterval,
-        completion: @escaping UUListErrorBlock<CBCharacteristic>)
+        completion: @escaping UUListErrorBlock<UUCBCharacteristic>)
     {
         dispatch
         {
@@ -176,9 +176,9 @@ public class UUMockPeripheral: UUPeripheral
     
     public func discoverIncludedServices(
         includedServiceUUIDs: [CBUUID]?,
-        for service: CBService,
+        for service: UUCBService,
         timeout: TimeInterval,
-        completion: @escaping UUListErrorBlock<CBService>)
+        completion: @escaping UUListErrorBlock<UUCBService>)
     {
         dispatch
         {
@@ -196,9 +196,9 @@ public class UUMockPeripheral: UUPeripheral
     }
     
     public func discoverDescriptors(
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         timeout: TimeInterval,
-        completion: @escaping UUListErrorBlock<CBDescriptor>)
+        completion: @escaping UUListErrorBlock<UUCBDescriptor>)
     {
         dispatch
         {

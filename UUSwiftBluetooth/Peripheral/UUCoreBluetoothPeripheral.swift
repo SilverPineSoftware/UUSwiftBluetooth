@@ -228,7 +228,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     public func discoverServices(
         serviceUUIDs: [CBUUID]? = nil,
         timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
-        completion: @escaping UUListErrorBlock<CBService>)
+        completion: @escaping UUListErrorBlock<UUCBService>)
     {
         UULog.debug(tag: LOG_TAG, message: "Discovering services for \(self.debugName), timeout: \(timeout), service list: \(String(describing: serviceUUIDs))")
         
@@ -267,9 +267,9 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     // with an optional timeout value.  A negative timeout value will disable the timeout.
     public func discoverCharacteristics(
         characteristicUUIDs: [CBUUID]?,
-        for service: CBService,
+        for service: UUCBService,
         timeout: TimeInterval,
-        completion: @escaping UUListErrorBlock<CBCharacteristic>)
+        completion: @escaping UUListErrorBlock<UUCBCharacteristic>)
     {
         UULog.debug(tag: LOG_TAG, message: "Discovering characteristics for \(self.debugName), timeout: \(timeout), service: \(service), characteristic list: \(String(describing: characteristicUUIDs))")
         
@@ -293,7 +293,12 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             self.endCharacteristicDiscovery(service, err)
         }
         
-        underlyingPeripheral.discoverCharacteristics(characteristicUUIDs, for: service)
+        if let err = underlyingPeripheral.discoverCharacteristics(characteristicUUIDs, service)
+        {
+            endCharacteristicDiscovery(service, err)
+            return
+        }
+        // else, wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endCharacteristicDiscovery(_ service: UUCBService, _ error: Error?)
@@ -308,9 +313,9 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     // with an optional timeout value.  A negative timeout value will disable the timeout.
     func discoverIncludedServices(
         includedServiceUUIDs: [CBUUID]?,
-        for service: CBService,
+        for service: UUCBService,
         timeout: TimeInterval,
-        completion: @escaping UUListErrorBlock<CBService>)
+        completion: @escaping UUListErrorBlock<UUCBService>)
     {
         UULog.debug(tag: LOG_TAG, message: "Discovering included services for \(self.debugName), timeout: \(timeout), service: \(service), service list: \(String(describing: includedServiceUUIDs))")
         
@@ -334,7 +339,12 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             self.endDiscoverIncludedServices(service, err)
         }
         
-        underlyingPeripheral.discoverIncludedServices(includedServiceUUIDs, for: service)
+        if let err = underlyingPeripheral.discoverIncludedServices(includedServiceUUIDs, service)
+        {
+            endDiscoverIncludedServices(service, err)
+            return
+        }
+        // else, wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endDiscoverIncludedServices(_ service: UUCBService, _ error: Error?)
@@ -348,9 +358,9 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     // Block based wrapper around CBPeripheral discoverDescriptorsForCharacteristic,
     // with an optional timeout value.  A negative timeout value will disable the timeout.
     public func discoverDescriptors(
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         timeout: TimeInterval,
-        completion: @escaping UUListErrorBlock<CBDescriptor>)
+        completion: @escaping UUListErrorBlock<UUCBDescriptor>)
     {
         UULog.debug(tag: LOG_TAG, message: "Discovering descriptors for \(self.debugName), timeout: \(timeout), characteristic: \(characteristic)")
         
@@ -374,7 +384,12 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             self.endDescriptorDiscovery(characteristic, err)
         }
         
-        underlyingPeripheral.discoverDescriptors(for: characteristic)
+        if let err = underlyingPeripheral.discoverDescriptors(characteristic)
+        {
+            endDescriptorDiscovery(characteristic, err)
+            return
+        }
+        // else, wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endDescriptorDiscovery(_ characteristic: UUCBCharacteristic, _ error: Error?)
@@ -387,7 +402,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     
     
     private func discoverNextCharacteristics(
-        _ services: [CBService], timeout: TimeInterval, completion: @escaping UUErrorBlock)
+        _ services: [UUCBService], timeout: TimeInterval, completion: @escaping UUErrorBlock)
     {
         var tmpServices = services
         
@@ -491,6 +506,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             self.endSetNotify(characteristic, err)
             return
         }
+        // else, wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endSetNotify(_ characteristic: UUCBCharacteristic, _ error: Error?)
@@ -535,6 +551,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             endReadValue(characteristic, err)
             return
         }
+        // else, wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endReadValue(_ characteristic: UUCBCharacteristic, _ error: Error?)
@@ -579,6 +596,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             endReadDescriptor(descriptor, err)
             return
         }
+        // else, wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endReadDescriptor(_ descriptor: UUCBDescriptor, _ error: Error?)
@@ -625,6 +643,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             endWriteValue(characteristic, err)
             return
         }
+        // else, wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endWriteValue(_ characteristic: UUCBCharacteristic, _ error: Error?)
@@ -708,6 +727,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             endWriteValue(descriptor, err)
             return
         }
+        // else, wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endWriteValue(_ descriptor: UUCBDescriptor, _ error: Error?)
@@ -748,6 +768,8 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         }
         
         underlyingPeripheral.readRSSI()
+        
+        // wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endReadRssi(_ rssi: Int, _ error: Error?)

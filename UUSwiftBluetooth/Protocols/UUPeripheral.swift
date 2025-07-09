@@ -34,24 +34,24 @@ public protocol UUPeripheral
     
     func discoverServices(serviceUUIDs: [CBUUID]?,
                           timeout: TimeInterval,
-                          completion: @escaping UUListErrorBlock<CBService>)
+                          completion: @escaping UUListErrorBlock<UUCBService>)
     
     func discoverCharacteristics(
         characteristicUUIDs: [CBUUID]?,
-        for service: CBService,
+        for service: UUCBService,
         timeout: TimeInterval,
-        completion: @escaping UUListErrorBlock<CBCharacteristic>)
+        completion: @escaping UUListErrorBlock<UUCBCharacteristic>)
     
     func discoverIncludedServices(
         includedServiceUUIDs: [CBUUID]?,
-        for service: CBService,
+        for service: UUCBService,
         timeout: TimeInterval,
-        completion: @escaping UUListErrorBlock<CBService>)
+        completion: @escaping UUListErrorBlock<UUCBService>)
     
     func discoverDescriptors(
-        for characteristic: CBCharacteristic,
+        for characteristic: UUCBCharacteristic,
         timeout: TimeInterval,
-        completion: @escaping UUListErrorBlock<CBDescriptor>)
+        completion: @escaping UUListErrorBlock<UUCBDescriptor>)
     
 //    func discover(
 //        characteristics: [CBUUID]?,

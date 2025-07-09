@@ -20,13 +20,13 @@ open class UUPeripheralSession
     // Properties
     public var peripheral: (any UUPeripheral)
     public var configuration = UUPeripheralSessionConfiguration()
-    public private(set) var discoveredServices: [CBService] = []
-    public private(set) var discoveredCharacteristics: [CBUUID:[CBCharacteristic]] = [:]
-    public private(set) var discoveredDescriptors: [CBUUID:[CBDescriptor]] = [:]
+    public private(set) var discoveredServices: [UUCBService] = []
+    public private(set) var discoveredCharacteristics: [CBUUID:[UUCBCharacteristic]] = [:]
+    public private(set) var discoveredDescriptors: [CBUUID:[UUCBDescriptor]] = [:]
     public private(set) var sessionEndError: Error? = nil
     
-    private var servicesNeedingCharacteristicDiscovery: [CBService] = []
-    private var characteristicsNeedingDescriptorDiscovery: [CBCharacteristic] = []
+    private var servicesNeedingCharacteristicDiscovery: [UUCBService] = []
+    private var characteristicsNeedingDescriptorDiscovery: [UUCBCharacteristic] = []
     
     public required init (peripheral: any UUPeripheral)
     {
@@ -299,7 +299,7 @@ fileprivate extension UUPeripheralSession
         return nil
     }
     
-    private func discoverCharacteristics(for service: CBService, _ completion: @escaping ()->())
+    private func discoverCharacteristics(for service: UUCBService, _ completion: @escaping ()->())
     {
         discoveredCharacteristics[service.uuid] = []
         
@@ -386,7 +386,7 @@ fileprivate extension UUPeripheralSession
         handleSessionStarted()
     }
     
-    private func discoverDescriptors(for characteristic: CBCharacteristic, _ completion: @escaping ()->())
+    private func discoverDescriptors(for characteristic: UUCBCharacteristic, _ completion: @escaping ()->())
     {
         discoveredDescriptors[characteristic.uuid] = []
         
@@ -429,7 +429,7 @@ fileprivate extension UUPeripheralSession
 
 fileprivate extension UUPeripheralSession
 {
-    private func findDiscoveredCharacteristic(for uuid: CBUUID) -> CBCharacteristic?
+    private func findDiscoveredCharacteristic(for uuid: CBUUID) -> UUCBCharacteristic?
     {
         return discoveredCharacteristics.values.flatMap { $0 }.first { $0.uuid == uuid }
     }

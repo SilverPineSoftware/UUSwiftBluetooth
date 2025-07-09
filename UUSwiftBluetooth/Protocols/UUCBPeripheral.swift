@@ -225,8 +225,9 @@ public protocol UUCBPeripheral: UUCBPeer
     
     
     
-    
-    
+    func discoverIncludedServices(_ includedServiceUUIDs: [CBUUID]?, _ service: UUCBService) -> Error?
+    func discoverCharacteristics(_ characteristicUUIDs: [CBUUID]?, _ service: UUCBService) -> Error?
+    func discoverDescriptors(_ characteristic: UUCBCharacteristic) -> Error?
     
     func setNotifyValue(_ enabled: Bool, for characteristic: any UUCBCharacteristic) -> Error?
     func readValue(_ characteristic: any UUCBCharacteristic) -> Error?
@@ -236,21 +237,21 @@ public protocol UUCBPeripheral: UUCBPeer
     
 }
 
-extension CBPeripheral: UUCBPeripheral
+public extension CBPeripheral
 {
-    private func findService(_ serviceUUID: CBUUID) -> CBService?
+    func uuFindService(_ serviceUUID: CBUUID) -> CBService?
     {
         return services?.first { $0.uuid == serviceUUID }
     }
     
-    private func findCharacteristic(_ serviceUUID: CBUUID, _ characteristicUUID: CBUUID) -> CBCharacteristic?
+    func uuFindCharacteristic(_ serviceUUID: CBUUID, _ characteristicUUID: CBUUID) -> CBCharacteristic?
     {
-        return findService(serviceUUID)?.characteristics?.first { $0.uuid == characteristicUUID }
+        return uuFindService(serviceUUID)?.characteristics?.first { $0.uuid == characteristicUUID }
     }
     
-    private func findDescriptor(_ serviceUUID: CBUUID, _ characteristicUUID: CBUUID, _ descriptorUUID: CBUUID) -> CBDescriptor?
+    func uuFindDescriptor(_ serviceUUID: CBUUID, _ characteristicUUID: CBUUID, _ descriptorUUID: CBUUID) -> CBDescriptor?
     {
-        guard let characteristic = findCharacteristic(serviceUUID, characteristicUUID) else
+        guard let characteristic = uuFindCharacteristic(serviceUUID, characteristicUUID) else
         {
             return nil
         }
@@ -258,17 +259,17 @@ extension CBPeripheral: UUCBPeripheral
         return characteristic.descriptors?.first { $0.uuid == descriptorUUID }
     }
     
-    private func findCharacteristic(_ characteristic: any UUCBCharacteristic) -> CBCharacteristic?
+    func uuFindCharacteristic(_ characteristic: any UUCBCharacteristic) -> CBCharacteristic?
     {
         guard let serviceUUID = characteristic.serviceUUID else
         {
             return nil
         }
         
-        return findCharacteristic(serviceUUID, characteristic.uuid)
+        return uuFindCharacteristic(serviceUUID, characteristic.uuid)
     }
     
-    private func findDescriptor(_ descriptor: any UUCBDescriptor) -> CBDescriptor?
+    func uuFindDescriptor(_ descriptor: any UUCBDescriptor) -> CBDescriptor?
     {
         guard let serviceUUID = descriptor.characteristic?.serviceUUID else
         {
@@ -280,13 +281,51 @@ extension CBPeripheral: UUCBPeripheral
             return nil
         }
         
-        return findDescriptor(serviceUUID, characteristicUUID, descriptor.uuid)
+        return uuFindDescriptor(serviceUUID, characteristicUUID, descriptor.uuid)
+    }
+}
+
+/**
+ Provide default conformance of UU specific extensions to CBPeripehral
+ */
+extension CBPeripheral: UUCBPeripheral
+{
+    public func discoverIncludedServices(_ includedServiceUUIDs: [CBUUID]?, _ service: any UUCBService) -> (any Error)?
+    {
+        guard let cbService = self.uuFindService(service.uuid) else
+        {
+            return NSError.uuRequiredServiceNotFoundError(service.uuid)
+        }
+        
+        discoverIncludedServices(includedServiceUUIDs, for: cbService)
+        return nil
     }
     
+    public func discoverCharacteristics(_ characteristicUUIDs: [CBUUID]?, _ service: any UUCBService) -> (any Error)?
+    {
+        guard let cbService = self.uuFindService(service.uuid) else
+        {
+            return NSError.uuRequiredServiceNotFoundError(service.uuid)
+        }
+        
+        discoverCharacteristics(characteristicUUIDs, for: cbService)
+        return nil
+    }
+    
+    public func discoverDescriptors(_ characteristic: any UUCBCharacteristic) -> (any Error)?
+    {
+        guard let cbCharacteristic = self.uuFindCharacteristic(characteristic) else
+        {
+            return NSError.uuRequiredCharacteristicNotFoundError(characteristic.uuid)
+        }
+        
+        discoverDescriptors(for: cbCharacteristic)
+        return nil
+    }
     
     public func setNotifyValue(_ enabled: Bool, for characteristic: any UUCBCharacteristic) -> (any Error)?
     {
-        guard let cbCharacteristic = self.findCharacteristic(characteristic) else
+        guard let cbCharacteristic = self.uuFindCharacteristic(characteristic) else
         {
             return NSError.uuRequiredCharacteristicNotFoundError(characteristic.uuid)
         }
@@ -297,7 +336,7 @@ extension CBPeripheral: UUCBPeripheral
     
     public func readValue(_ characteristic: any UUCBCharacteristic) -> Error?
     {
-        guard let cbCharacteristic = self.findCharacteristic(characteristic) else
+        guard let cbCharacteristic = self.uuFindCharacteristic(characteristic) else
         {
             return NSError.uuRequiredCharacteristicNotFoundError(characteristic.uuid)
         }
@@ -308,7 +347,7 @@ extension CBPeripheral: UUCBPeripheral
     
     public func readValue(_ descriptor: any UUCBDescriptor) -> (any Error)?
     {
-        guard let cbDescriptor = self.findDescriptor(descriptor) else
+        guard let cbDescriptor = self.uuFindDescriptor(descriptor) else
         {
             return NSError.uuRequiredDescriptorNotFoundError(descriptor.uuid)
         }
@@ -319,7 +358,7 @@ extension CBPeripheral: UUCBPeripheral
     
     public func writeCharacteristicValue(_ data: Data, _ characteristic: any UUCBCharacteristic, _ type: CBCharacteristicWriteType) -> (any Error)?
     {
-        guard let cbCharacteristic = self.findCharacteristic(characteristic) else
+        guard let cbCharacteristic = self.uuFindCharacteristic(characteristic) else
         {
             return NSError.uuRequiredCharacteristicNotFoundError(characteristic.uuid)
         }
@@ -330,7 +369,7 @@ extension CBPeripheral: UUCBPeripheral
     
     public func writeDescriptorValue(_ data: Data, _ descriptor: any UUCBDescriptor) -> (any Error)?
     {
-        guard let cbDescriptor = self.findDescriptor(descriptor) else
+        guard let cbDescriptor = self.uuFindDescriptor(descriptor) else
         {
             return NSError.uuRequiredDescriptorNotFoundError(descriptor.uuid)
         }

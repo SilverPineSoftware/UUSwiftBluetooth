@@ -168,7 +168,7 @@ final class UUMockPeripheralTests: XCTestCase
         
         let exp = uuExpectationForMethod()
         
-        var servicesResult: [CBService]? = nil
+        var servicesResult: [UUCBService]? = nil
         var errorResult: Error? = nil
         
         peripheral.discoverServices(serviceUUIDs: nil, timeout: 10.0)
@@ -196,7 +196,7 @@ final class UUMockPeripheralTests: XCTestCase
         
         let exp = uuExpectationForMethod()
         
-        var servicesResult: [CBService]? = nil
+        var servicesResult: [UUCBService]? = nil
         var errorResult: Error? = nil
         
         let domain = "mock"
@@ -226,7 +226,7 @@ final class UUMockPeripheralTests: XCTestCase
         
         let exp = uuExpectationForMethod()
         
-        var charResult: [CBCharacteristic]? = nil
+        var charResult: [UUCBCharacteristic]? = nil
         var errorResult: Error? = nil
         
         peripheral.discoverCharacteristics(characteristicUUIDs: nil, for: peripheral.mockServices[0], timeout: 10.0)
@@ -254,7 +254,7 @@ final class UUMockPeripheralTests: XCTestCase
         
         let exp = uuExpectationForMethod()
         
-        var charResult: [CBCharacteristic]? = nil
+        var charResult: [UUCBCharacteristic]? = nil
         var errorResult: Error? = nil
         
         let fakeService = CBMutableService(type: CBUUID(), primary: false)
