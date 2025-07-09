@@ -9,7 +9,7 @@ import Foundation
 import CoreBluetooth
 import UUSwiftCore
 
-public extension CBCharacteristic
+public extension UUCBCharacteristic
 {
     var uuCanToggleNotify: Bool
     {
@@ -32,9 +32,9 @@ public extension CBCharacteristic
     }
 }
 
-public extension Array where Element: CBCharacteristic
+public extension Array where Element: UUCBCharacteristic
 {
-    func uuFind(_ characteristic: CBUUID) -> CBCharacteristic?
+    func uuFind(_ characteristic: CBUUID) -> UUCBCharacteristic?
     {
         return self.filter({ $0.uuid == characteristic }).first
     }
