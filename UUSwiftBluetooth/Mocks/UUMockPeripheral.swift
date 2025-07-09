@@ -307,14 +307,21 @@ public class UUMockPeripheral: UUPeripheral
         }
     }
     
-    public func openL2CAPChannel(psm: CBL2CAPPSM)
-    {
-    }
+//    public func openL2CAPChannel(psm: CBL2CAPPSM)
+//    {
+//    }
+//    
+//    public func setDidOpenL2ChannelCallback(callback: ((CBPeripheral, CBL2CAPChannel?, (any Error)?) -> Void)?)
+//    {
+//    }
     
-    public func setDidOpenL2ChannelCallback(callback: ((CBPeripheral, CBL2CAPChannel?, (any Error)?) -> Void)?)
+    public func openL2CAPChannel(psm: CBL2CAPPSM, timeout: TimeInterval, completion: @escaping UUObjectErrorBlock<UUCBL2CAPChannel>)
     {
+        dispatch
+        {
+            completion(nil, self.mockCallbackError)
+        }
     }
-    
     
     
     private func dispatch(_ block: @escaping ()->Void)

@@ -751,8 +751,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         delegate.didReadRssiBlock =
         { rssi, error in
             
-            let err = self.prepareToFinishOperation(timerId, error)
-            completion(rssi, err)
+            self.finishOperation(timerId, rssi, error, completion)
         }
         
         if let err = canAttemptOperation
@@ -814,6 +813,47 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
 //        }
 //    }
     
+    
+    public func openL2CAPChannel(
+        psm: CBL2CAPPSM,
+        timeout: TimeInterval,
+        completion: @escaping UUObjectErrorBlock<UUCBL2CAPChannel>)
+    {
+        UULog.debug(tag: LOG_TAG, message: "Opening L2Cap channel for \(self.debugName), psm: \(psm),  timeout: \(timeout)")
+        
+        let timerId = TimerId.openL2CapChannel
+        
+        delegate.l2CapChannelOpenedBlock =
+        { channel, error in
+            
+            self.finishOperation(timerId, channel, error, completion)
+        }
+        
+        if let err = canAttemptOperation
+        {
+            endOpenL2CapChannel(nil, err)
+            return
+        }
+        
+        startTimer(timerId, timeout)
+        {
+            let err = NSError.uuCoreBluetoothError(.timeout)
+            self.endOpenL2CapChannel(nil, err)
+        }
+        
+        underlyingPeripheral.openL2CAPChannel(psm)
+        
+        // wait for delegate to invoke callback block, or timeout to happen
+        
+    }
+    
+    private func endOpenL2CapChannel(_ channel: UUCBL2CAPChannel?, _ error: Error?)
+    {
+        dispatchQueue.async
+        {
+            self.delegate.handleL2CapChannelOpeneed(self.underlyingPeripheral, channel, error)
+        }
+    }
     
     
     
@@ -879,6 +919,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         case writeDescriptor
         case readRssi
         case pollRssi
+        case openL2CapChannel
     }
     
     private func formatTimerId(_ name: String) -> String
@@ -932,16 +973,5 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     {
         delegate.logBlocks()
     }
-    
-    
-    func openL2CAPChannel(psm: CBL2CAPPSM)
-    {
-        self.underlyingPeripheral.openL2CAPChannel(psm)
-    }
-    
-    func setDidOpenL2ChannelCallback(callback:((CBPeripheral, CBL2CAPChannel?, Error?) -> Void)?)
-    {
-        self.delegate.registerDidOpenL2CAPChannelHandler(callback)
-    }    
 }
 

@@ -97,10 +97,10 @@ public protocol UUPeripheral
         timeout: TimeInterval,
         completion: @escaping UUObjectErrorBlock<Int>)
     
-    // These need to be internal
-    func openL2CAPChannel(psm: CBL2CAPPSM)
-    
-    func setDidOpenL2ChannelCallback(callback:((CBPeripheral, CBL2CAPChannel?, Error?) -> Void)?)
+    func openL2CAPChannel(
+        psm: CBL2CAPPSM,
+        timeout: TimeInterval,
+        completion: @escaping UUObjectErrorBlock<UUCBL2CAPChannel>)
 }
 
 

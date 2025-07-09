@@ -13,7 +13,7 @@ fileprivate let LOG_TAG = "UUL2CapChannel"
 
 public class UUL2CapChannel: NSObject
 {
-    private var channel:CBL2CAPChannel? = nil
+    private var channel: (any UUCBL2CAPChannel)? = nil
     private let peripheral: UUPeripheral
     private var psm:CBL2CAPPSM = 0
 
@@ -38,6 +38,21 @@ public class UUL2CapChannel: NSObject
     
     public func open(psm:CBL2CAPPSM, timeout:TimeInterval = Defaults.openTimeout, completion: @escaping ((Error?) -> Void))
     {
+        self.peripheral.openL2CAPChannel(psm: psm, timeout: timeout)
+        { channel, error in
+            
+            self.channel = channel
+            
+            if channel != nil && error == nil
+            {
+                self.openStreams()
+            }
+            
+            completion(error)
+            
+        }
+        
+        /*
         self.psm = psm //Not sure if this is necessary
         let timerId = TimerId.open
         
@@ -65,7 +80,7 @@ public class UUL2CapChannel: NSObject
             completion(err)
         }
         
-        self.peripheral.openL2CAPChannel(psm: psm)
+        self.peripheral.openL2CAPChannel(psm: psm)*/
     }
     
 
@@ -349,7 +364,7 @@ public class UUL2CapChannel: NSObject
 
     private enum TimerId: String
     {
-        case open
+        //case open
         case operation
     }
     
