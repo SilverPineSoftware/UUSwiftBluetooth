@@ -14,7 +14,7 @@ fileprivate let LOG_TAG = "UUCoreBluetoothPeripheral"
 // UUPeripheral is a convenience class that wraps a CBPeripheral and it's
 // advertisement data into one object.
 //
-internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
+open class UUPeripheral //: UUPeripheral, UUPeripheralInternal
 {
     private let centralManager: UUCentralManager
     private let dispatchQueue: DispatchQueue
@@ -57,7 +57,6 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     
     public var friendlyName: String
     {
-        
         if advertisement.localName.isEmpty == false
         {
             return advertisement.localName
@@ -117,6 +116,11 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
         return underlyingPeripheral.maximumWriteValueLength(for: writeType)
     }
     
+    public var timeSinceLastUpdate: TimeInterval
+    {
+        return Date.timeIntervalSinceReferenceDate - advertisement.timestamp.timeIntervalSinceReferenceDate
+    }
+    
     
     // Block based wrapper around CBCentralManager connectPeripheral:options with a
     // timeout value.  If a negative timeout is passed there will be no timeout used.
@@ -147,7 +151,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
             
             self.cancelTimer(timerId)
             connected()
-        };
+        }
         
         let disconnectedBlock: UUCBPeripheralErrorBlock =
         { p, error in
@@ -311,7 +315,7 @@ internal class UUCoreBluetoothPeripheral: UUPeripheral, UUPeripheralInternal
     
     // Block based wrapper around CBPeripheral discoverIncludedServices:forService,
     // with an optional timeout value.  A negative timeout value will disable the timeout.
-    func discoverIncludedServices(
+    public func discoverIncludedServices(
         includedServiceUUIDs: [CBUUID]?,
         for service: UUCBService,
         timeout: TimeInterval,

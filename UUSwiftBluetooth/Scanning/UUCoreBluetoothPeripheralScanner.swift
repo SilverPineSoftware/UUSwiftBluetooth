@@ -20,7 +20,7 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
     public var listChanged: UUPeripheralListChangedCallback = { _, _ in }
     
     private let centralManager: UUCentralManager
-    private var nearbyPeripheralMap: [UUID: (UUPeripheral & UUPeripheralInternal)] = [:]
+    private var nearbyPeripheralMap: [UUID: (UUPeripheral)] = [:]
     private var nearbyPeripheralMapLock = NSRecursiveLock()
     
     @Published private var nearbyPeripherals: [UUPeripheral] = []
@@ -110,12 +110,12 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
         notifyScanEnded(nil)
     }
     
-    public var peripherals: [any UUPeripheral]
+    public var peripherals: [UUPeripheral]
     {
         return nearbyPeripherals
     }
     
-    public func getPeripheral(identifier: UUID) -> (any UUPeripheral)?
+    public func getPeripheral(identifier: UUID) -> UUPeripheral?
     {
         return nearbyPeripheralMap[identifier]
     }
@@ -140,7 +140,7 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
             return
         }
         
-        let peripheral = nearbyPeripheralMap[advertisement.identifier] ?? UUCoreBluetoothPeripheral(centralManager: centralManager, peripheral: cbPeripheral, advertisement: advertisement)
+        let peripheral = nearbyPeripheralMap[advertisement.identifier] ?? UUPeripheral(centralManager: centralManager, peripheral: cbPeripheral, advertisement: advertisement)
         peripheral.update(advertisement: advertisement)
         
         nearbyPeripheralMap[peripheral.identifier] = peripheral

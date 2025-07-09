@@ -32,7 +32,7 @@ class ReadDeviceInfoOperation: UUPeripheralOperation<Any>
     var systemId: String = ""
     
     
-    public init(_ peripheral: any UUPeripheral)
+    public init(_ peripheral: UUPeripheral)
     {
         super.init(peripheral, configuration: OperationConfig())
     }

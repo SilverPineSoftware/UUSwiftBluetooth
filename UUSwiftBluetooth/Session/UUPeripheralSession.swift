@@ -18,7 +18,7 @@ fileprivate let LOG_TAG = "UUPeripheralSession"
 open class UUPeripheralSession
 {
     // Properties
-    public var peripheral: (any UUPeripheral)
+    public var peripheral: UUPeripheral
     public var configuration = UUPeripheralSessionConfiguration()
     public private(set) var discoveredServices: [UUCBService] = []
     public private(set) var discoveredCharacteristics: [CBUUID:[UUCBCharacteristic]] = [:]
@@ -28,7 +28,7 @@ open class UUPeripheralSession
     private var servicesNeedingCharacteristicDiscovery: [UUCBService] = []
     private var characteristicsNeedingDescriptorDiscovery: [UUCBCharacteristic] = []
     
-    public required init (peripheral: any UUPeripheral)
+    public required init (peripheral: UUPeripheral)
     {
         self.peripheral = peripheral
     }

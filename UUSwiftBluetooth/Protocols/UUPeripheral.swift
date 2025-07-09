@@ -4,7 +4,7 @@
 //
 //  Created by Ryan DeVore on 12/16/24.
 //
-
+/*
 import Foundation
 import CoreBluetooth
 import UUSwiftCore
@@ -150,4 +150,4 @@ public extension UUPeripheral
 internal protocol UUPeripheralInternal
 {
     func update(advertisement: UUAdvertisement)
-}
+}*/
