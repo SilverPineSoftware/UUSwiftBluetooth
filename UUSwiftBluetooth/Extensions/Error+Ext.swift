@@ -108,5 +108,14 @@ extension NSError
         
         return uuCoreBluetoothError(.characteristicNotDiscovered, userInfo: md)
     }
+    
+    static func uuRequiredDescriptorNotFoundError(_ descriptor: CBUUID) -> NSError
+    {
+        var md: [String:AnyHashable] = [:]
+        md["descriptor"] = descriptor
+        md[NSLocalizedDescriptionKey] = "Descriptor \(descriptor) not discovered"
+        
+        return uuCoreBluetoothError(.characteristicNotDiscovered, userInfo: md)
+    }
 }
 

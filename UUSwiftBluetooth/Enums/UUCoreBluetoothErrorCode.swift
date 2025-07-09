@@ -42,6 +42,9 @@ public enum UUCoreBluetoothErrorCode: Int
     
     // An attempt was made to read from a characterstic that has not been discovered
     case characteristicNotDiscovered = 10
+    
+    // An attempt was made to read from a descriptor that has not been discovered
+    case descriptorNotDiscovered = 11
 }
 
 internal extension UUCoreBluetoothErrorCode
@@ -79,6 +82,9 @@ internal extension UUCoreBluetoothErrorCode
             
             case .characteristicNotDiscovered:
                 return "CharacteristicNotDiscovered"
+            
+            case .descriptorNotDiscovered:
+                return "DescriptorNotDiscovered"
         }
     }
     
@@ -115,6 +121,9 @@ internal extension UUCoreBluetoothErrorCode
             
             case .characteristicNotDiscovered:
                 return "A characteristic was not discovered on the peripheral."
+            
+            case .descriptorNotDiscovered:
+                return "A descriptor was not discovered on the peripheral."
         }
     }
 }
