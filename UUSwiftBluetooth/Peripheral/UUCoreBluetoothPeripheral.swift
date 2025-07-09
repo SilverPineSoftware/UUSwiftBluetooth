@@ -111,7 +111,7 @@ open class UUPeripheral //: UUPeripheral, UUPeripheralInternal
         timerPool.cancel(by: timerId)
     }
     
-    func maximumWriteValueLength(for writeType: CBCharacteristicWriteType) -> Int
+    public func maximumWriteValueLength(for writeType: CBCharacteristicWriteType) -> Int
     {
         return underlyingPeripheral.maximumWriteValueLength(for: writeType)
     }
