@@ -23,7 +23,7 @@ public typealias UUWillRestoreStateBlock = (([String:Any])->())
  *  @discussion Entry point to the central role. Commands should only be issued when its state is <code>CBCentralManagerStatePoweredOn</code>.
  *
  */
-public class UUCentralManager
+public class UUCentralManager: UUManagerStateMonitor
 {
     private(set) internal var dispatchQueue = DispatchQueue(label: "UUCentralManagerQueue", qos: .userInteractive, attributes: [], autoreleaseFrequency: .inherit, target: nil)
     
@@ -33,10 +33,10 @@ public class UUCentralManager
     private var scanConfig: UUPeripheralScannerConfig = UUPeripheralScannerConfig()
     private(set) public var isScanning: Bool = false
     
-    private var centralStateChangedBlock: UUCentralStateChangedBlock? = nil
-    //private var rssiPollingBlocks: [String:UUPeripheralBlock] = [:]
     private var willRestoreStateBlock: UUWillRestoreStateBlock? = nil
     private var options: [String:Any]? = nil
+    
+    private var managerStateListeners: [String:UUCBManagerStateBlock] = [:]
     
     public static var shared: UUCentralManager
     {
@@ -64,14 +64,21 @@ public class UUCentralManager
         return centralManager.state == .poweredOn
     }
     
-    public func registerForCentralStateChanges(_ block: UUCentralStateChangedBlock?)
-    {
-        centralStateChangedBlock = block
-    }
-    
     public func lookupPeripheral(_ identifier: UUID) -> CBPeripheral?
     {
         return centralManager.retrievePeripherals(withIdentifiers: [identifier]).first
+    }
+    
+    // MARK: UUManagerStateMonitor
+    
+    public var managerState: CBManagerState
+    {
+        return centralManager.state
+    }
+    
+    public func registerForStateChanges(identifier: String, handler: @escaping UUCBManagerStateBlock)
+    {
+        self.managerStateListeners[identifier] = handler
     }
     
     
@@ -111,7 +118,15 @@ public class UUCentralManager
                 break
         }
         
-        centralStateChangedBlock?(state)
+        notifyManagerStateListeners(state)
+    }
+    
+    private func notifyManagerStateListeners(_ state: CBManagerState)
+    {
+        for (_, handler) in managerStateListeners
+        {
+            handler(state)
+        }
     }
     
     private func handleCentralStatePoweredOn()
