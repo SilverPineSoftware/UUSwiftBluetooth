@@ -23,7 +23,13 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     private lazy var scanner: UUPeripheralScanner =
     {
-        return UUBluetooth.scanner
+        let scanner = UUBluetooth.scanner
+        UUBluetooth.monitor.registerForStateChanges(identifier: "UUSwiftBluetoothTester")
+        { state in
+            NSLog("App handed state change: \(state)")
+        }
+        
+        return scanner
     }()
     
     private var lastTableUpdate: TimeInterval = 0
