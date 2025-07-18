@@ -9,6 +9,8 @@ import Foundation
 
 public protocol UUBluetoothProvider
 {
+    func initialize()
+    
     var centralManager: UUCentralManager { get }
     var managerStateMonitor: UUManagerStateMonitor { get }
     var scanner: UUPeripheralScanner { get }

@@ -16,10 +16,9 @@ public class UUBluetooth
         UUBluetooth.provider = provider
     }
     
-    public static func initializeCoreBluetooth()
+    public static func initialize()
     {
-        // Simply access singleton will create a CBCentralManager and prompt users for permissions.
-        _ = centralManager
+        provider.initialize()
     }
     
     public static var centralManager: UUCentralManager
