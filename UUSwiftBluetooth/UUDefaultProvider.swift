@@ -10,7 +10,10 @@ import Foundation
 public class UUDefaultProvider: UUBluetoothProvider
 {
     private lazy var _centralManager = UUCentralManager.shared
-    private lazy var _scanner: UUPeripheralScanner = UUCoreBluetoothPeripheralScanner(centralManager: _centralManager)
+    private lazy var _scanner: UUPeripheralScanner =
+    {
+        UUCoreBluetoothPeripheralScanner(centralManager: _centralManager)
+    }()
     
     public init()
     {
