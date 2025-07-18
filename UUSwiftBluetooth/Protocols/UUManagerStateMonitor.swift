@@ -13,9 +13,12 @@ public typealias UUCBManagerStateBlock = (CBManagerState) -> Void
 
 /// An object that can report and observe the state of a Core Bluetooth manager.
 public protocol UUManagerStateMonitor
-{    
+{
     /// The current state of the Bluetooth manager.
     var managerState: CBManagerState { get }
+    
+    /// The current authorization status
+    var authorizationStatus: CBManagerAuthorization { get }
     
     /// Begins monitoring for changes to the manager’s state.
     ///
