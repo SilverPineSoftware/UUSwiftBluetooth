@@ -25,13 +25,13 @@ public protocol UUBluetoothProvider
     var scanner: UUPeripheralScanner { get }
     
     /// The current authorization status
-    static var authorizationStatus: CBManagerAuthorization { get }
+    var authorizationStatus: CBManagerAuthorization { get }
 }
 
 public extension UUBluetoothProvider
 {
     /// Default implementation retrieving the current authorization status from CoreBluetooth.
-    static var authorizationStatus: CBManagerAuthorization
+    var authorizationStatus: CBManagerAuthorization
     {
         return CBCentralManager.authorization
     }
