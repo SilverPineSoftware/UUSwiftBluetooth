@@ -9,7 +9,7 @@ import Foundation
 
 public protocol UUBluetoothProvider
 {
+    var centralManager: UUCentralManager { get }
+    var managerStateMonitor: UUManagerStateMonitor { get }
     var scanner: UUPeripheralScanner { get }
-    
-    //func createSession(peripheral: UUPeripheral) -> UUPeripheralSession
 }

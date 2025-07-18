@@ -9,10 +9,21 @@ import Foundation
 
 public class UUDefaultProvider: UUBluetoothProvider
 {
-    public var scanner: UUPeripheralScanner = UUCoreBluetoothPeripheralScanner()
+    private lazy var _centralManager = UUCentralManager.shared
+    private lazy var _scanner: UUPeripheralScanner = UUCoreBluetoothPeripheralScanner(centralManager: _centralManager)
     
-//    public func createSession(peripheral: any UUPeripheral) -> any UUPeripheralSession
-//    {
-//        return UUCoreBluetoothPeripheralSession(peripheral: peripheral)
-//    }
+    public var centralManager: UUCentralManager
+    {
+        return _centralManager
+    }
+    
+    public var managerStateMonitor: any UUManagerStateMonitor
+    {
+        return _centralManager
+    }
+    
+    public var scanner: UUPeripheralScanner
+    {
+        return _scanner
+    }
 }

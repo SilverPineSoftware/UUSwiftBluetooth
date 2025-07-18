@@ -19,7 +19,12 @@ public class UUBluetooth
     public static func initializeCoreBluetooth()
     {
         // Simply access singleton will create a CBCentralManager and prompt users for permissions.
-        _ = UUCentralManager.shared
+        _ = centralManager
+    }
+    
+    public static var centralManager: UUCentralManager
+    {
+        return provider.centralManager
     }
     
     public static var scanner: UUPeripheralScanner
@@ -27,8 +32,8 @@ public class UUBluetooth
         return provider.scanner
     }
     
-//    public static func createSession(peripheral: UUPeripheral) -> UUPeripheralSession
-//    {
-//        return provider.createSession(peripheral: peripheral)
-//    }
+    public static var monitor: UUManagerStateMonitor
+    {
+        return provider.managerStateMonitor
+    }
 }
