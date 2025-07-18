@@ -76,11 +76,6 @@ public class UUCentralManager: UUManagerStateMonitor
         return centralManager.state
     }
     
-    public static var authorizationStatus: CBManagerAuthorization
-    {
-        return CBCentralManager.authorization
-    }
-    
     public func registerForStateChanges(identifier: String, handler: @escaping UUCBManagerStateBlock)
     {
         self.managerStateListeners[identifier] = handler

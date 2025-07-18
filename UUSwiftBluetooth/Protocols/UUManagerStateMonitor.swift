@@ -17,9 +17,6 @@ public protocol UUManagerStateMonitor
     /// The current state of the Bluetooth manager.
     var managerState: CBManagerState { get }
     
-    /// The current authorization status
-    static var authorizationStatus: CBManagerAuthorization { get }
-    
     /// Begins monitoring for changes to the manager’s state.
     ///
     /// - Parameters:
