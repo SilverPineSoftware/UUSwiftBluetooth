@@ -21,7 +21,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     private var tableData: [UUPeripheral] = []
     
-    private var scanner = UUBluetooth.scanner
+    private lazy var scanner: UUPeripheralScanner =
+    {
+        return UUBluetooth.scanner
+    }()
     
     private var lastTableUpdate: TimeInterval = 0
     
@@ -29,7 +32,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        
     }
     
     override func viewWillAppear(_ animated: Bool)

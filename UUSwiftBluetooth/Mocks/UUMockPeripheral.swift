@@ -15,7 +15,7 @@ public class UUMockPeripheral: UUPeripheral
     
     public var mockCentral: UUCentralManager
     
-    private static var mockCBCentral: UUMockCBCentralManager? = nil
+    public static var mockCBCentral: UUMockCBCentralManager? = nil
     
     public init(identifier: UUID = UUID(),
          advertisement: UUAdvertisement = UUAdvertisement(),
