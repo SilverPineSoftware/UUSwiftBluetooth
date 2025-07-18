@@ -76,7 +76,7 @@ public class UUCentralManager: UUManagerStateMonitor
         return centralManager.state
     }
     
-    public var authorizationStatus: CBManagerAuthorization
+    public static var authorizationStatus: CBManagerAuthorization
     {
         return CBCentralManager.authorization
     }
