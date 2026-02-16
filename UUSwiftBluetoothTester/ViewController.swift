@@ -124,17 +124,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         alert.addAction(UIAlertAction(title: "Connect", style: .default, handler:
         { action in
             
-            //let vc = L2CapClientController()
-            //vc.peripheral = peripheral
-            //self.navigationController?.pushViewController(vc, animated: true)
             peripheral.connect(timeout: 30) {
                 UULog.debug(tag: LOG_TAG, message: "Connected to \(peripheral.friendlyName)")
             } disconnected: { error in
                 UULog.debug(tag: LOG_TAG, message: "Disconnected from \(peripheral.friendlyName)")
             }
-
-            
-            
         }))
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler:
