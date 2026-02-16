@@ -198,6 +198,8 @@ fileprivate extension UUPeripheralSession
     
     func handleDisconnection(_ disconnectError: Error?)
     {
+        UULog.debug(tag: LOG_TAG, message: "HandleDisconnection, disconnectError: \(String(describing: disconnectError)), sessionEndError: \(String(describing: self.sessionEndError))")
+        
         // Only set error if not already set.  In the case where end(error) forcefully ends the session, preserve that error.
         if (self.sessionEndError != nil)
         {
