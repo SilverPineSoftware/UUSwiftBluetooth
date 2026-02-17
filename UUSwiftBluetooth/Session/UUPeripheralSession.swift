@@ -10,8 +10,6 @@ import UUSwiftCore
 
 public typealias UUPeripheralSessionStartedCallback = ((UUPeripheralSession) -> Void)
 public typealias UUPeripheralSessionEndedCallback = ((UUPeripheralSession, Error?) -> Void)
-public typealias UUPeripheralSessionPausedCallback = ((UUPeripheralSession) -> Void)
-public typealias UUPeripheralSessionResumedCallback = ((UUPeripheralSession) -> Void)
 public typealias UUPeripheralSessionObjectErrorCallback<T> = ((UUPeripheralSession, T?, Error?) -> Void)
 public typealias UUPeripheralSessionErrorCallback = ((UUPeripheralSession, Error?) -> Void)
 
@@ -30,8 +28,6 @@ open class UUPeripheralSession
     private var servicesNeedingCharacteristicDiscovery: [UUCBService] = []
     private var characteristicsNeedingDescriptorDiscovery: [UUCBCharacteristic] = []
     
-    private var isPaused = false
-    
     public required init (peripheral: UUPeripheral)
     {
         self.peripheral = peripheral
@@ -48,16 +44,6 @@ open class UUPeripheralSession
         UULog.fatal(tag: LOG_TAG, message: "Session ended callback not implemented, session: \(session), error: \(String(describing: error))")
     }
     
-    public var paused: UUPeripheralSessionPausedCallback =
-    { session in
-        UULog.fatal(tag: LOG_TAG, message: "Session paused callback not implemented, session: \(session)")
-    }
-    
-    public var resumed: UUPeripheralSessionResumedCallback =
-    { session in
-        UULog.fatal(tag: LOG_TAG, message: "Session resumed callback not implemented, session: \(session)")
-    }
-    
     // Methods
     open func start()
     {
@@ -66,21 +52,8 @@ open class UUPeripheralSession
     
     open func end(error: Error?)
     {
-        isPaused = false
         sessionEndError = error
         disconnect()
-    }
-    
-    open func pause()
-    {
-        isPaused = true
-        disconnect()
-    }
-    
-    open func resume()
-    {
-        isPaused = false
-        connect()
     }
     
     open func finishSessionStart(_ completion: @escaping ()->())
@@ -220,25 +193,11 @@ fileprivate extension UUPeripheralSession
     
     func handleConnected()
     {
-        if (isPaused)
-        {
-            UULog.debug(tag: LOG_TAG, message: "Session is resumed.")
-            handleResumed()
-            return
-        }
-        
         startServiceDiscovery()
     }
     
     func handleDisconnection(_ disconnectError: Error?)
     {
-        if (isPaused)
-        {
-            UULog.debug(tag: LOG_TAG, message: "HandleDisconnection, disconnectError: \(String(describing: disconnectError)), session is paused now.")
-            handlePaused()
-            return
-        }
-        
         UULog.debug(tag: LOG_TAG, message: "HandleDisconnection, disconnectError: \(String(describing: disconnectError)), sessionEndError: \(String(describing: self.sessionEndError))")
         
         // Only set error if not already set.  In the case where end(error) forcefully ends the session, preserve that error.
@@ -248,17 +207,6 @@ fileprivate extension UUPeripheralSession
         }
         
         ended(self, self.sessionEndError)
-    }
-    
-    func handlePaused()
-    {
-        self.paused(self)
-    }
-    
-    func handleResumed()
-    {
-        isPaused = false
-        self.resumed(self)
     }
 }
 
