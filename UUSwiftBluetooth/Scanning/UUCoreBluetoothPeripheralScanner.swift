@@ -33,8 +33,30 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
         self.centralManager = centralManager
     }
     
+    private func checkCentralState() -> Error?
+    {
+        // Let scan start in central unknown state because at app launch the central state immediately reads unknown
+        // and the UUCentralManager logic will wait for the poweredOn event.
+        let state = centralManager.centralState
+        UULog.debug(tag: LOG_TAG, message: "centralState: \(state)")
+        switch (state)
+        {
+            case .unknown, .poweredOn:
+                return nil
+            
+            default:
+                return NSError.uuCentralStateNotReadyError(state)
+        }
+    }
+    
     open func start()
     {
+        if let err = checkCentralState()
+        {
+            endScanning(err)
+            return
+        }
+        
         clearNearbyPeripherals()
         
         if (config.callbackThrottle > 0)
@@ -68,17 +90,29 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
     
     private func notifyScanStarted()
     {
-        started(self)
+        DispatchQueue.main.async
+        {
+            self.started(self)
+        }
     }
     
     private func notifyScanEnded(_ error: Error?)
     {
-        ended(self, error)
+        DispatchQueue.main.async
+        {
+            self.ended(self, error)
+        }
     }
     
     private func notifyNearbyPeripherals(_ list: [UUPeripheral])
     {
-        //let sorted = config.peripheralSorting.map { list.sorted(using: $0) } ?? list
+        guard centralManager.isPoweredOn else
+        {
+            let err = NSError.uuCentralStateNotReadyError(centralManager.centralState)
+            endScanning(err)
+            return
+        }
+        
         let sorted: [UUPeripheral]
         
         if let sorting = config.peripheralSorting
@@ -103,11 +137,16 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
     
     open func stop()
     {
+        endScanning(nil)
+    }
+    
+    private func endScanning(_ error: Error?)
+    {
         nearbyPeripheralSubscription?.cancel()
         nearbyPeripheralSubscription = nil
         
         centralManager.stopScan()
-        notifyScanEnded(nil)
+        notifyScanEnded(error)
     }
     
     public var peripherals: [UUPeripheral]

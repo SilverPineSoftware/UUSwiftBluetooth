@@ -51,6 +51,9 @@ public class UUCentralManager: UUManagerStateMonitor
         delegate = injected.0
         centralManager = injected.1
         delegate.centralStateChangedBlock = handleCentralStateChanged
+        
+        let state = centralManager.state
+        UULog.debug(tag: LOG_TAG, message: "Central State is: \(state)")
     }
     
     public var centralState: CBManagerState
