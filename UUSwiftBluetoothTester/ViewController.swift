@@ -127,8 +127,23 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             peripheral.connect(timeout: 30) {
                 UULog.debug(tag: LOG_TAG, message: "Connected to \(peripheral.friendlyName)")
             } disconnected: { error in
-                UULog.debug(tag: LOG_TAG, message: "Disconnected from \(peripheral.friendlyName)")
+                UULog.debug(tag: LOG_TAG, message: "Disconnected from \(peripheral.friendlyName), error: \(String(describing: error))")
             }
+        }))
+        
+        alert.addAction(UIAlertAction(title: "Open Session", style: .default, handler:
+        { action in
+            
+            let session = UUPeripheralSession(peripheral: peripheral)
+            session.started = { session in
+                UULog.debug(tag: LOG_TAG, message: "Session started with peripheral: \(session.peripheral.friendlyName)")
+            }
+            
+            session.ended = { session, error in
+                UULog.debug(tag: LOG_TAG, message: "Session ended with peripheral: \(session.peripheral.friendlyName), error: \(String(describing: error))")
+            }
+            
+            session.start()
         }))
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler:
@@ -233,7 +248,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         if (scanner.isScanning)
         {
             scanner.stop()
-            rightNavBarItem.title = "Scan"
         }
         else
         {
@@ -255,18 +269,31 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             scanner.ended = handleScanEnded
             scanner.listChanged = handleNearbyPeripheralsChanged
             scanner.start()
-            rightNavBarItem.title = "Stop"
         }
     }
     
     private func handleScanStarted(scanner: UUPeripheralScanner)
     {
         UULog.debug(tag: LOG_TAG, message: "Scan started")
+        
+        rightNavBarItem.title = "Stop"
     }
     
     private func handleScanEnded(scanner: UUPeripheralScanner, error: Error?)
     {
         UULog.debug(tag: LOG_TAG, message: "Scan ended, error: \(String(describing: error))")
+        
+        rightNavBarItem.title = "Scan"
+        
+        if let err = error
+        {
+            let alert = UIAlertController(title: "Scan Error", message: err.localizedDescription, preferredStyle: .actionSheet)
+            
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+                                          
+            self.present(alert, animated: true)
+            
+        }
     }
     
     /*
