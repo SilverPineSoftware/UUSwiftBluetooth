@@ -141,7 +141,7 @@ open class UUPeripheral
     {
         guard centralManager.isPoweredOn else
         {
-            let err = NSError.uuCoreBluetoothError(.centralNotReady)
+            let err = NSError.uuCentralStateNotReadyError(centralManager.centralState)
             disconnected(err)
             return
         }
@@ -204,7 +204,7 @@ open class UUPeripheral
         guard centralManager.isPoweredOn else
         {
             UULog.debug(tag: LOG_TAG, message: "Central is not powered on, cannot cancel a connection!")
-            let err = NSError.uuCoreBluetoothError(.centralNotReady)
+            let err = NSError.uuCentralStateNotReadyError(centralManager.centralState)
             centralManager.notifyDisconnect(identifier, err)
             return
         }
@@ -956,7 +956,7 @@ open class UUPeripheral
     {
         if (!centralManager.isPoweredOn)
         {
-            return NSError.uuCoreBluetoothError(.centralNotReady)
+            return NSError.uuCentralStateNotReadyError(centralManager.centralState)
         }
         
         if (underlyingPeripheral.state != .connected)
