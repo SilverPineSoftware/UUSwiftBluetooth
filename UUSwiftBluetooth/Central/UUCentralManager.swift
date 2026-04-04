@@ -186,13 +186,23 @@ public class UUCentralManager: UUManagerStateMonitor
         isScanning = false
         UULog.debug(tag: LOG_TAG, message: "isScanning: \(isScanning)")
         delegate.didDiscoverPeripheralBlock = nil
-        centralManager.stopScan()
+        
+        // Xcode logs API misuse warnings if we make this call while state is anything but poweredOn
+        if (isPoweredOn)
+        {
+            centralManager.stopScan()
+        }
     }
     
     private func pauseScanning()
     {
         UULog.debug(tag: LOG_TAG, message: "pausing scan, isScanning: \(isScanning)")
-        centralManager.stopScan()
+        
+        // Xcode logs API misuse warnings if we make this call while state is anything but poweredOn
+        if (isPoweredOn)
+        {
+            centralManager.stopScan()
+        }
     }
     
     
