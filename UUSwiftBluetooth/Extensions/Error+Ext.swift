@@ -10,6 +10,7 @@ import CoreBluetooth
 import UUSwiftCore
 
 public let kUUCoreBluetoothErrorDomain = "UUCoreBluetoothErrorDomain"
+public let kUUCoreBluetoothExtraManagerStateKey = "kUUCoreBluetoothExtraManagerState"
 
 extension NSError
 {
@@ -38,6 +39,18 @@ extension NSError
         }
         
         return NSError(domain: kUUCoreBluetoothErrorDomain, code: errorCode.rawValue, userInfo: md)
+    }
+    
+    static func uuCentralStateNotReadyError(_ state: CBManagerState) -> NSError
+    {
+        if (state == .poweredOff)
+        {
+            return uuCoreBluetoothError(.bluetoothDisabled)
+        }
+        else
+        {
+            return uuCoreBluetoothError(.centralNotReady, userInfo: [kUUCoreBluetoothExtraManagerStateKey:state])
+        }
     }
     
     

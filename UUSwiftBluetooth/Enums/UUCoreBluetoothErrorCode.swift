@@ -45,6 +45,9 @@ public enum UUCoreBluetoothErrorCode: Int
     
     // An attempt was made to read from a descriptor that has not been discovered
     case descriptorNotDiscovered = 11
+    
+    // Bluetooth is turned off
+    case bluetoothDisabled = 12
 }
 
 internal extension UUCoreBluetoothErrorCode
@@ -85,6 +88,9 @@ internal extension UUCoreBluetoothErrorCode
             
             case .descriptorNotDiscovered:
                 return "DescriptorNotDiscovered"
+            
+            case .bluetoothDisabled:
+                return "BluetoothDisabled"
         }
     }
     
@@ -124,6 +130,9 @@ internal extension UUCoreBluetoothErrorCode
             
             case .descriptorNotDiscovered:
                 return "A descriptor was not discovered on the peripheral."
+            
+            case .bluetoothDisabled:
+                return "Turn bluetooth on and try again."
         }
     }
 }
