@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum UUCoreBluetoothErrorCode: Int
+public enum UUCoreBluetoothErrorCode: Int, CaseIterable
 {
     // A operation attempt was manually timed out by UUCoreBluetooth
     case timeout = 1
@@ -134,5 +134,28 @@ internal extension UUCoreBluetoothErrorCode
             case .bluetoothDisabled:
                 return "Turn bluetooth on and try again."
         }
+    }
+}
+
+
+
+public extension NSError
+{
+    var uuBluetoothErrorCode: UUCoreBluetoothErrorCode?
+    {
+        if (domain == kUUCoreBluetoothErrorDomain)
+        {
+            return UUCoreBluetoothErrorCode(rawValue: code)
+        }
+        
+        return nil
+    }
+}
+
+public extension Error
+{
+    var uuBluetoothErrorCode: UUCoreBluetoothErrorCode?
+    {
+        return (self as NSError).uuBluetoothErrorCode
     }
 }
