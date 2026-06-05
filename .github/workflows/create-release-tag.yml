@@ -1,0 +1,20 @@
+name: Create Release Tag
+permissions:
+  contents: write
+  
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  create-tag:
+    uses: SilverPineSoftware/UUGithubActions/.github/workflows/uu_ios_create_release_tag.yml@main
+    with:
+      version: ${{ inputs.version }}
+    secrets:
+      RELEASE_PAT: ${{ secrets.RELEASE_PAT }}
+      
