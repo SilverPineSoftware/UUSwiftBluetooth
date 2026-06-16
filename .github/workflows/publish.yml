@@ -3,7 +3,7 @@ permissions:
   contents: write
 
 on:
-  create:
+  push:
     tags:
       - '*.*.*'  # Matches numerical version tags like 1.0.0, 2.1.3, etc.
 

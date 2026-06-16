@@ -1269,16 +1269,16 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SilverPineSoftware/UUSwiftTestCore.git";
 			requirement = {
-				branch = develop;
-				kind = branch;
+				kind = exactVersion;
+				version = 0.0.5;
 			};
 		};
 		C5C67CCE26C60A0E004DF50D /* XCRemoteSwiftPackageReference "UUSwiftCore" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SilverPineSoftware/UUSwiftCore";
 			requirement = {
-				branch = develop;
-				kind = branch;
+				kind = exactVersion;
+				version = 1.5.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
