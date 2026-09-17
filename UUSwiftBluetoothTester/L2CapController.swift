@@ -297,7 +297,7 @@ class UUL2CapCommand:NSObject
         buffer.uuAppend(UInt8(0x74)) //t
         buffer.uuAppend(UInt8(0x68)) //h
         buffer.uuAppend(UInt8(commandId.rawValue))
-        buffer.uuAppend(UInt32(data.count))
+        buffer.uuAppend(UInt32(data.count), order: .littleEndian)
         
         buffer.append(data)
         return buffer
@@ -334,7 +334,7 @@ class UUL2CapCommand:NSObject
             return nil
         }
         
-        let commandLength = data.uuUInt32(at: index)
+        let commandLength = data.uuUInt32(order: .littleEndian, at: index)
         index += MemoryLayout<UInt32>.size
 
         let capacity = Int(commandLength ?? 0)

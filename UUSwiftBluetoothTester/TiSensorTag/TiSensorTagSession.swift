@@ -316,7 +316,7 @@ public class TiSensorTagCoreBluetoothSession: UUPeripheralSession, TiSensorTagSe
     
     private func setupTemperatureService(_ completion: @escaping ()->Void)
     {
-        write(integer: UInt8(1), to: TiSensorTag.Temperature.config, withResponse: true)
+        write(uint8: UInt8(1), to: TiSensorTag.Temperature.config, withResponse: true)
         { session, error in
             
             self.startListeningForDataChanges(
@@ -390,10 +390,10 @@ public class TiSensorTagCoreBluetoothSession: UUPeripheralSession, TiSensorTagSe
         _ dataChanged: @escaping (UUPeripheralSession, Data?, Error?) -> Void,
         _ completion: @escaping ()->Void)
     {
-        write(integer: configValue, to: configCharacteristic, withResponse: true)
+        write(integer: configValue, order: .littleEndian, to: configCharacteristic, withResponse: true)
         { session, error in
             
-            self.write(integer: periodValue, to: periodCharacteristic, withResponse: true)
+            self.write(integer: periodValue, order: .littleEndian, to: periodCharacteristic, withResponse: true)
             { session, error in
                 
                 self.startListeningForDataChanges(

@@ -479,34 +479,39 @@ public extension UUPeripheralSession // Read Methods
     
     func readUInt16(
         from characteristic: CBUUID,
+        order: UUByteOrder,
         completion: @escaping UUPeripheralSessionObjectErrorCallback<UInt16>)
     {
         read(from: characteristic)
         { session, data, error in
          
-            let result = data?.uuUInt16(at: 0)
+            let result = data?.uuUInt16(order: order, at: 0)
             completion(session, result, error)
         }
     }
     
     func readUInt32(
         from characteristic: CBUUID,
+        order: UUByteOrder,
         completion: @escaping UUPeripheralSessionObjectErrorCallback<UInt32>)
     {
         read(from: characteristic)
         { session, data, error in
          
-            let result = data?.uuUInt32(at: 0)
+            let result = data?.uuUInt32(order: order, at: 0)
             completion(session, result, error)
         }
     }
     
-    func readUInt64(from characteristic: CBUUID, completion: @escaping UUPeripheralSessionObjectErrorCallback<UInt64>)
+    func readUInt64(
+        from characteristic: CBUUID,
+        order: UUByteOrder,
+        completion: @escaping UUPeripheralSessionObjectErrorCallback<UInt64>)
     {
         read(from: characteristic)
         { session, data, error in
          
-            let result = data?.uuUInt64(at: 0)
+            let result = data?.uuUInt64(order: order, at: 0)
             completion(session, result, error)
         }
     }
@@ -521,32 +526,41 @@ public extension UUPeripheralSession // Read Methods
         }
     }
     
-    func readInt16(from characteristic: CBUUID, completion: @escaping UUPeripheralSessionObjectErrorCallback<Int16>)
+    func readInt16(
+        from characteristic: CBUUID,
+        order: UUByteOrder,
+        completion: @escaping UUPeripheralSessionObjectErrorCallback<Int16>)
     {
         read(from: characteristic)
         { session, data, error in
          
-            let result = data?.uuInt16(at: 0)
+            let result = data?.uuInt16(order: order, at: 0)
             completion(session, result, error)
         }
     }
     
-    func readInt32(from characteristic: CBUUID, completion: @escaping UUPeripheralSessionObjectErrorCallback<Int32>)
+    func readInt32(
+        from characteristic: CBUUID,
+        order: UUByteOrder,
+        completion: @escaping UUPeripheralSessionObjectErrorCallback<Int32>)
     {
         read(from: characteristic)
         { session, data, error in
          
-            let result = data?.uuInt32(at: 0)
+            let result = data?.uuInt32(order: order, at: 0)
             completion(session, result, error)
         }
     }
     
-    func readInt32(from characteristic: CBUUID, completion: @escaping UUPeripheralSessionObjectErrorCallback<Int64>)
+    func readInt32(
+        from characteristic: CBUUID,
+        order: UUByteOrder,
+        completion: @escaping UUPeripheralSessionObjectErrorCallback<Int64>)
     {
         read(from: characteristic)
         { session, data, error in
          
-            let result = data?.uuInt64(at: 0)
+            let result = data?.uuInt64(order: order, at: 0)
             completion(session, result, error)
         }
     }
@@ -578,12 +592,35 @@ public extension UUPeripheralSession // Write Methods
     
     func write<T: FixedWidthInteger>(
         integer: T,
+        order: UUByteOrder,
         to characteristic: CBUUID,
         withResponse: Bool,
         completion: @escaping UUPeripheralSessionErrorCallback)
     {
         var data = Data()
-        data.uuAppend(integer)
+        data.uuAppend(integer, order: order)
+        write(data: data, to: characteristic, withResponse: withResponse, completion: completion)
+    }
+    
+    func write(
+        uint8: UInt8,
+        to characteristic: CBUUID,
+        withResponse: Bool,
+        completion: @escaping UUPeripheralSessionErrorCallback)
+    {
+        var data = Data()
+        data.uuAppend(uint8)
+        write(data: data, to: characteristic, withResponse: withResponse, completion: completion)
+    }
+    
+    func write(
+        int8: Int8,
+        to characteristic: CBUUID,
+        withResponse: Bool,
+        completion: @escaping UUPeripheralSessionErrorCallback)
+    {
+        var data = Data()
+        data.uuAppend(int8)
         write(data: data, to: characteristic, withResponse: withResponse, completion: completion)
     }
 }

@@ -211,7 +211,7 @@ public class UUL2CapServer:NSObject, CBPeripheralManagerDelegate, StreamDelegate
         self.service = CBMutableService(type: UUL2CapConstants.UU_L2CAP_SERVICE_UUID, primary: true)
         
         var psmData = Data()
-        psmData.uuAppend((UInt32(psm)))
+        psmData.uuAppend(UInt32(psm), order: .littleEndian)
         self.psmCharacteristic = CBMutableCharacteristic(type: UUL2CapConstants.UU_L2CAP_PSM_CHARACTERISTIC_UUID, properties: [.read], value: psmData, permissions: [.readable])
         
         var secureCopy = secure
