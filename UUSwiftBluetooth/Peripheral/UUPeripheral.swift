@@ -14,7 +14,7 @@ fileprivate let LOG_TAG = "UUPeripheral"
 // UUPeripheral is a convenience class that wraps a CBPeripheral and it's
 // advertisement data into one object.
 //
-open class UUPeripheral
+open class UUPeripheral: Identifiable
 {
     private let centralManager: UUCentralManager
     private let dispatchQueue: DispatchQueue
@@ -43,6 +43,13 @@ open class UUPeripheral
         self.advertisement = advertisement
         self.rssi = advertisement.rssi
         self.firstDiscoveryTime = advertisement.timestamp
+    }
+    
+    // Identifiable conformance
+    
+    public var id: UUID
+    {
+        return self.identifier
     }
     
     // Passthrough properties to read values directly from CBPeripheral
