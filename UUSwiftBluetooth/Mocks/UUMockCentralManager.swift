@@ -14,10 +14,10 @@ public class UUMockCentralManager
     
     public init(peripherals: [CBPeripheral] = [])
     {
-        self.mockCentral = UUCentralManager(injection: { q, o in
+        self.mockCentral = UUCentralManager(options: UUCentralManagerOptions(), injection: { q, o in
             
             let delegate = UUCentralManagerDelegate()
-            let mgr = UUMockCBCentralManager(delegate: delegate, queue: q, options: o)
+            let mgr = UUMockCBCentralManager(delegate: delegate, queue: q, options: o.coreBluetoothOptions)
             mgr.mockPeripherals = peripherals
             UUMockPeripheral.mockCBCentral = mgr
             return (delegate, mgr)

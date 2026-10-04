@@ -34,16 +34,13 @@ public class UUCentralManager: UUManagerStateMonitor
     private(set) public var isScanning: Bool = false
     
     private var willRestoreStateBlock: UUWillRestoreStateBlock? = nil
-    private var options: [String:Any]? = nil
+    //private var options: [String:Any]? = nil
     
     private var managerStateListeners: [String:UUCBManagerStateBlock] = [:]
     
-    public static var shared: UUCentralManager
-    {
-        return UUCentralManagerFactory.sharedCentralManager
-    }
-    
-    required init(options: [String:Any]? = nil, injection: (DispatchQueue, [String:Any]?)->(UUCentralManagerDelegate, UUCBCentralManager))
+    required init(
+        options: UUCentralManagerOptions,
+        injection: (DispatchQueue, UUCentralManagerOptions)->(UUCentralManagerDelegate, UUCBCentralManager) = injectCentral)
     {
         UULog.debug(tag: LOG_TAG, message: "Initializing UUCoreBluetooth with options: \(String(describing: options))")
         
@@ -54,6 +51,13 @@ public class UUCentralManager: UUManagerStateMonitor
         
         let state = centralManager.state
         UULog.debug(tag: LOG_TAG, message: "Central State is: \(state)")
+    }
+    
+    private static func injectCentral(_ dispatchQueue: DispatchQueue, _ options: UUCentralManagerOptions) -> (UUCentralManagerDelegate, UUCBCentralManager)
+    {
+        let delegate = options.usesStateRestoration ? UUCentralManagerRestoringDelegate() : UUCentralManagerDelegate()
+        let centralManager = CBCentralManager(delegate: delegate, queue: dispatchQueue, options: options.coreBluetoothOptions)
+        return (delegate, centralManager)
     }
     
     public var centralState: CBManagerState

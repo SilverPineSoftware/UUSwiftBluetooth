@@ -34,10 +34,10 @@ public class UUMockPeripheral: UUPeripheral
         
         let p = self.mockPeripheral.backingPeripheral
         
-        self.mockCentral = UUCentralManager(injection: { q, o in
+        self.mockCentral = UUCentralManager(options: UUCentralManagerOptions(), injection: { q, o in
             
             let delegate = UUCentralManagerDelegate()
-            let mgr = UUMockCBCentralManager(delegate: delegate, queue: q, options: o)
+            let mgr = UUMockCBCentralManager(delegate: delegate, queue: q, options: o.coreBluetoothOptions)
             mgr.mockPeripherals = [p]
             UUMockPeripheral.mockCBCentral = mgr
             return (delegate, mgr)

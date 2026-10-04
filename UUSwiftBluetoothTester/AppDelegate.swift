@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import CoreBluetooth
 import UUSwiftCore
 import UUSwiftBluetooth
 
@@ -48,7 +49,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate
     
     private func setupCoreBluetooth()
     {
-        UUBluetooth.initialize()
+        let config = UUBluetoothConfig(
+            centralOptions: UUCentralManagerOptions(
+                stateRestorationIdentifier: "com.silverpine.uu.bluetooth.tester"
+            )
+        )
+        
+        UUBluetooth.initialize(config: config)
     }
 
 

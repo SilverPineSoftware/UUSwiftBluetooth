@@ -13,7 +13,7 @@ import CoreBluetooth
 public protocol UUBluetoothProvider
 {
     /// Sets up the Bluetooth stack, including the central manager and related services.
-    func initialize()
+    func initialize(config: UUBluetoothConfig)
     
     /// The central manager responsible for discovering and connecting to BLE peripherals.
     var centralManager: UUCentralManager { get }

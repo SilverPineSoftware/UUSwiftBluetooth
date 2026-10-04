@@ -28,7 +28,7 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
     private var nearbyPeripheralSubscription: AnyCancellable? = nil
     
     
-    public required init(centralManager: UUCentralManager = UUCentralManager.shared)
+    public required init(centralManager: UUCentralManager)
     {
         self.centralManager = centralManager
     }

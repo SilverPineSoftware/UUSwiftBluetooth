@@ -9,16 +9,16 @@ public class UUBluetooth
 {
     private init() {}
     
-    private static var provider: UUBluetoothProvider = UUDefaultProvider()
+    private static var provider: UUBluetoothProvider = UUCoreBluetoothProvider()
     
     public static func setProvider(_ provider: UUBluetoothProvider)
     {
         UUBluetooth.provider = provider
     }
     
-    public static func initialize()
+    public static func initialize(config: UUBluetoothConfig)
     {
-        provider.initialize()
+        provider.initialize(config: config)
     }
     
     public static var centralManager: UUCentralManager
