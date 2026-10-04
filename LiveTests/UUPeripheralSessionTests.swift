@@ -21,7 +21,7 @@ final class UUPeripheralSessionTests: XCTestCase
         
         UULog.setLogger(logger)
         
-        TiSensorTag.addSpecNames()
+        //TiSensorTag.addSpecNames()
         
         // Put setup code here. This method is called before the invocation of each test method in the class.
     }

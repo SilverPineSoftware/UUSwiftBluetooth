@@ -30,8 +30,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "08F620362C27BB8D00A93EDC"
-               BuildableName = "UUSwiftBluetoothTestHost.app"
-               BlueprintName = "UUSwiftBluetoothTestHost"
+               BuildableName = "TestHost.app"
+               BlueprintName = "TestHost"
                ReferencedContainer = "container:UUSwiftBluetooth.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

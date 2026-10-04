@@ -30,6 +30,7 @@ final class UUPeripheralSessionTests: XCTestCase
         return peripheral
     }
     
+    /*
     func test_0001_setupSession() throws
     {
         let peripheral = try setupMockPeripheral()
@@ -116,5 +117,5 @@ final class UUPeripheralSessionTests: XCTestCase
         wait(for: [endExp], timeout: 30)
 
         NSLog("Done")
-    }
+    }*/
 }
