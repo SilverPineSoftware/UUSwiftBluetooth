@@ -141,17 +141,19 @@ public class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
 //    @available(iOS 5.0, *)
 //    optional func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: (any Error)?)
 
-    /*
-    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?)
+    // Keep the legacy callback for iOS versions before the timestamp/reconnect
+    // variant was introduced. The package supports iOS 15, and the mock central
+    // manager also reports disconnects through this callback.
+    public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?)
     {
-        UUDebugLog("didDisconnectPeripheral, peripheral: \(peripheral), error: \(String(describing: error))")
+        UULog.debug(tag: LOG_TAG, message: "didDisconnectPeripheral, peripheral: \(peripheral), error: \(String(describing: error))")
         
         let key = peripheral.identifier
         let block = disconnectBlocks[key]
         disconnectBlocks.removeValue(forKey: key)
         connectBlocks.removeValue(forKey: key)
         block?(peripheral, NSError.uuDisconnectedError(error as NSError?))
-    }*/
+    }
     
     /**
      *  @method centralManager:didDisconnectPeripheral:timestamp:isReconnecting:error
