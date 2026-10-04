@@ -9,18 +9,18 @@
 /* Begin PBXBuildFile section */
 		0811F5762DC7F5460067E8E6 /* UUSwiftTestCoreUX in Frameworks */ = {isa = PBXBuildFile; productRef = 0811F5752DC7F5460067E8E6 /* UUSwiftTestCoreUX */; };
 		0811F57C2DC8661B0067E8E6 /* UUSwiftTestCoreUX in Frameworks */ = {isa = PBXBuildFile; productRef = 0811F57B2DC8661B0067E8E6 /* UUSwiftTestCoreUX */; };
-		08A2093526C70E3D008F3534 /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* Library.framework */; };
-		08A2093626C70E3D008F3534 /* Library.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* Library.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		08A2093526C70E3D008F3534 /* UUSwiftBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */; };
+		08A2093626C70E3D008F3534 /* UUSwiftBluetooth.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		08AD81882DD8598200ED4E99 /* UUSwiftCore in Frameworks */ = {isa = PBXBuildFile; productRef = 08AD81872DD8598200ED4E99 /* UUSwiftCore */; };
-		08E9583D2DD26C7C007A0C97 /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* Library.framework */; };
-		08E9583E2DD26C7C007A0C97 /* Library.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* Library.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		08E9583D2DD26C7C007A0C97 /* UUSwiftBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */; };
+		08E9583E2DD26C7C007A0C97 /* UUSwiftBluetooth.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		08E958412DD26C81007A0C97 /* UUSwiftTestCore in Frameworks */ = {isa = PBXBuildFile; productRef = 08E958402DD26C81007A0C97 /* UUSwiftTestCore */; };
 		08E958432DD26C81007A0C97 /* UUSwiftTestCoreUX in Frameworks */ = {isa = PBXBuildFile; productRef = 08E958422DD26C81007A0C97 /* UUSwiftTestCoreUX */; };
 		08F620322C27B72500A93EDC /* UUSwiftTestCore in Frameworks */ = {isa = PBXBuildFile; productRef = 08F620312C27B72500A93EDC /* UUSwiftTestCore */; };
-		08F620472C27BC4000A93EDC /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* Library.framework */; };
-		08F620482C27BC4000A93EDC /* Library.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* Library.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		08F6204A2C27BC5000A93EDC /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* Library.framework */; };
-		08F6204B2C27BC5000A93EDC /* Library.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* Library.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		08F620472C27BC4000A93EDC /* UUSwiftBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */; };
+		08F620482C27BC4000A93EDC /* UUSwiftBluetooth.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		08F6204A2C27BC5000A93EDC /* UUSwiftBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */; };
+		08F6204B2C27BC5000A93EDC /* UUSwiftBluetooth.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		C5C67CD026C60A0E004DF50D /* UUSwiftCore in Frameworks */ = {isa = PBXBuildFile; productRef = C5C67CCF26C60A0E004DF50D /* UUSwiftCore */; };
 /* End PBXBuildFile section */
 
@@ -76,7 +76,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				08A2093626C70E3D008F3534 /* Library.framework in Embed Frameworks */,
+				08A2093626C70E3D008F3534 /* UUSwiftBluetooth.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -87,7 +87,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				08E9583E2DD26C7C007A0C97 /* Library.framework in Embed Frameworks */,
+				08E9583E2DD26C7C007A0C97 /* UUSwiftBluetooth.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -98,7 +98,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				08F620482C27BC4000A93EDC /* Library.framework in Embed Frameworks */,
+				08F620482C27BC4000A93EDC /* UUSwiftBluetooth.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -109,7 +109,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				08F6204B2C27BC5000A93EDC /* Library.framework in Embed Frameworks */,
+				08F6204B2C27BC5000A93EDC /* UUSwiftBluetooth.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -124,7 +124,7 @@
 		08E958332DD26C6F007A0C97 /* LiveTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LiveTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		08F620262C27AAD900A93EDC /* UnitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UnitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		08F620372C27BB8D00A93EDC /* TestHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C5C67CBD26C6098F004DF50D /* Library.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Library.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = UUSwiftBluetooth.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C5C67CC826C609D6004DF50D /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		C5C67CC926C609D6004DF50D /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		C5C67CCA26C609D6004DF50D /* Package.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
@@ -214,7 +214,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				08A2093526C70E3D008F3534 /* Library.framework in Frameworks */,
+				08A2093526C70E3D008F3534 /* UUSwiftBluetooth.framework in Frameworks */,
 				08AD81882DD8598200ED4E99 /* UUSwiftCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -223,7 +223,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				08E9583D2DD26C7C007A0C97 /* Library.framework in Frameworks */,
+				08E9583D2DD26C7C007A0C97 /* UUSwiftBluetooth.framework in Frameworks */,
 				08E958432DD26C81007A0C97 /* UUSwiftTestCoreUX in Frameworks */,
 				08E958412DD26C81007A0C97 /* UUSwiftTestCore in Frameworks */,
 			);
@@ -235,7 +235,7 @@
 			files = (
 				08F620322C27B72500A93EDC /* UUSwiftTestCore in Frameworks */,
 				0811F5762DC7F5460067E8E6 /* UUSwiftTestCoreUX in Frameworks */,
-				08F620472C27BC4000A93EDC /* Library.framework in Frameworks */,
+				08F620472C27BC4000A93EDC /* UUSwiftBluetooth.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -244,7 +244,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0811F57C2DC8661B0067E8E6 /* UUSwiftTestCoreUX in Frameworks */,
-				08F6204A2C27BC5000A93EDC /* Library.framework in Frameworks */,
+				08F6204A2C27BC5000A93EDC /* UUSwiftBluetooth.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -290,7 +290,7 @@
 		C5C67CBE26C6098F004DF50D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C5C67CBD26C6098F004DF50D /* Library.framework */,
+				C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */,
 				08A2091E26C7092B008F3534 /* Sample.app */,
 				08F620262C27AAD900A93EDC /* UnitTests.xctest */,
 				08F620372C27BB8D00A93EDC /* TestHost.app */,
@@ -433,7 +433,7 @@
 				C5C67CCF26C60A0E004DF50D /* UUSwiftCore */,
 			);
 			productName = UUSwiftBluetooth;
-			productReference = C5C67CBD26C6098F004DF50D /* Library.framework */;
+			productReference = C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
@@ -949,7 +949,7 @@
 				);
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = com.silverpine.UUSwiftBluetooth;
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PRODUCT_NAME = UUSwiftBluetooth;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = YES;
@@ -980,7 +980,7 @@
 				);
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = com.silverpine.UUSwiftBluetooth;
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PRODUCT_NAME = UUSwiftBluetooth;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = YES;
