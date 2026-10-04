@@ -16,6 +16,11 @@ public class UUBluetooth
         UUBluetooth.provider = provider
     }
     
+    public static var config: UUBluetoothConfig
+    {
+        return provider.config
+    }
+    
     public static func initialize(config: UUBluetoothConfig)
     {
         provider.initialize(config: config)

@@ -15,6 +15,9 @@ public protocol UUBluetoothProvider
     /// Sets up the Bluetooth stack, including the central manager and related services.
     func initialize(config: UUBluetoothConfig)
     
+    /// Returns the configuration used to initialize the library
+    var config: UUBluetoothConfig { get }
+    
     /// The central manager responsible for discovering and connecting to BLE peripherals.
     var centralManager: UUCentralManager { get }
     

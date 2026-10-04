@@ -16,7 +16,7 @@ public struct UUBluetoothConfig: Codable
 {
     public var centralOptions: UUCentralManagerOptions
     
-    public init(centralOptions: UUCentralManagerOptions)
+    public init(centralOptions: UUCentralManagerOptions = UUCentralManagerOptions())
     {
         self.centralOptions = centralOptions
     }
