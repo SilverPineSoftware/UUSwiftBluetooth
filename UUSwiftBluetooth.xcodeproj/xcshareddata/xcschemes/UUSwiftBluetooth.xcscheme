@@ -72,8 +72,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "08F620252C27AAD900A93EDC"
-               BuildableName = "UUSwiftBluetoothTests.xctest"
-               BlueprintName = "UUSwiftBluetoothTests"
+               BuildableName = "UnitTests.xctest"
+               BlueprintName = "UnitTests"
                ReferencedContainer = "container:UUSwiftBluetooth.xcodeproj">
             </BuildableReference>
          </TestableReference>

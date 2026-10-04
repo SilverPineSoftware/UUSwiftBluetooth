@@ -122,7 +122,7 @@
 		08A2091E26C7092B008F3534 /* UUSwiftBluetoothTester.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UUSwiftBluetoothTester.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		08A2800130728A500076C2D0 /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
 		08E958332DD26C6F007A0C97 /* UUSwiftBluetoothLiveTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UUSwiftBluetoothLiveTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		08F620262C27AAD900A93EDC /* UUSwiftBluetoothTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UUSwiftBluetoothTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		08F620262C27AAD900A93EDC /* UnitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UnitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		08F620372C27BB8D00A93EDC /* TestHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = UUSwiftBluetooth.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C5C67CC826C609D6004DF50D /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
@@ -292,7 +292,7 @@
 			children = (
 				C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */,
 				08A2091E26C7092B008F3534 /* UUSwiftBluetoothTester.app */,
-				08F620262C27AAD900A93EDC /* UUSwiftBluetoothTests.xctest */,
+				08F620262C27AAD900A93EDC /* UnitTests.xctest */,
 				08F620372C27BB8D00A93EDC /* TestHost.app */,
 				08E958332DD26C6F007A0C97 /* UUSwiftBluetoothLiveTests.xctest */,
 			);
@@ -362,9 +362,9 @@
 			productReference = 08E958332DD26C6F007A0C97 /* UUSwiftBluetoothLiveTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		08F620252C27AAD900A93EDC /* UUSwiftBluetoothTests */ = {
+		08F620252C27AAD900A93EDC /* UnitTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 08F6202D2C27AAD900A93EDC /* Build configuration list for PBXNativeTarget "UUSwiftBluetoothTests" */;
+			buildConfigurationList = 08F6202D2C27AAD900A93EDC /* Build configuration list for PBXNativeTarget "UnitTests" */;
 			buildPhases = (
 				08F620222C27AAD900A93EDC /* Sources */,
 				08F620232C27AAD900A93EDC /* Frameworks */,
@@ -381,13 +381,13 @@
 				08016F212E144F0300C0E647 /* UnitTests */,
 				08016F352E15205D00C0E647 /* TestShared */,
 			);
-			name = UUSwiftBluetoothTests;
+			name = UnitTests;
 			packageProductDependencies = (
 				08F620312C27B72500A93EDC /* UUSwiftTestCore */,
 				0811F5752DC7F5460067E8E6 /* UUSwiftTestCoreUX */,
 			);
 			productName = UUSwiftBluetoothTests;
-			productReference = 08F620262C27AAD900A93EDC /* UUSwiftBluetoothTests.xctest */;
+			productReference = 08F620262C27AAD900A93EDC /* UnitTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		08F620362C27BB8D00A93EDC /* TestHost */ = {
@@ -484,7 +484,7 @@
 			targets = (
 				C5C67CBC26C6098E004DF50D /* UUSwiftBluetooth */,
 				08A2091D26C7092B008F3534 /* UUSwiftBluetoothTester */,
-				08F620252C27AAD900A93EDC /* UUSwiftBluetoothTests */,
+				08F620252C27AAD900A93EDC /* UnitTests */,
 				08F620362C27BB8D00A93EDC /* TestHost */,
 				08E958322DD26C6F007A0C97 /* UUSwiftBluetoothLiveTests */,
 			);
@@ -1010,7 +1010,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		08F6202D2C27AAD900A93EDC /* Build configuration list for PBXNativeTarget "UUSwiftBluetoothTests" */ = {
+		08F6202D2C27AAD900A93EDC /* Build configuration list for PBXNativeTarget "UnitTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				08F6202E2C27AAD900A93EDC /* Debug */,
