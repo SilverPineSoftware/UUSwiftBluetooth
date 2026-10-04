@@ -119,7 +119,7 @@
 /* Begin PBXFileReference section */
 		089AE4812E1048470094C577 /* UnitTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; name = UnitTests.xctestplan; path = TestPlans/UnitTests.xctestplan; sourceTree = "<group>"; };
 		089AE4862E1049FE0094C577 /* LiveTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; name = LiveTests.xctestplan; path = TestPlans/LiveTests.xctestplan; sourceTree = "<group>"; };
-		08A2091E26C7092B008F3534 /* UUSwiftBluetoothTester.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UUSwiftBluetoothTester.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		08A2091E26C7092B008F3534 /* Sample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		08A2800130728A500076C2D0 /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
 		08E958332DD26C6F007A0C97 /* LiveTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LiveTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		08F620262C27AAD900A93EDC /* UnitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UnitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -152,12 +152,12 @@
 			);
 			target = C5C67CBC26C6098E004DF50D /* UUSwiftBluetooth */;
 		};
-		0818127A306DDDA900B37495 /* Exceptions for "UUSwiftBluetoothTester" folder in "UUSwiftBluetoothTester" target */ = {
+		0818127A306DDDA900B37495 /* Exceptions for "Sample" folder in "Sample" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 08A2091D26C7092B008F3534 /* UUSwiftBluetoothTester */;
+			target = 08A2091D26C7092B008F3534 /* Sample */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -194,12 +194,12 @@
 			path = UUSwiftBluetooth;
 			sourceTree = "<group>";
 		};
-		08181261306DDD9A00B37495 /* UUSwiftBluetoothTester */ = {
+		08181261306DDD9A00B37495 /* Sample */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				0818127A306DDDA900B37495 /* Exceptions for "UUSwiftBluetoothTester" folder in "UUSwiftBluetoothTester" target */,
+				0818127A306DDDA900B37495 /* Exceptions for "Sample" folder in "Sample" target */,
 			);
-			path = UUSwiftBluetoothTester;
+			path = Sample;
 			sourceTree = "<group>";
 		};
 		08A27FF3307288F90076C2D0 /* .uu-agents */ = {
@@ -277,7 +277,7 @@
 				C5C67CCA26C609D6004DF50D /* Package.swift */,
 				0818120D306DDD8500B37495 /* UUSwiftBluetooth */,
 				C5C67CC926C609D6004DF50D /* README.md */,
-				08181261306DDD9A00B37495 /* UUSwiftBluetoothTester */,
+				08181261306DDD9A00B37495 /* Sample */,
 				08016F412E15208B00C0E647 /* TestHost */,
 				08016F352E15205D00C0E647 /* TestShared */,
 				08016F212E144F0300C0E647 /* UnitTests */,
@@ -291,7 +291,7 @@
 			isa = PBXGroup;
 			children = (
 				C5C67CBD26C6098F004DF50D /* UUSwiftBluetooth.framework */,
-				08A2091E26C7092B008F3534 /* UUSwiftBluetoothTester.app */,
+				08A2091E26C7092B008F3534 /* Sample.app */,
 				08F620262C27AAD900A93EDC /* UnitTests.xctest */,
 				08F620372C27BB8D00A93EDC /* TestHost.app */,
 				08E958332DD26C6F007A0C97 /* LiveTests.xctest */,
@@ -312,9 +312,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		08A2091D26C7092B008F3534 /* UUSwiftBluetoothTester */ = {
+		08A2091D26C7092B008F3534 /* Sample */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 08A2092F26C7092E008F3534 /* Build configuration list for PBXNativeTarget "UUSwiftBluetoothTester" */;
+			buildConfigurationList = 08A2092F26C7092E008F3534 /* Build configuration list for PBXNativeTarget "Sample" */;
 			buildPhases = (
 				08A2091A26C7092B008F3534 /* Sources */,
 				08A2091B26C7092B008F3534 /* Frameworks */,
@@ -327,11 +327,11 @@
 				08A2093826C70E3D008F3534 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				08181261306DDD9A00B37495 /* UUSwiftBluetoothTester */,
+				08181261306DDD9A00B37495 /* Sample */,
 			);
-			name = UUSwiftBluetoothTester;
+			name = Sample;
 			productName = UUSwiftBluetoothTester;
-			productReference = 08A2091E26C7092B008F3534 /* UUSwiftBluetoothTester.app */;
+			productReference = 08A2091E26C7092B008F3534 /* Sample.app */;
 			productType = "com.apple.product-type.application";
 		};
 		08E958322DD26C6F007A0C97 /* LiveTests */ = {
@@ -483,7 +483,7 @@
 			projectRoot = "";
 			targets = (
 				C5C67CBC26C6098E004DF50D /* UUSwiftBluetooth */,
-				08A2091D26C7092B008F3534 /* UUSwiftBluetoothTester */,
+				08A2091D26C7092B008F3534 /* Sample */,
 				08F620252C27AAD900A93EDC /* UnitTests */,
 				08F620362C27BB8D00A93EDC /* TestHost */,
 				08E958322DD26C6F007A0C97 /* LiveTests */,
@@ -607,7 +607,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				INFOPLIST_FILE = UUSwiftBluetoothTester/Info.plist;
+				INFOPLIST_FILE = Sample/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_IPHONEOS_DEPLOYMENT_TARGET)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -626,7 +626,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				INFOPLIST_FILE = UUSwiftBluetoothTester/Info.plist;
+				INFOPLIST_FILE = Sample/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_IPHONEOS_DEPLOYMENT_TARGET)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -992,7 +992,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		08A2092F26C7092E008F3534 /* Build configuration list for PBXNativeTarget "UUSwiftBluetoothTester" */ = {
+		08A2092F26C7092E008F3534 /* Build configuration list for PBXNativeTarget "Sample" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				08A2093026C7092E008F3534 /* Debug */,

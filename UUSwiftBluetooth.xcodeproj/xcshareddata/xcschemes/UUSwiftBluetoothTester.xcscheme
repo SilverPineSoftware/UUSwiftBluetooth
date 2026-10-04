@@ -16,7 +16,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "08A2091D26C7092B008F3534"
-               BuildableName = "UUSwiftBluetoothTester.app"
+               BuildableName = "Sample.app"
+               BlueprintName = "Sample"
                ReferencedContainer = "container:UUSwiftBluetooth.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,7 +46,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "08A2091D26C7092B008F3534"
-            BuildableName = "UUSwiftBluetoothTester.app"
+            BuildableName = "Sample.app"
+            BlueprintName = "Sample"
             ReferencedContainer = "container:UUSwiftBluetooth.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -61,7 +63,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "08A2091D26C7092B008F3534"
-            BuildableName = "UUSwiftBluetoothTester.app"
+            BuildableName = "Sample.app"
+            BlueprintName = "Sample"
             ReferencedContainer = "container:UUSwiftBluetooth.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
