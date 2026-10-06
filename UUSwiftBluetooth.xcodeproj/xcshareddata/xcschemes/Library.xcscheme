@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "C5C67CBC26C6098E004DF50D"
-               BuildableName = "Library.framework"
+               BuildableName = "UUSwiftBluetooth.framework"
                BlueprintName = "Library"
                ReferencedContainer = "container:UUSwiftBluetooth.xcodeproj">
             </BuildableReference>
@@ -100,7 +100,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C5C67CBC26C6098E004DF50D"
-            BuildableName = "Library.framework"
+            BuildableName = "UUSwiftBluetooth.framework"
             BlueprintName = "Library"
             ReferencedContainer = "container:UUSwiftBluetooth.xcodeproj">
          </BuildableReference>

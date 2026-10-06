@@ -117,6 +117,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0821105D3075B71600AAA213 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		089AE4812E1048470094C577 /* UnitTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; name = UnitTests.xctestplan; path = TestPlans/UnitTests.xctestplan; sourceTree = "<group>"; };
 		089AE4862E1049FE0094C577 /* LiveTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; name = LiveTests.xctestplan; path = TestPlans/LiveTests.xctestplan; sourceTree = "<group>"; };
 		08A2091E26C7092B008F3534 /* Sample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sample.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -272,6 +273,7 @@
 				08A27FF3307288F90076C2D0 /* .uu-agents */,
 				089AE4812E1048470094C577 /* UnitTests.xctestplan */,
 				089AE4862E1049FE0094C577 /* LiveTests.xctestplan */,
+				0821105D3075B71600AAA213 /* README.md */,
 				08A2800130728A500076C2D0 /* AGENTS.md */,
 				C5C67CC826C609D6004DF50D /* LICENSE */,
 				C5C67CCA26C609D6004DF50D /* Package.swift */,

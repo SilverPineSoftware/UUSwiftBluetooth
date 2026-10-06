@@ -1,10 +1,10 @@
 # UUSwiftBluetooth
 
-<img src = "https://jonhays.me/uploads/2020/86a3741f4b.jpg" alt="" />
+UUSwiftBluetooth makes Core Bluetooth easier to use from Swift while preserving its native behavior. It provides block-based APIs for delegate-driven operations, along with a simple default facade that works out of the box. Applications can inject a custom provider, including a mock-backed provider for previews and tests.
 
-[![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
+The library supports async/await APIs alongside its existing callback APIs, keeping both forms consistent in their behavior and lifecycle.
 
-Useful Utilities is a collection of helper classes that extend or complement existing UIKit framework classes. This is the core library that extends native Foundation objects.
+Peripheral sessions support a recurring application workflow: connect to a peripheral, discover the needed services and characteristics, perform several reads or writes, and then disconnect. A peripheral operation wraps a session to represent that sequence as one unit of work with a result and completion.
 
 ## Installation
 
@@ -24,7 +24,7 @@ Then, following the instructions for [integrating Carthage frameworks into your 
 
 ## Requirements
 
-This library requires a deployment target of iOS 14.0 or greater or OSX 10.13 or greater.
+This library requires a deployment target of iOS 15.0 or greater or OSX 10.13 or greater.
 UUSwiftBluetooth currently supports Swift version 5.3 
 
 ## Contributing
