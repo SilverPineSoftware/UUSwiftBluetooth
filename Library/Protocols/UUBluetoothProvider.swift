@@ -30,12 +30,3 @@ public protocol UUBluetoothProvider
     /// The current authorization status
     var authorizationStatus: CBManagerAuthorization { get }
 }
-
-public extension UUBluetoothProvider
-{
-    /// Default implementation retrieving the current authorization status from CoreBluetooth.
-    var authorizationStatus: CBManagerAuthorization
-    {
-        return CBCentralManager.authorization
-    }
-}

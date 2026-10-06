@@ -7,6 +7,7 @@
 
 import Foundation
 import UUSwiftCore
+import CoreBluetooth
 
 public class UUCoreBluetoothProvider: UUBluetoothProvider
 {
@@ -76,5 +77,11 @@ public class UUCoreBluetoothProvider: UUBluetoothProvider
         let defaultScanner = UUCoreBluetoothPeripheralScanner(centralManager: centralManager)
         _scanner = defaultScanner
         return defaultScanner
+    }
+    
+    /// Default implementation retrieving the current authorization status from CoreBluetooth.
+    public var authorizationStatus: CBManagerAuthorization
+    {
+        return CBCentralManager.authorization
     }
 }
