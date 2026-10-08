@@ -6,11 +6,31 @@
 
 ## Overall assessment
 
-The design has good bones. Keeping a provider interface for substitution while offering a default CoreBluetooth-backed entry point fits the goal of making the library easy to adopt without closing off testing and previews. I would keep both ideas.
+The design has good bones. Keeping a provider interface for substitution while offering a default CoreBluetooth-backed entry point fits the goal of making the library easy to adopt without closing off testing and previews. The immutable `shared` provider removes the risk of swapping the global provider after use, and the configuration initializer gives each provider a fixed configuration.
 
-The current implementation leans too heavily on one mutable process-wide provider. `UUBluetooth.setProvider(_:)` is a global service-locator switch, rather than scoped dependency injection. It is convenient for a single app-wide setup when called once before first use, but it does not provide isolated Bluetooth instances for multiple previews, tests, or app components. More importantly, the protocol currently makes a complete external mock provider impractical because it requires the concrete `UUCentralManager` type.
+`UUCoreBluetoothProvider` now has both an explicit `initialize()` method and lazy manager-backed properties. This gives apps an intentional activation call while preserving first-access behavior. The remaining concerns are that lazy initialization is not synchronized, the concrete provider exposes setters for its manager and scanner, and the protocol still requires a concrete `UUCentralManager` that external clients cannot construct.
 
-**Verdict:** Good concept, but the current global injection mechanism is awkward and the central-manager seam is incomplete. Keep the out-of-the-box facade and provider abstraction; add an instance-based client/context that accepts a provider, and let the static facade represent only the default client.
+**Verdict:** The default shared provider plus configured provider instances is a reasonable direction and resembles Foundation's default-instance/custom-instance pattern. Keep the explicit and lazy entry points if both are intended, but make manager creation single-instance under concurrent access, keep provider-owned components read-only, and expose mockable central-manager capabilities if full provider substitution is required.
+
+## Follow-up review: configuration initializer and shared provider
+
+The working tree has since changed the global facade to an immutable `UUBluetooth.shared`, added `init(configuration:)` to the provider protocol, made configuration read-only to clients, and implemented `initialize()` by accessing the lazy central manager. Those changes move the construction pattern closer to `URLSession`: a configured provider instance owns its configuration, while the default shared provider has its own default configuration.
+
+The earlier concern about replacing the process-wide provider after use is resolved by removing `setProvider(_:)` and making `shared` a `static let`. The earlier config-read-before-initialize bug is also removed because configuration is now supplied at construction and stored in a `let`. The authorization finding remains resolved as recorded below.
+
+The explicit activation method is now implemented: `initialize()` accesses `centralManager`, creating it immediately. The manager-backed properties still create the manager lazily if accessed first. This matches the chosen fallback behavior, but the debug-only warning discussed during review is not yet present, so accidental first access currently has no diagnostic. If that warning remains part of the desired developer experience, emit it once from the lazy-creation path and suppress it when `initialize()` caused creation.
+
+The new `lazy` storage also introduces a thread-safety concern. Swift documents that if multiple threads access an uninitialized `lazy` instance property simultaneously, there is no guarantee it initializes only once ([Swift language guide](https://docs.swift.org/swift-book/LanguageGuide/Properties.html)). Concurrent access through `initialize()`, `scanner`, or `managerStateMonitor` could therefore create multiple central managers or scanners. Use synchronized one-time creation or isolate access to a defined actor/queue if the provider is meant to be usable from multiple threads.
+
+In addition, `centralManager` and `scanner` are declared `public lazy var`, so their setters are public on `UUCoreBluetoothProvider`. Replacing `centralManager` after the lazy scanner has captured the original manager can split the provider across two manager instances. These properties represent provider-owned components and should be externally read-only, for example with `public private(set)`.
+
+The current API migration is also incomplete: `Sample/AppDelegate.swift` still uses `UUBluetoothConfig` and `UUBluetooth.initialize(config:)`, while the sample and tests still access removed static members such as `UUBluetooth.scanner` and `UUBluetooth.monitor`. Migrate these callers or add temporary forwarding compatibility before treating the API change as complete. The type rename from `UUBluetoothConfig` to `UUBluetoothConfiguration` is source-breaking as well.
+
+The immutable `UUBluetoothConfiguration` struct already has Swift value semantics, and its current stored fields are value types. A get-only property returning it therefore provides a value copy; no `NSCopying` mechanism is needed. The `configuration` documentation can say “value copy” or “snapshot” to distinguish this from Objective-C's copy-on-set property semantics.
+
+`UUBluetoothProvider.centralManager` still returns the concrete `UUCentralManager`, so the limitation on external full mock providers remains. Also, `UUBluetooth.shared` is fixed to the default configuration; apps needing other options must construct and inject their own configured provider, just as apps needing custom URL session behavior construct a session instead of changing `URLSession.shared`.
+
+**Validation:** No build or tests were run against this latest provider update. A previous `swift build` attempt could not reach source compilation in this environment: the active developer directory is Command Line Tools rather than full Xcode, and its Swift compiler does not match the installed SDK. Source inspection still finds the unmigrated sample/test call sites listed above.
 
 ## Findings
 
@@ -22,32 +42,31 @@ That prevents the protocol from serving as a full mock/stub seam for the central
 
 **Suggestion:** If full provider substitution is a supported use case, expose the central-manager capability through a protocol with the operations consumers need, or introduce a narrower protocol at the consumer boundary. Keep the concrete CoreBluetooth manager as the production implementation. Avoid making every implementation detail mockable; define the seam around observable operations that app code actually consumes.
 
-### [P1] Reading `config` before `initialize` can make the requested config get ignored
+### [Resolved — P1] Reading `config` before `initialize` could make the requested config get ignored
 
-The default provider lazily installs a default config when `config` is read ([`UUCoreBluetoothProvider.swift:19-29`](../Library/UUCoreBluetoothProvider.swift#L19)). Its `initialize(config:)` then treats any non-nil `_config` as proof that initialization already happened and returns without applying the supplied value ([`UUCoreBluetoothProvider.swift:37-49`](../Library/UUCoreBluetoothProvider.swift#L37)). Since the facade exposes `UUBluetooth.config`, this sequence silently keeps default options:
+In the earlier implementation, the default provider lazily installed a default config when `config` was read, then treated any non-nil `_config` as proof that initialization had happened. That could silently ignore a later `initialize(config:)` call. The current constructor-supplied immutable configuration removes that particular failure mode.
 
-```swift
-let currentConfig = UUBluetooth.config
-UUBluetooth.initialize(config: customConfig)
-```
+This does not resolve the separate activation-timing concern described in the follow-up section: current manager-backed getters still construct CoreBluetooth lazily.
 
-The caller receives only a log warning, and the central manager may subsequently be created with the default options. This confuses “a default value has been requested” with “the Bluetooth stack has been initialized.”
+### [Resolved — P2] Replacing the global provider could split one app across two provider graphs
 
-**Suggestion:** Track initialization separately from whether a config value exists, or make configuration immutable and supplied when the provider/client is created. Define what repeated initialization means and make a rejected reconfiguration visible to callers rather than relying only on a log message.
+The earlier mutable static provider and `setProvider(_:)` setter have been removed; `UUBluetooth.shared` is now a `static let`, so callers cannot switch the process-wide provider after retaining objects from it. Apps that need another provider can construct and inject an instance. The shared provider remains global by design, but its binding is no longer replaceable.
 
-### [P2] Replacing the global provider can split one app across two provider graphs
+### [Resolved — P2] The global provider reference had no synchronization or actor isolation
 
-The facade stores a mutable static provider ([`UUBluetooth.swift:12-16`](../Library/UUBluetooth.swift#L12)). If a caller retains `UUBluetooth.scanner`, then `setProvider(_:)` is called, the retained scanner still belongs to the old provider while subsequent reads of `centralManager`, `monitor`, or `scanner` use the replacement. The setter neither documents nor enforces a “before first access” rule.
+The provider reference is now an immutable `static let`, eliminating concurrent reassignment of the global binding. This finding concerned replacement of the global provider; it does not establish that the mutable caches inside `UUCoreBluetoothProvider` are safe for concurrent access.
 
-This also creates test-order coupling: one test or preview can leave its provider installed for later users of the static facade. It is reasonable to have one app-wide default, but a mutable global is not a good way to represent multiple isolated dependency graphs.
+### [P2] Lazy manager and scanner creation is not guaranteed to happen only once
 
-**Suggestion:** Give each injected client/context its own provider and let app code inject that value into view models or services. Keep the static facade backed by a stable default client for simple applications. If `setProvider(_:)` must remain for compatibility, document and enforce that it may only be called before any facade access, and deprecate it in favor of instance injection over time.
+`centralManager` and `scanner` are now Swift `lazy` instance properties. The Swift language guide states that simultaneous first access from multiple threads is not guaranteed to initialize a lazy property only once. A race can create duplicate CoreBluetooth managers or scanners, and callers may observe different instances. This matters because `initialize()`, `managerStateMonitor`, and `scanner` all converge on the same lazy manager.
 
-### [P2] The global provider has no synchronization or actor isolation
+**Suggestion:** Synchronize creation and storage, or isolate all access to a documented actor/queue. Do not rely on `lazy` alone to guarantee a single manager instance.
 
-The static provider is mutable shared state and is read and written without locking or actor isolation. Concurrent `setProvider` and facade-property access can race, and Swift's stricter concurrency checking may flag this design as the package adopts newer language modes.
+### [P2] The concrete provider exposes writable manager and scanner properties
 
-**Suggestion:** Removing mutation from the global default facade also removes this race. If mutable replacement remains, constrain it to a defined actor or synchronize access, and state the required setup ordering in the API contract.
+The protocol requirements are get-only, but `UUCoreBluetoothProvider` declares `public lazy var centralManager` and `public lazy var scanner`, which expose public setters when accessed through the concrete type. Replacing the manager after scanner creation leaves the scanner holding the previous manager.
+
+**Suggestion:** Make these provider-owned properties externally read-only, such as `public private(set) lazy var`, or expose them through computed get-only properties backed by private storage.
 
 ### [Resolved — P2] The protocol's default authorization value consulted real CoreBluetooth
 
@@ -57,18 +76,14 @@ No further change is needed for this finding. The protocol remains CoreBluetooth
 
 ## Recommended direction
 
-Add an instantiable facade/client whose lifetime owns one provider graph. App code that needs previews or tests can construct it with a mock provider and pass that client to the relevant view model or service. The default initializer can create `UUCoreBluetoothProvider`, so common production use remains concise. Keep `UUBluetooth` as the static convenience entry point for the default app-wide client and preserve existing static members during a compatibility period.
-
-Conceptually:
+The current `UUBluetooth.shared` can remain the simple app-wide default. For custom options, previews, and tests, construct a provider with its own configuration and inject that provider into the services or view models that use it:
 
 ```swift
-let bluetooth = UUBluetoothClient(provider: PreviewBluetoothProvider())
+let bluetooth = UUCoreBluetoothProvider(configuration: previewConfig)
 let viewModel = DeviceListViewModel(bluetooth: bluetooth)
 ```
 
-For a simple app, callers can continue using the default facade without assembling dependencies. For a preview or test, the app supplies a separate client rather than changing a process-wide switch. The provider protocol should then expose mockable capabilities instead of requiring a concrete, non-constructible `UUCentralManager`.
-
-This direction preserves the convenience the current API is aiming for while making dependency injection explicit and local, so separate previews and tests do not need to replace shared process state. It also avoids forcing every consumer to use a protocol if the production default is sufficient.
+This avoids replacing global process state. A separate `UUBluetoothClient` wrapper is only needed if callers benefit from a facade object beyond the provider itself. If full mocking is required, the provider protocol should expose mockable central-manager capabilities instead of the concrete, non-constructible `UUCentralManager`.
 
 ## Comparison with Foundation
 
@@ -78,7 +93,7 @@ Foundation commonly pairs an easy default instance with separately created insta
 - `FileManager.default` is the process-wide convenience manager, while Apple recommends creating a distinct manager when using a delegate ([`FileManager.default`](https://developer.apple.com/documentation/foundation/filemanager/default)).
 - `NotificationCenter.default` is available by default, and Apple also describes creating additional notification centers to organize communications into separate contexts ([`NotificationCenter`](https://developer.apple.com/documentation/foundation/notificationcenter)).
 
-The useful analogy is therefore **default convenience plus explicit instances**, not **a global default whose implementation is replaced at runtime**. Foundation APIs are not a direct template for protocol-based app dependency injection, but their instance-oriented configuration model supports isolation in a way this mutable static provider does not.
+The useful analogy is **default convenience plus explicit configured instances**. Foundation APIs are not a direct template for protocol-based app dependency injection, but their instance-oriented configuration model supports isolation without replacing the default global object.
 
 ## Review boundaries
 

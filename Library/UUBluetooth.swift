@@ -3,41 +3,31 @@
 //  UUSwiftBluetooth
 //
 //  Created by Ryan DeVore on 5/10/25.
+//  Copyright © 2026 Silver Pine Software, LLC. All rights reserved.
+//
+//  This file is part of UUSwiftCore, distributed under the MIT License.
+//  See LICENSE file for details.
 //
 
-public class UUBluetooth
+
+/// Convenience namespace for the library's default Bluetooth stack.
+///
+/// Use ``shared`` for a stack with default configuration. For custom options, previews, or tests,
+/// create and inject a configured ``UUBluetoothStack`` implementation instead.
+public struct UUBluetooth
 {
-    private init() {}
+    // Enforce static namespace usage
+    private init() { }
     
-    private static var provider: UUBluetoothProvider = UUCoreBluetoothProvider()
-    
-    public static func setProvider(_ provider: UUBluetoothProvider)
-    {
-        UUBluetooth.provider = provider
-    }
-    
-    public static var config: UUBluetoothConfig
-    {
-        return provider.config
-    }
-    
-    public static func initialize(config: UUBluetoothConfig)
-    {
-        provider.initialize(config: config)
-    }
-    
-    public static var centralManager: UUCentralManager
-    {
-        return provider.centralManager
-    }
-    
-    public static var scanner: UUPeripheralScanner
-    {
-        return provider.scanner
-    }
-    
-    public static var monitor: UUManagerStateMonitor
-    {
-        return provider.managerStateMonitor
-    }
+    /// The process-wide stack using the default Bluetooth configuration.
+    ///
+    /// Accessing this property creates the stack object but does not create its central manager.
+    /// Call ``UUBluetoothStack/initialize()`` when the app is ready to begin Bluetooth work.
+    /// Accessing the stack's ``UUBluetoothStack/centralManager``,
+    /// ``UUBluetoothStack/managerStateMonitor``, or ``UUBluetoothStack/scanner`` first also
+    /// creates the manager and may cause the system to present its Bluetooth authorization prompt.
+    public static let shared: UUBluetoothStack = UUCoreBluetoothStack()
 }
+
+     
+     

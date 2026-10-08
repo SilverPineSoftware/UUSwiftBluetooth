@@ -445,8 +445,10 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
+				CLASSPREFIX = UU;
 				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 2700;
+				ORGANIZATIONNAME = "Silverpine Software, LLC.";
 				TargetAttributes = {
 					08A2091D26C7092B008F3534 = {
 						CreatedOnToolsVersion = 12.5.1;
