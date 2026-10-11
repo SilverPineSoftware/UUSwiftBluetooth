@@ -2,8 +2,8 @@ import XCTest
 import CoreBluetooth
 @testable import UUSwiftBluetooth
 
-/// Regression coverage for review #3. These tests intentionally fail until disconnect
-/// completes pending operations instead of dropping their handlers and timers.
+/// Regression coverage for review #3: disconnect completes pending operations
+/// instead of dropping their handlers and timers.
 final class UUPeripheralDisconnectTests: XCTestCase
 {
     private enum Operation: CaseIterable
@@ -106,6 +106,111 @@ final class UUPeripheralDisconnectTests: XCTestCase
         }
     }
 
+    func test_disconnectCompletesDifferentPendingOperationsBeforeConnectionCallback() throws
+    {
+        let fixture = Fixture()
+        let connected = expectation(description: "connected")
+        let disconnected = expectation(description: "disconnected")
+        var completed: [Operation] = []
+        fixture.connect(connected: { connected.fulfill() }, disconnected:
+        { _ in
+            XCTAssertEqual(completed.count, Operation.allCases.count)
+            disconnected.fulfill()
+        })
+        wait(for: [connected], timeout: 2)
+
+        fixture.central.dispatchQueue.sync
+        {
+            for operation in Operation.allCases
+            {
+                self.start(operation, fixture: fixture, timeout: 60)
+                { error in
+                    XCTAssertEqual(error?.uuBluetoothErrorCode, .disconnected)
+                    completed.append(operation)
+                }
+            }
+            XCTAssertEqual(fixture.backend.responses.count, Operation.allCases.count)
+            fixture.peripheral.disconnect()
+        }
+        wait(for: [disconnected], timeout: 2)
+        fixture.central.dispatchQueue.sync
+        {
+            fixture.backend.deliverResponses()
+            XCTAssertEqual(completed.count, Operation.allCases.count)
+            for operation in Operation.allCases
+            {
+                XCTAssertEqual(completed.filter { $0 == operation }.count, 1)
+            }
+        }
+    }
+
+    func test_disconnectCompletionCanStartAnotherReadWithoutLosingItsHandler() throws
+    {
+        let fixture = Fixture()
+        let connected = expectation(description: "connected")
+        let disconnected = expectation(description: "disconnected")
+        let retried = expectation(description: "reentrant read rejected as disconnected")
+        retried.assertForOverFulfill = true
+        var firstCount = 0
+        var retryCount = 0
+        fixture.connect(connected: { connected.fulfill() }, disconnected: { _ in disconnected.fulfill() })
+        wait(for: [connected], timeout: 2)
+
+        fixture.central.dispatchQueue.sync
+        {
+            fixture.peripheral.readValue(for: fixture.characteristic, timeout: 60)
+            { data, error in
+                firstCount += 1
+                XCTAssertNil(data)
+                XCTAssertEqual(error?.uuBluetoothErrorCode, .disconnected)
+                fixture.peripheral.readValue(for: fixture.characteristic, timeout: 60)
+                { data, error in
+                    retryCount += 1
+                    XCTAssertEqual(error?.uuBluetoothErrorCode, .notConnected)
+                    retried.fulfill()
+                }
+            }
+            fixture.peripheral.disconnect()
+        }
+        wait(for: [disconnected, retried], timeout: 2)
+        fixture.central.dispatchQueue.sync
+        {
+            fixture.backend.deliverResponses()
+            XCTAssertEqual(firstCount, 1)
+            XCTAssertEqual(retryCount, 1)
+        }
+    }
+
+    func test_disconnectRemovesNotificationSubscriptionWithoutSendingSyntheticData() throws
+    {
+        let fixture = Fixture()
+        let connected = expectation(description: "connected")
+        let disconnected = expectation(description: "disconnected")
+        var notifications = 0
+        var enabled = false
+        fixture.connect(connected: { connected.fulfill() }, disconnected: { _ in disconnected.fulfill() })
+        wait(for: [connected], timeout: 2)
+        fixture.central.dispatchQueue.sync
+        {
+            fixture.peripheral.setNotifyValue(enabled: true, for: fixture.characteristic,
+                notifyHandler: { _, _ in notifications += 1 }, completion:
+                { error in
+                    XCTAssertNil(error)
+                    enabled = true
+                })
+            fixture.backend.deliverResponses()
+            XCTAssertTrue(enabled)
+            fixture.peripheral.disconnect()
+        }
+        wait(for: [disconnected], timeout: 2)
+        fixture.central.dispatchQueue.sync
+        {
+            fixture.backend.delegate?.peripheral?(fixture.backend.backingPeripheral,
+                didUpdateValueFor: fixture.characteristic, error: nil)
+            XCTAssertEqual(notifications, 0)
+        }
+    }
+
     private func assertDisconnectCompletes(
         _ operation: Operation,
         timeout: TimeInterval = 60,
@@ -139,7 +244,13 @@ final class UUPeripheralDisconnectTests: XCTestCase
             self.start(operation, fixture: fixture, timeout: timeout)
             { error in
                 results.append(error)
-                XCTAssertNotNil(error, "Interrupted work must fail even on a clean disconnect", file: file, line: line)
+                XCTAssertEqual(error?.uuBluetoothErrorCode, .disconnected, file: file, line: line)
+                if let expected = disconnectError as NSError?
+                {
+                    let underlying = (error as NSError?)?.userInfo[NSUnderlyingErrorKey] as? NSError
+                    XCTAssertEqual(underlying?.domain, expected.domain, file: file, line: line)
+                    XCTAssertEqual(underlying?.code, expected.code, file: file, line: line)
+                }
                 completed.fulfill()
             }
             // Proves the operation reached the backend rather than failing validation.

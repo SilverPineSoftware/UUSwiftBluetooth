@@ -65,6 +65,40 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         readValueForDescriptorBlocks.removeAll()
         writeValueForDescriptorBlocks.removeAll()
     }
+
+    /// Detaches pending one-shot completions and removes persistent subscriptions.
+    /// Invoke the returned work only after cancelling the disconnected connection's timers.
+    /// Detaching first allows completions to reenter the peripheral without losing new handlers.
+    internal func takePendingCompletions(error: Error) -> () -> Void
+    {
+        let rssi = didReadRssiBlock
+        let services = discoverServicesBlock
+        let includedServices = discoverIncludedServicesBlock
+        let characteristics = discoverCharacteristicsBlock
+        let descriptors = discoverDescriptorsBlock
+        let notifyState = setNotifyValueForCharacteristicBlock
+        let channel = l2CapChannelOpenedBlock
+        let characteristicReads = Array(readValueForCharacteristicBlocks.values)
+        let characteristicWrites = Array(writeValueForCharacteristicBlocks.values)
+        let descriptorReads = Array(readValueForDescriptorBlocks.values)
+        let descriptorWrites = Array(writeValueForDescriptorBlocks.values)
+
+        clearBlocks()
+
+        return {
+            rssi?(nil, error)
+            services?(nil, error)
+            includedServices?(nil, error)
+            characteristics?(nil, error)
+            descriptors?(nil, error)
+            notifyState?(error)
+            channel?(nil, error)
+            characteristicReads.forEach { $0(nil, error) }
+            characteristicWrites.forEach { $0(error) }
+            descriptorReads.forEach { $0(nil, error) }
+            descriptorWrites.forEach { $0(error) }
+        }
+    }
     
     public func logBlocks()
     {

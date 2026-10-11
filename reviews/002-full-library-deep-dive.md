@@ -54,7 +54,11 @@ The `Library` scheme explicitly marks LiveTests for building during testing. Sel
 
 **Regression:** Run the unit plan from a clean checkout without building or running hardware-dependent test targets unnecessarily.
 
-### 3. [P1] Disconnect permanently drops outstanding operation completions
+### 3. [Resolved — P1] Disconnect permanently drops outstanding operation completions
+
+**Resolved 2026-10-11:** Disconnect now detaches pending one-shot completions, clears persistent subscriptions, cancels timers, and completes the detached operations with an error before invoking the connection's disconnected callback. Clean disconnects synthesize `.disconnected` for interrupted work while leaving the connection callback's nil error intact; existing disconnect errors retain their underlying cause. All 17 disconnect regression tests pass, covering the eleven operation families, disabled timeouts, error propagation, late responses, multiple pending operation types, callback ordering, reentrant reads, and notification cleanup. This resolves dropped completions during disconnect; callback replacement/timeout ownership (#4), late responses across a retry (#5), and general queue isolation (#8) remain separate findings. The original scenario below is retained as review history.
+
+**Follow-up validation:** The full UnitTests plan executed 76 tests twice. All 17 disconnect tests passed in both runs; the suite failed on existing delegate tests that schedule background callbacks after 0.1 seconds and wait only 0.2 seconds. The first run had three failing test cases (eight assertions), and the second had one (two assertions). An isolated unchanged HEAD snapshot reproduced the same timeout pattern in the delegate suite: 38 tests, two failing cases (six assertions). No unrelated tests or timeouts were changed to make the suite green.
 
 **Locations:** [`UUPeripheral.swift:164`](../Library/Peripheral/UUPeripheral.swift#L164), [`UUPeripheral.swift:943`](../Library/Peripheral/UUPeripheral.swift#L943), [`UUCBPeripheralBlockDelegate.swift:51`](../Library/Delegates/UUCBPeripheralBlockDelegate.swift#L51).
 

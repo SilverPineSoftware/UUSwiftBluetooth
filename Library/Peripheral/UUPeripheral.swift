@@ -172,7 +172,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         let disconnectedBlock: UUCBPeripheralErrorBlock =
         { p, error in
             
-            self.cleanupAfterDisconnect()
+            self.cleanupAfterDisconnect(error)
             
             disconnected(error)
         }
@@ -211,6 +211,8 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
     
     // Wrapper around CBCentralManager cancelPeripheralConnection.  After calling this
     // method, the disconnected block passed in at connect time will be invoked.
+    // Pending operations complete with an error before that block is invoked, even
+    // when the connection disconnects cleanly. Persistent notification handlers are removed.
     public func disconnect(timeout: TimeInterval = UUBluetooth.Defaults.disconnectTimeout)
     {
         let identifier = underlyingPeripheral.identifier
@@ -947,13 +949,15 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         return "\(identifier)__\(name)"
     }
     
-    private func cleanupAfterDisconnect()
+    private func cleanupAfterDisconnect(_ error: Error?)
     {
+        let operationError = error ?? NSError.uuCoreBluetoothError(.disconnected)
+        let completePending = delegate.takePendingCompletions(error: operationError)
+
         UULog.debug(tag: LOG_TAG, message: "Cancelling all timers")
         timerPool.cancelAllTimers()
-        
-        UULog.debug(tag: LOG_TAG, message: "Clearing all delegate callbacks")
-        delegate.clearBlocks()
+
+        completePending()
     }
     
     private func startTimer(_ timerBucket: TimerId, _ timeout: TimeInterval, _ block: @escaping ()->())
