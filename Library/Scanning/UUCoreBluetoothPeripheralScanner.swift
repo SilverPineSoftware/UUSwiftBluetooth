@@ -106,9 +106,11 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
     
     private func notifyNearbyPeripherals(_ list: [UUPeripheral])
     {
-        guard centralManager.isPoweredOn else
+        UULog.debug(tag: LOG_TAG, message: "notifyNearbyPeripherals, list.count: \(list.count)")
+        
+        if let err = checkCentralState()
         {
-            let err = NSError.uuCentralStateNotReadyError(centralManager.centralState)
+            UULog.debug(tag: LOG_TAG, message: "Ending scan in notifyNearbyPeripherals because of a central state error: \(String(describing: err))")
             endScanning(err)
             return
         }
@@ -184,8 +186,7 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
         
         nearbyPeripheralMap[peripheral.identifier] = peripheral
         
-        self.nearbyPeripherals = nearbyPeripheralMap.values
-            .filter(shouldDiscoverPeripheral)
+        self.nearbyPeripherals = nearbyPeripheralMap.values.filter(shouldDiscoverPeripheral)
         
         UULog.verbose(tag: LOG_TAG, message: "There are \(self.nearbyPeripherals.count) peripherals nearby")
     }

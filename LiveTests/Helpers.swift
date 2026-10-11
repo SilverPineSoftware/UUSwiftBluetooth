@@ -11,45 +11,6 @@ import UUSwiftBluetooth
 import UUSwiftTestCore
 import XCTest
 
-/*
-public extension UUPeripheralScanner
-{
-    mutating func scanForPeripheral(timeout: TimeInterval, filter: @escaping (UUPeripheral)->Bool) async -> UUPeripheral?
-    {
-        return await withCheckedContinuation
-        { continuation in
-            
-            let timerId = "scanForPeripheralTimerId"
-            
-            config = UUPeripheralScannerConfig()
-            config.discoveryFilters = [SinglePeripheralFilter(filter) ]
-            
-            listChanged =
-            { scanner, peripherals in
-                
-                //NSLog("Discovered peripherals: \(peripherals)")
-                
-                if let p = peripherals.first
-                {
-                    UUTimerPool.shared.cancel(by: timerId)
-                    scanner.stop()
-                    continuation.resume(returning: p)
-                }
-            }
-            
-            start()
-            
-            // Stop scanning after timeout
-            UUTimerPool.shared.start(identifier: timerId, timeout: 5.0, userInfo: self)
-            { scanner in
-                
-                (scanner as? UUPeripheralScanner)?.stop()
-                continuation.resume(returning: nil)
-            }
-        }
-    }
-}*/
-
 public extension XCTestCase
 {
     func scanForPeripheral(name: String, timeout: TimeInterval = 10.0) throws -> UUPeripheral
@@ -73,6 +34,7 @@ public extension XCTestCase
         config.discoveryFilters = [SinglePeripheralFilter(filter) ]
         
         var scanner = scanner
+        scanner.config = config
         
         var foundPeripheral: UUPeripheral? = nil
         
@@ -90,7 +52,7 @@ public extension XCTestCase
         
         scanner.ended =
         { scanner, error in
-            NSLog("Scan Ended")
+            NSLog("Scan Ended, error: \(String(describing: error))")
             exp.fulfill()
         }
         
@@ -102,7 +64,6 @@ public extension XCTestCase
             scanner.stop()
         }
         
-        //uuWaitForExpectations(30.0)
         wait(for: [exp], timeout: 30.0)
         
         return foundPeripheral
@@ -129,8 +90,8 @@ public func UUPeripheralNameFilter(_ name: String) -> ((UUPeripheral)->Bool)
 {
     return { peripheral in
         
-        NSLog("UUPeripheralNameFilter, checking: \(peripheral.identifier), \(peripheral.name), \(peripheral.rssi), \(peripheral.advertisement.localName)")
-        
-        return peripheral.advertisement.localName == name
+        let match = (peripheral.advertisement.localName == name)
+        NSLog("UUPeripheralNameFilter, checking: \(peripheral.identifier), \(peripheral.name), \(peripheral.rssi), \(peripheral.advertisement.localName) --> \(match)")
+        return match
     }
 }

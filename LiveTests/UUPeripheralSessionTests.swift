@@ -14,6 +14,8 @@ import CoreBluetooth
 
 final class UUPeripheralSessionTests: XCTestCase
 {
+    private let peripheralName = "CC2650 SensorTag"
+    
     override func setUpWithError() throws
     {
         let logger = UULogger.console
@@ -39,9 +41,7 @@ final class UUPeripheralSessionTests: XCTestCase
         let endExp = uuExpectationForMethod(tag: "session_end")
         
         UUTestAddLine("Scanning for peripheral")
-        let peripheralName = "Code Ninja Mac"
-        //var scanner = UUBluetooth.scanner
-        //let peripheralOpt = await scanner.scanForPeripheral(timeout: 10, filter: UUPeripheralNameFilter(peripheralName))
+        
         let peripheral = try scanForPeripheral(name: peripheralName)
         
         UUTestAddLine("Found peripheral")
@@ -85,10 +85,7 @@ final class UUPeripheralSessionTests: XCTestCase
         let endExp = uuExpectationForMethod(tag: "session_end")
         
         UUTestAddLine("Scanning for peripheral")
-        let peripheralName = "Code Ninja Mac"
-//        var scanner = UUBluetooth.scanner
-//        let peripheralOpt = await scanner.scanForPeripheral(timeout: 10, filter: UUPeripheralNameFilter(peripheralName))
-//        let peripheral = try XCTUnwrap(peripheralOpt)
+        
         let peripheral = try scanForPeripheral(name: peripheralName)
         
         UUTestAddLine("Found peripheral")
@@ -111,7 +108,7 @@ final class UUPeripheralSessionTests: XCTestCase
         UUTestAddLine("Starting session")
         session.start()
         
-        wait(for: [startExp], timeout: 30.0)
+        wait(for: [startExp], timeout: 60.0)
         
         UUTestAddLine("Waiting a while...")
         uuTestWait(10.0)

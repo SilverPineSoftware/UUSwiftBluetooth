@@ -99,20 +99,6 @@ public class UUCentralManager: UUManagerStateMonitor
     
     private func handleCentralStateChanged(_ state: CBManagerState)
     {
-        /*defer { peripheralsMutex.unlock() }
-        peripheralsMutex.lock()
-        
-        peripherals.values.forEach
-        { p in
-            
-            UUDebugLog("Peripheral \(p.identifier)-\(p.name), state is \(UUCBPeripheralStateToString(p.peripheralState)) (\(p.peripheralState) when central state changed to \(UUCBManagerStateToString(state)) (\(state)")
-            
-            if (state != .poweredOn)
-            {
-                self.notifyDisconnect(p, nil)
-            }
-        }*/
-        
         switch (state)
         {
             case .poweredOn:
