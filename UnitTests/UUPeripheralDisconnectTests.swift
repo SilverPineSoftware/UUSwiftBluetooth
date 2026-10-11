@@ -93,6 +93,9 @@ final class UUPeripheralDisconnectTests: XCTestCase
         {
             self.start(.characteristicRead, fixture: fixture, timeout: 60)
             { error in results.append(error) }
+        }
+        fixture.central.dispatchQueue.sync
+        {
             XCTAssertEqual(fixture.backend.responses.count, 1)
             fixture.backend.deliverResponses()
             XCTAssertEqual(results.count, 1)
@@ -129,6 +132,9 @@ final class UUPeripheralDisconnectTests: XCTestCase
                     completed.append(operation)
                 }
             }
+        }
+        fixture.central.dispatchQueue.sync
+        {
             XCTAssertEqual(fixture.backend.responses.count, Operation.allCases.count)
             fixture.peripheral.disconnect()
         }
@@ -198,6 +204,9 @@ final class UUPeripheralDisconnectTests: XCTestCase
                     XCTAssertNil(error)
                     enabled = true
                 })
+        }
+        fixture.central.dispatchQueue.sync
+        {
             fixture.backend.deliverResponses()
             XCTAssertTrue(enabled)
             fixture.peripheral.disconnect()
@@ -253,6 +262,9 @@ final class UUPeripheralDisconnectTests: XCTestCase
                 }
                 completed.fulfill()
             }
+        }
+        fixture.central.dispatchQueue.sync
+        {
             // Proves the operation reached the backend rather than failing validation.
             XCTAssertEqual(fixture.backend.responses.count, 1, file: file, line: line)
             XCTAssertTrue(results.isEmpty, "The response is explicitly held pending", file: file, line: line)

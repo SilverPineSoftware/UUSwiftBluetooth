@@ -27,6 +27,18 @@ Then, following the instructions for [integrating Carthage frameworks into your 
 This library requires a deployment target of iOS 15.0 or greater or OSX 10.13 or greater.
 UUSwiftBluetooth currently supports Swift version 5.3 
 
+## Concurrent operations
+
+`UUPeripheral` always enqueues operation setup asynchronously on its central manager queue, including calls made from that queue. Calls do not wait for the queue. Validation, callback registration, timer creation, and native submission run together on the queue; operation deadlines start when queued setup executes. Completion handlers run on that queue and may enqueue another operation without blocking it. Busy rejection is also dispatched, never invoked inline by the public method.
+
+Reads and writes use separate pending callback/timer keys per characteristic or descriptor UUID. Characteristic and included-service discovery use service UUIDs; descriptor discovery and notification-state changes use characteristic UUIDs. Different keys may operate concurrently. Service discovery, RSSI reads, and L2CAP channel opening each allow one pending request per peripheral.
+
+A request for an occupied key completes with `UUCoreBluetoothErrorCode.operationInProgress` without changing the original request, timer, or notification subscription. Connection ownership is per peripheral identifier and lasts through disconnection: a duplicate `connect` reports that error through its own `disconnected` callback without replacing the owner's callbacks.
+
+The old `UUCBPeripheralBlockDelegate` properties `discoverIncludedServicesBlock`, `discoverCharacteristicsBlock`, `discoverDescriptorsBlock`, and `setNotifyValueForCharacteristicBlock` were removed. Direct callers should use the corresponding `UUPeripheral` operation APIs.
+
+UUID keys do not distinguish separate attributes sharing the same UUID. A local timeout also does not cancel the native request; retrying before its late response arrives remains a known limitation (review findings #5 and #6).
+
 ## Contributing
 
 Please **open pull requests against the `develop` branch**

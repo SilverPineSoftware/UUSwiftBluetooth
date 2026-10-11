@@ -5,7 +5,7 @@
 **Scope:** Library stack/configuration, central and peripheral delegates, scanning, GATT operations, sessions, operations, L2CAP client/server, representations, mocks, extensions, sniffer, sample integration, package/project configuration, and test coverage.  
 **Review only:** No implementation or existing test files changed. This review supersedes the current-state assessment in Review 001 while retaining that document as history.
 
-**Status update — 2026-10-11:** Findings #1 (macOS compilation and test setup), #2 (unit-test build entry point), and #3 (disconnect completion loss) are resolved. The original assessment and validation below describe the 2026-10-10 snapshot; each resolved finding records its follow-up evidence. Other findings remain open.
+**Status update — 2026-10-11:** Findings #1 (macOS compilation and test setup), #2 (unit-test build entry point), #3 (disconnect completion loss), and #4 (overlapping operation ownership) are resolved. The original assessment and validation below describe the 2026-10-10 snapshot; each resolved finding records its follow-up evidence. Other findings remain open.
 
 ## Overall assessment (original review)
 
@@ -74,7 +74,12 @@ Start a characteristic read, then disconnect before its response. `cleanupAfterD
 
 **Regression:** Disconnect during every operation family and assert one terminal callback per outstanding request, no success afterward, and no retained completion.
 
-### 4. [P1] Overlapping operations overwrite handlers or cancel another request's timeout
+### 4. [Resolved — P1] Overlapping operations overwrite handlers or cancel another request's timeout
+
+**Resolved 2026-10-11:** Reads/writes retain independent UUID-scoped callbacks and timers. Characteristic/included-service discovery now uses service-scoped callback maps and timers; descriptor discovery and notification-state changes use characteristic-scoped maps. Occupied operation keys return `operationInProgress` before changing callbacks, timers, subscriptions, or issuing native requests. Connection registration rejects duplicate owners through disconnection. Entire operation setup is always dispatched asynchronously onto the central queue, matching delegate/timer delivery, with no synchronous dispatch or queue-specific check. Reentrant calls enqueue subsequent work. Handlers are detached before user completions, and disconnect drains all scoped maps. The four superseded public delegate single-slot properties and their fallback paths were removed; delegate tests now register callbacks by target UUID. Direct users of those removed properties must migrate to the UUPeripheral operation APIs.
+
+**Validation:** The macOS UnitTests plan passes all 111 tests, including 35 overlap tests covering independent timeouts, duplicate rejection and key reuse, distinct-target response routing and disconnect cleanup, subscription preservation, connection ownership, reentrant reads, simultaneous callers, deferred setup/rejection on the central queue, and nonblocking calls while the queue is occupied. The focused iOS Simulator run also passes all 52 overlap/disconnect tests. This resolves #4; late-response recovery (#5), UUID identity collisions (#6), and broader state isolation outside these operation entry points (#8) remain open. Original finding text follows for history.
+
 
 **Locations:** [`UUPeripheral.swift:249`](../Library/Peripheral/UUPeripheral.swift#L249), [`UUPeripheral.swift:541`](../Library/Peripheral/UUPeripheral.swift#L541), [`UUPeripheral.swift:920`](../Library/Peripheral/UUPeripheral.swift#L920), [`UUCBPeripheralBlockDelegate.swift:30`](../Library/Delegates/UUCBPeripheralBlockDelegate.swift#L30).
 

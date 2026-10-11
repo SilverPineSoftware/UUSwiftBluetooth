@@ -31,12 +31,12 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     public var didModifyServicesBlock: UUCBPeripheralServiceListBlock? = nil
     public var didReadRssiBlock: UUObjectErrorBlock<Int>? = nil
     public var discoverServicesBlock: UUListErrorBlock<CBService>? = nil
-    public var discoverIncludedServicesBlock: UUListErrorBlock<CBService>? = nil
-    public var discoverCharacteristicsBlock: UUListErrorBlock<CBCharacteristic>? = nil
-    public var discoverDescriptorsBlock: UUListErrorBlock<CBDescriptor>? = nil
-    public var setNotifyValueForCharacteristicBlock: UUErrorBlock? = nil
     public var l2CapChannelOpenedBlock: UUObjectErrorBlock<UUCBL2CAPChannel>? = nil
     
+    internal var discoverIncludedServicesBlocks: [String:UUListErrorBlock<CBService>] = [:]
+    internal var discoverCharacteristicsBlocks: [String:UUListErrorBlock<CBCharacteristic>] = [:]
+    internal var discoverDescriptorsBlocks: [String:UUListErrorBlock<CBDescriptor>] = [:]
+    internal var setNotifyValueForCharacteristicBlocks: [String:UUErrorBlock] = [:]
     internal var updateValueForCharacteristicBlocks: [String:UUObjectErrorBlock<Data>] = [:]
     internal var readValueForCharacteristicBlocks: [String:UUObjectErrorBlock<Data>] = [:]
     internal var writeValueForCharacteristicBlocks: [String:UUErrorBlock] = [:]
@@ -53,12 +53,12 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         didModifyServicesBlock = nil
         didReadRssiBlock = nil
         discoverServicesBlock = nil
-        discoverIncludedServicesBlock = nil
-        discoverCharacteristicsBlock = nil
-        discoverDescriptorsBlock = nil
-        setNotifyValueForCharacteristicBlock = nil
         l2CapChannelOpenedBlock = nil
         
+        discoverIncludedServicesBlocks.removeAll()
+        discoverCharacteristicsBlocks.removeAll()
+        discoverDescriptorsBlocks.removeAll()
+        setNotifyValueForCharacteristicBlocks.removeAll()
         updateValueForCharacteristicBlocks.removeAll()
         readValueForCharacteristicBlocks.removeAll()
         writeValueForCharacteristicBlocks.removeAll()
@@ -73,25 +73,25 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     {
         let rssi = didReadRssiBlock
         let services = discoverServicesBlock
-        let includedServices = discoverIncludedServicesBlock
-        let characteristics = discoverCharacteristicsBlock
-        let descriptors = discoverDescriptorsBlock
-        let notifyState = setNotifyValueForCharacteristicBlock
         let channel = l2CapChannelOpenedBlock
         let characteristicReads = Array(readValueForCharacteristicBlocks.values)
         let characteristicWrites = Array(writeValueForCharacteristicBlocks.values)
         let descriptorReads = Array(readValueForDescriptorBlocks.values)
         let descriptorWrites = Array(writeValueForDescriptorBlocks.values)
 
+        let pendingIncludedServices = Array(discoverIncludedServicesBlocks.values)
+        let pendingCharacteristics = Array(discoverCharacteristicsBlocks.values)
+        let pendingDescriptors = Array(discoverDescriptorsBlocks.values)
+        let pendingNotifyStates = Array(setNotifyValueForCharacteristicBlocks.values)
         clearBlocks()
 
         return {
             rssi?(nil, error)
             services?(nil, error)
-            includedServices?(nil, error)
-            characteristics?(nil, error)
-            descriptors?(nil, error)
-            notifyState?(error)
+            pendingIncludedServices.forEach { $0(nil, error) }
+            pendingCharacteristics.forEach { $0(nil, error) }
+            pendingDescriptors.forEach { $0(nil, error) }
+            pendingNotifyStates.forEach { $0(error) }
             channel?(nil, error)
             characteristicReads.forEach { $0(nil, error) }
             characteristicWrites.forEach { $0(error) }
@@ -106,15 +106,15 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
         UULog.debug(tag: LOG_TAG, message: "didModifyServicesBlock: \(String(describing: didModifyServicesBlock))")
         UULog.debug(tag: LOG_TAG, message: "didReadRssiBlock: \(String(describing: didReadRssiBlock))")
         UULog.debug(tag: LOG_TAG, message: "discoverServicesBlock: \(String(describing: discoverServicesBlock))")
-        UULog.debug(tag: LOG_TAG, message: "discoverIncludedServicesBlock: \(String(describing: discoverIncludedServicesBlock))")
-        UULog.debug(tag: LOG_TAG, message: "discoverCharacteristicsBlock: \(String(describing: discoverCharacteristicsBlock))")
+        UULog.debug(tag: LOG_TAG, message: "discoverIncludedServicesBlocks: \(String(describing: discoverIncludedServicesBlocks))")
+        UULog.debug(tag: LOG_TAG, message: "discoverCharacteristicsBlocks: \(String(describing: discoverCharacteristicsBlocks))")
         UULog.debug(tag: LOG_TAG, message: "updateValueForCharacteristicBlocks: \(String(describing: updateValueForCharacteristicBlocks))")
         UULog.debug(tag: LOG_TAG, message: "readValueForCharacteristicBlocks: \(String(describing: readValueForCharacteristicBlocks))")
         UULog.debug(tag: LOG_TAG, message: "writeValueForCharacteristicBlocks: \(String(describing: writeValueForCharacteristicBlocks))")
         UULog.debug(tag: LOG_TAG, message: "readValueForDescriptorBlocks: \(String(describing: readValueForDescriptorBlocks))")
         UULog.debug(tag: LOG_TAG, message: "writeValueForDescriptorBlocks: \(String(describing: writeValueForDescriptorBlocks))")
-        UULog.debug(tag: LOG_TAG, message: "setNotifyValueForCharacteristicBlock: \(String(describing: setNotifyValueForCharacteristicBlock))")
-        UULog.debug(tag: LOG_TAG, message: "discoverDescriptorsBlock: \(String(describing: discoverDescriptorsBlock))")
+        UULog.debug(tag: LOG_TAG, message: "setNotifyValueForCharacteristicBlocks: \(String(describing: setNotifyValueForCharacteristicBlocks))")
+        UULog.debug(tag: LOG_TAG, message: "discoverDescriptorsBlocks: \(String(describing: discoverDescriptorsBlocks))")
         UULog.debug(tag: LOG_TAG, message: "l2CapChannelOpenedBlock: \(String(describing: l2CapChannelOpenedBlock))")
     }
 
@@ -299,8 +299,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     
     public func handleDiscoverIncludedServices(_ peripheral: UUCBPeripheral, _ service: UUCBService, _ error: Error?)
     {
-        let block = discoverIncludedServicesBlock
-        discoverIncludedServicesBlock = nil
+        let block = discoverIncludedServicesBlocks.removeValue(forKey: service.uuid.uuidString)
         
         let updatedService = peripheral.services?.first { $0.uuid == service.uuid }
         
@@ -309,8 +308,7 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     
     public func handleDiscoverCharacteristics(_ peripheral: UUCBPeripheral, _ service: UUCBService, _ error: Error?)
     {
-        let block = discoverCharacteristicsBlock
-        discoverCharacteristicsBlock = nil
+        let block = discoverCharacteristicsBlocks.removeValue(forKey: service.uuid.uuidString)
         block?(service.characteristics, error)
     }
     
@@ -343,15 +341,13 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     
     public func handleDidUpdateNotificationState(_ peripheral: UUCBPeripheral, _ characteristic: UUCBCharacteristic, _ error: Error?)
     {
-        let block = setNotifyValueForCharacteristicBlock
-        setNotifyValueForCharacteristicBlock = nil
+        let block = setNotifyValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuid.uuidString)
         block?(error)
     }
     
     public func handleDescriptorDiscovery(_ peripheral: UUCBPeripheral, _ characteristic: UUCBCharacteristic, _ error: Error?)
     {
-        let block = discoverDescriptorsBlock
-        discoverDescriptorsBlock = nil
+        let block = discoverDescriptorsBlocks.removeValue(forKey: characteristic.uuid.uuidString)
         block?(characteristic.descriptors, error)
     }
     

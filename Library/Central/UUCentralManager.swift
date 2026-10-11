@@ -199,11 +199,13 @@ public class UUCentralManager: UUManagerStateMonitor
     }
     
     
-    func registerConnectionBlocks(_ identifier: UUID, _ connectedBlock: @escaping UUCBPeripheralBlock, _ disconnectedBlock: @escaping UUCBPeripheralErrorBlock)
+    func registerConnectionBlocks(_ identifier: UUID, _ connectedBlock: @escaping UUCBPeripheralBlock, _ disconnectedBlock: @escaping UUCBPeripheralErrorBlock) -> Bool
     {
         let key = identifier
+        guard delegate.connectBlocks[key] == nil, delegate.disconnectBlocks[key] == nil else { return false }
         delegate.connectBlocks[key] = connectedBlock
         delegate.disconnectBlocks[key] = disconnectedBlock
+        return true
     }
     
     func removeConnectionBlocks(_ identifier: UUID)

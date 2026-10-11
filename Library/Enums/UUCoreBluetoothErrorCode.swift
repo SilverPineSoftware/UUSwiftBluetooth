@@ -48,6 +48,9 @@ public enum UUCoreBluetoothErrorCode: Int, CaseIterable
     
     // Bluetooth is turned off
     case bluetoothDisabled = 12
+
+    /// A conflicting operation or connection owner already exists.
+    case operationInProgress = 13
 }
 
 internal extension UUCoreBluetoothErrorCode
@@ -89,6 +92,9 @@ internal extension UUCoreBluetoothErrorCode
             case .descriptorNotDiscovered:
                 return "DescriptorNotDiscovered"
             
+            case .operationInProgress:
+                return "OperationInProgress"
+
             case .bluetoothDisabled:
                 return "BluetoothDisabled"
         }
@@ -131,6 +137,9 @@ internal extension UUCoreBluetoothErrorCode
             case .descriptorNotDiscovered:
                 return "A descriptor was not discovered on the peripheral."
             
+            case .operationInProgress:
+                return "Wait for the pending operation or connection to finish before retrying."
+
             case .bluetoothDisabled:
                 return "Turn bluetooth on and try again."
         }

@@ -13,6 +13,10 @@ fileprivate let LOG_TAG = "UUPeripheral"
 
 // UUPeripheral is a convenience class that wraps a CBPeripheral and it's
 // advertisement data into one object.
+// Operation setup is always enqueued asynchronously on the central manager queue.
+// Completions run on that queue. Different operation/UUID keys may overlap;
+// a duplicate pending key returns operationInProgress.
+// Connection ownership lasts until disconnection, including after connection succeeds.
 //
 open class UUPeripheral: Identifiable, CustomStringConvertible
 {
@@ -153,60 +157,67 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         connected: @escaping UUVoidBlock,
         disconnected: @escaping UUErrorBlock)
     {
-        guard centralManager.isPoweredOn else
-        {
-            let err = NSError.uuCentralStateNotReadyError(centralManager.centralState)
-            disconnected(err)
-            return
+        dispatchQueue.async
+        { [self] in
+            guard centralManager.isPoweredOn else
+            {
+                let err = NSError.uuCentralStateNotReadyError(centralManager.centralState)
+                disconnected(err)
+                return
+            }
+        
+            let timerId = TimerId.connect
+        
+            let connectedBlock: UUCBPeripheralBlock =
+            { p in
+            
+                self.cancelTimer(timerId)
+                connected()
+            }
+        
+            let disconnectedBlock: UUCBPeripheralErrorBlock =
+            { p, error in
+            
+                self.cleanupAfterDisconnect(error)
+            
+                disconnected(error)
+            }
+        
+            let identifier = underlyingPeripheral.identifier
+        
+            guard centralManager.registerConnectionBlocks(identifier, connectedBlock, disconnectedBlock) else
+            {
+                disconnected(NSError.uuCoreBluetoothError(.operationInProgress))
+                return
+            }
+        
+            startTimer(timerId, timeout)
+            {
+            
+                UULog.debug(tag: LOG_TAG, message: "Connect timeout for \(self.debugName)")
+            
+                self.centralManager.removeConnectionBlocks(identifier)
+            
+                // Issue the disconnect but disconnect any delegate's.  In the case of
+                // CBCentralManager being off or reset when this happens, immediately
+                // calling the disconnected block ensures there is not an infinite
+                // timeout situation.
+                self.centralManager.cancelPeripheralConnection(identifier)
+            
+                let err = NSError.uuCoreBluetoothError(.timeout)
+                self.cancelTimer(timerId)
+                disconnected(err)
+            }
+        
+            //var options: [String: Any] = [:]
+            /*if #available(iOS 17.0, *) {
+                options[CBConnectPeripheralOptionEnableAutoReconnect] = true
+            } else {
+                // Fallback on earlier versions
+            }*/
+        
+            centralManager.connect(identifier, nil)
         }
-        
-        let timerId = TimerId.connect
-        
-        let connectedBlock: UUCBPeripheralBlock =
-        { p in
-            
-            self.cancelTimer(timerId)
-            connected()
-        }
-        
-        let disconnectedBlock: UUCBPeripheralErrorBlock =
-        { p, error in
-            
-            self.cleanupAfterDisconnect(error)
-            
-            disconnected(error)
-        }
-        
-        let identifier = underlyingPeripheral.identifier
-        
-        centralManager.registerConnectionBlocks(identifier, connectedBlock, disconnectedBlock)
-        
-        startTimer(timerId, timeout)
-        {
-            
-            UULog.debug(tag: LOG_TAG, message: "Connect timeout for \(self.debugName)")
-            
-            self.centralManager.removeConnectionBlocks(identifier)
-            
-            // Issue the disconnect but disconnect any delegate's.  In the case of
-            // CBCentralManager being off or reset when this happens, immediately
-            // calling the disconnected block ensures there is not an infinite
-            // timeout situation.
-            self.centralManager.cancelPeripheralConnection(identifier)
-            
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.cancelTimer(timerId)
-            disconnected(err)
-        }
-        
-        //var options: [String: Any] = [:]
-        /*if #available(iOS 17.0, *) {
-            options[CBConnectPeripheralOptionEnableAutoReconnect] = true
-        } else {
-            // Fallback on earlier versions
-        }*/
-        
-        centralManager.connect(identifier, nil)
     }
     
     // Wrapper around CBCentralManager cancelPeripheralConnection.  After calling this
@@ -215,34 +226,37 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
     // when the connection disconnects cleanly. Persistent notification handlers are removed.
     public func disconnect(timeout: TimeInterval = UUBluetooth.Defaults.disconnectTimeout)
     {
-        let identifier = underlyingPeripheral.identifier
+        dispatchQueue.async
+        { [self] in
+            let identifier = underlyingPeripheral.identifier
         
-        guard centralManager.isPoweredOn else
-        {
-            UULog.debug(tag: LOG_TAG, message: "Central is not powered on, cannot cancel a connection!")
-            let err = NSError.uuCentralStateNotReadyError(centralManager.centralState)
-            centralManager.notifyDisconnect(identifier, err)
-            return
-        }
+            guard centralManager.isPoweredOn else
+            {
+                UULog.debug(tag: LOG_TAG, message: "Central is not powered on, cannot cancel a connection!")
+                let err = NSError.uuCentralStateNotReadyError(centralManager.centralState)
+                centralManager.notifyDisconnect(identifier, err)
+                return
+            }
         
-        let timerId = TimerId.disconnect
+            let timerId = TimerId.disconnect
         
-        UULog.debug(tag: LOG_TAG, message: "Starting disconnect timeout")
-        startTimer(timerId, timeout)
-        {
-            UULog.debug(tag: LOG_TAG, message: "Disconnect timeout for \(self.debugName)")
+            UULog.debug(tag: LOG_TAG, message: "Starting disconnect timeout")
+            startTimer(timerId, timeout)
+            {
+                UULog.debug(tag: LOG_TAG, message: "Disconnect timeout for \(self.debugName)")
             
-            self.cancelTimer(timerId)
-            self.centralManager.notifyDisconnect(identifier, NSError.uuCoreBluetoothError(.timeout))
+                self.cancelTimer(timerId)
+                self.centralManager.notifyDisconnect(identifier, NSError.uuCoreBluetoothError(.timeout))
             
-            // Just in case the timeout fires and a real disconnect is needed, this is the last
-            // ditch effort to close the connection
-            self.centralManager.cancelPeripheralConnection(identifier)
+                // Just in case the timeout fires and a real disconnect is needed, this is the last
+                // ditch effort to close the connection
+                self.centralManager.cancelPeripheralConnection(identifier)
+            }
+        
+        
+            UULog.debug(tag: LOG_TAG, message: "Cancelling peripheral connection for \(self.debugName)")
+            centralManager.cancelPeripheralConnection(identifier)
         }
-        
-        
-        UULog.debug(tag: LOG_TAG, message: "Cancelling peripheral connection for \(self.debugName)")
-        centralManager.cancelPeripheralConnection(identifier)
     }
     
     // Block based wrapper around CBPeripheral discoverServices, with an optional
@@ -252,29 +266,38 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         timeout: TimeInterval = UUBluetooth.Defaults.operationTimeout,
         completion: @escaping UUListErrorBlock<UUCBService>)
     {
-        UULog.debug(tag: LOG_TAG, message: "Discovering services for \(self.debugName), timeout: \(timeout), service list: \(String(describing: serviceUUIDs))")
+        dispatchQueue.async
+        { [self] in
+            UULog.debug(tag: LOG_TAG, message: "Discovering services for \(self.debugName), timeout: \(timeout), service list: \(String(describing: serviceUUIDs))")
         
-        let timerId = TimerId.serviceDiscovery
+            let timerId = TimerId.serviceDiscovery
+
+            guard delegate.discoverServicesBlock == nil else
+            {
+                completion(nil, NSError.uuCoreBluetoothError(.operationInProgress))
+                return
+            }
         
-        delegate.discoverServicesBlock =
-        { services, errOpt in
+            delegate.discoverServicesBlock =
+            { services, errOpt in
             
-            self.finishOperation(timerId, services, errOpt, completion)
-        }
+                self.finishOperation(timerId, services, errOpt, completion)
+            }
         
-        if let err = canAttemptOperation
-        {
-            endServiceDiscovery(err)
-            return
-        }
+            if let err = canAttemptOperation
+            {
+                endServiceDiscovery(err)
+                return
+            }
         
-        startTimer(timerId, timeout)
-        {
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endServiceDiscovery(err)
-        }
+            startTimer(timerId, timeout)
+            {
+                let err = NSError.uuCoreBluetoothError(.timeout)
+                self.endServiceDiscovery(err)
+            }
         
-        underlyingPeripheral.discoverServices(serviceUUIDs)
+            underlyingPeripheral.discoverServices(serviceUUIDs)
+        }
     }
     
     private func endServiceDiscovery(_ error: Error?)
@@ -293,34 +316,43 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         timeout: TimeInterval,
         completion: @escaping UUListErrorBlock<UUCBCharacteristic>)
     {
-        UULog.debug(tag: LOG_TAG, message: "Discovering characteristics for \(self.debugName), timeout: \(timeout), service: \(service), characteristic list: \(String(describing: characteristicUUIDs))")
+        dispatchQueue.async
+        { [self] in
+            UULog.debug(tag: LOG_TAG, message: "Discovering characteristics for \(self.debugName), timeout: \(timeout), service: \(service), characteristic list: \(String(describing: characteristicUUIDs))")
         
-        let timerId = TimerId.characteristicDiscovery
+            let timerId = TimerId.characteristicDiscovery(service.uuid)
+
+            guard delegate.discoverCharacteristicsBlocks[service.uuid.uuidString] == nil else
+            {
+                completion(nil, NSError.uuCoreBluetoothError(.operationInProgress))
+                return
+            }
         
-        delegate.discoverCharacteristicsBlock =
-        { characteristics, error in
+            delegate.discoverCharacteristicsBlocks[service.uuid.uuidString] =
+            { characteristics, error in
             
-            self.finishOperation(timerId, characteristics, error, completion)
-        }
+                self.finishOperation(timerId, characteristics, error, completion)
+            }
         
-        if let err = canAttemptOperation
-        {
-            endCharacteristicDiscovery(service, err)
-            return
-        }
+            if let err = canAttemptOperation
+            {
+                endCharacteristicDiscovery(service, err)
+                return
+            }
         
-        startTimer(timerId, timeout)
-        {
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endCharacteristicDiscovery(service, err)
-        }
+            startTimer(timerId, timeout)
+            {
+                let err = NSError.uuCoreBluetoothError(.timeout)
+                self.endCharacteristicDiscovery(service, err)
+            }
         
-        if let err = underlyingPeripheral.discoverCharacteristics(characteristicUUIDs, service)
-        {
-            endCharacteristicDiscovery(service, err)
-            return
+            if let err = underlyingPeripheral.discoverCharacteristics(characteristicUUIDs, service)
+            {
+                endCharacteristicDiscovery(service, err)
+                return
+            }
+            // else, wait for delegate to invoke callback block, or timeout to happen
         }
-        // else, wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endCharacteristicDiscovery(_ service: UUCBService, _ error: Error?)
@@ -339,34 +371,43 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         timeout: TimeInterval,
         completion: @escaping UUListErrorBlock<UUCBService>)
     {
-        UULog.debug(tag: LOG_TAG, message: "Discovering included services for \(self.debugName), timeout: \(timeout), service: \(service), service list: \(String(describing: includedServiceUUIDs))")
+        dispatchQueue.async
+        { [self] in
+            UULog.debug(tag: LOG_TAG, message: "Discovering included services for \(self.debugName), timeout: \(timeout), service: \(service), service list: \(String(describing: includedServiceUUIDs))")
         
-        let timerId = TimerId.includedServicesDiscovery
+            let timerId = TimerId.includedServicesDiscovery(service.uuid)
+
+            guard delegate.discoverIncludedServicesBlocks[service.uuid.uuidString] == nil else
+            {
+                completion(nil, NSError.uuCoreBluetoothError(.operationInProgress))
+                return
+            }
         
-        delegate.discoverIncludedServicesBlock =
-        { services, error in
+            delegate.discoverIncludedServicesBlocks[service.uuid.uuidString] =
+            { services, error in
             
-            self.finishOperation(timerId, services, error, completion)
-        }
+                self.finishOperation(timerId, services, error, completion)
+            }
         
-        if let err = canAttemptOperation
-        {
-            endDiscoverIncludedServices(service, err)
-            return
-        }
+            if let err = canAttemptOperation
+            {
+                endDiscoverIncludedServices(service, err)
+                return
+            }
         
-        startTimer(timerId, timeout)
-        {
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endDiscoverIncludedServices(service, err)
-        }
+            startTimer(timerId, timeout)
+            {
+                let err = NSError.uuCoreBluetoothError(.timeout)
+                self.endDiscoverIncludedServices(service, err)
+            }
         
-        if let err = underlyingPeripheral.discoverIncludedServices(includedServiceUUIDs, service)
-        {
-            endDiscoverIncludedServices(service, err)
-            return
+            if let err = underlyingPeripheral.discoverIncludedServices(includedServiceUUIDs, service)
+            {
+                endDiscoverIncludedServices(service, err)
+                return
+            }
+            // else, wait for delegate to invoke callback block, or timeout to happen
         }
-        // else, wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endDiscoverIncludedServices(_ service: UUCBService, _ error: Error?)
@@ -384,34 +425,43 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         timeout: TimeInterval,
         completion: @escaping UUListErrorBlock<UUCBDescriptor>)
     {
-        UULog.debug(tag: LOG_TAG, message: "Discovering descriptors for \(self.debugName), timeout: \(timeout), characteristic: \(characteristic)")
+        dispatchQueue.async
+        { [self] in
+            UULog.debug(tag: LOG_TAG, message: "Discovering descriptors for \(self.debugName), timeout: \(timeout), characteristic: \(characteristic)")
         
-        let timerId = TimerId.descriptorDiscovery(characteristic.uuid)
+            let timerId = TimerId.descriptorDiscovery(characteristic.uuid)
+
+            guard delegate.discoverDescriptorsBlocks[characteristic.uuid.uuidString] == nil else
+            {
+                completion(nil, NSError.uuCoreBluetoothError(.operationInProgress))
+                return
+            }
         
-        delegate.discoverDescriptorsBlock =
-        { descriptors, error in
+            delegate.discoverDescriptorsBlocks[characteristic.uuid.uuidString] =
+            { descriptors, error in
             
-            self.finishOperation(timerId, descriptors, error, completion)
-        }
+                self.finishOperation(timerId, descriptors, error, completion)
+            }
         
-        if let err = canAttemptOperation
-        {
-            endDescriptorDiscovery(characteristic, err)
-            return
-        }
+            if let err = canAttemptOperation
+            {
+                endDescriptorDiscovery(characteristic, err)
+                return
+            }
         
-        startTimer(timerId, timeout)
-        {
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endDescriptorDiscovery(characteristic, err)
-        }
+            startTimer(timerId, timeout)
+            {
+                let err = NSError.uuCoreBluetoothError(.timeout)
+                self.endDescriptorDiscovery(characteristic, err)
+            }
         
-        if let err = underlyingPeripheral.discoverDescriptors(characteristic)
-        {
-            endDescriptorDiscovery(characteristic, err)
-            return
+            if let err = underlyingPeripheral.discoverDescriptors(characteristic)
+            {
+                endDescriptorDiscovery(characteristic, err)
+                return
+            }
+            // else, wait for delegate to invoke callback block, or timeout to happen
         }
-        // else, wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endDescriptorDiscovery(_ characteristic: UUCBCharacteristic, _ error: Error?)
@@ -492,43 +542,52 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         notifyHandler: UUObjectErrorBlock<Data>?,
         completion: @escaping UUErrorBlock)
     {
-        UULog.debug(tag: LOG_TAG, message: "Set Notify State for \(self.debugName), enabled: \(enabled), timeout: \(timeout), characateristic: \(characteristic)")
+        dispatchQueue.async
+        { [self] in
+            UULog.debug(tag: LOG_TAG, message: "Set Notify State for \(self.debugName), enabled: \(enabled), timeout: \(timeout), characateristic: \(characteristic)")
         
-        let timerId = TimerId.characteristicNotifyState(characteristic.uuid)
+            let timerId = TimerId.characteristicNotifyState(characteristic.uuid)
+
+            guard delegate.setNotifyValueForCharacteristicBlocks[characteristic.uuid.uuidString] == nil else
+            {
+                completion(NSError.uuCoreBluetoothError(.operationInProgress))
+                return
+            }
         
-        delegate.setNotifyValueForCharacteristicBlock =
-        { error in
+            delegate.setNotifyValueForCharacteristicBlocks[characteristic.uuid.uuidString] =
+            { error in
             
-            self.finishOperation(timerId, error, completion)
-        }
+                self.finishOperation(timerId, error, completion)
+            }
         
-        if (enabled)
-        {
-            delegate.registerCharacteristicUpdateHandler(characteristic.uuid, notifyHandler)
-        }
-        else
-        {
-            delegate.removeUpdateHandlerForCharacteristic(characteristic.uuid)
-        }
+            if (enabled)
+            {
+                delegate.registerCharacteristicUpdateHandler(characteristic.uuid, notifyHandler)
+            }
+            else
+            {
+                delegate.removeUpdateHandlerForCharacteristic(characteristic.uuid)
+            }
         
-        if let err = canAttemptOperation
-        {
-            self.endSetNotify(characteristic, err)
-            return
-        }
+            if let err = canAttemptOperation
+            {
+                self.endSetNotify(characteristic, err)
+                return
+            }
         
-        startTimer(timerId, timeout)
-        {
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endSetNotify(characteristic, err)
-        }
+            startTimer(timerId, timeout)
+            {
+                let err = NSError.uuCoreBluetoothError(.timeout)
+                self.endSetNotify(characteristic, err)
+            }
         
-        if let err = underlyingPeripheral.setNotifyValue(enabled, for: characteristic)
-        {
-            self.endSetNotify(characteristic, err)
-            return
+            if let err = underlyingPeripheral.setNotifyValue(enabled, for: characteristic)
+            {
+                self.endSetNotify(characteristic, err)
+                return
+            }
+            // else, wait for delegate to invoke callback block, or timeout to happen
         }
-        // else, wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endSetNotify(_ characteristic: UUCBCharacteristic, _ error: Error?)
@@ -546,34 +605,43 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         timeout: TimeInterval,
         completion: @escaping UUObjectErrorBlock<Data>)
     {
-        UULog.debug(tag: LOG_TAG, message: "Read value for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
+        dispatchQueue.async
+        { [self] in
+            UULog.debug(tag: LOG_TAG, message: "Read value for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
         
-        let timerId = TimerId.readCharacteristic(characteristic.uuid)
+            let timerId = TimerId.readCharacteristic(characteristic.uuid)
+
+            guard delegate.readValueForCharacteristicBlocks[characteristic.uuid.uuidString] == nil else
+            {
+                completion(nil, NSError.uuCoreBluetoothError(.operationInProgress))
+                return
+            }
         
-        delegate.registerCharacteristicReadHandler(characteristic.uuid)
-        { data, error in
+            delegate.registerCharacteristicReadHandler(characteristic.uuid)
+            { data, error in
             
-            self.finishOperation(timerId, data, error, completion)
-        }
+                self.finishOperation(timerId, data, error, completion)
+            }
         
-        startTimer(timerId, timeout)
-        {
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endReadValue(characteristic, err)
-        }
+            startTimer(timerId, timeout)
+            {
+                let err = NSError.uuCoreBluetoothError(.timeout)
+                self.endReadValue(characteristic, err)
+            }
         
-        if let err = canAttemptOperation
-        {
-            endReadValue(characteristic, err)
-            return
-        }
+            if let err = canAttemptOperation
+            {
+                endReadValue(characteristic, err)
+                return
+            }
         
-        if let err = underlyingPeripheral.readValue(characteristic)
-        {
-            endReadValue(characteristic, err)
-            return
+            if let err = underlyingPeripheral.readValue(characteristic)
+            {
+                endReadValue(characteristic, err)
+                return
+            }
+            // else, wait for delegate to invoke callback block, or timeout to happen
         }
-        // else, wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endReadValue(_ characteristic: UUCBCharacteristic, _ error: Error?)
@@ -591,34 +659,43 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         timeout: TimeInterval = UUBluetooth.Defaults.operationTimeout,
         completion: @escaping UUObjectErrorBlock<Any>)
     {
-        UULog.debug(tag: LOG_TAG, message: "Read value for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
+        dispatchQueue.async
+        { [self] in
+            UULog.debug(tag: LOG_TAG, message: "Read value for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
         
-        let timerId = TimerId.readDescriptor(descriptor.uuid)
+            let timerId = TimerId.readDescriptor(descriptor.uuid)
+
+            guard delegate.readValueForDescriptorBlocks[descriptor.uuid.uuidString] == nil else
+            {
+                completion(nil, NSError.uuCoreBluetoothError(.operationInProgress))
+                return
+            }
         
-        delegate.registerDescriptorReadHandler(descriptor.uuid)
-        { data, error in
+            delegate.registerDescriptorReadHandler(descriptor.uuid)
+            { data, error in
             
-            self.finishOperation(timerId, data, error, completion)
-        }
+                self.finishOperation(timerId, data, error, completion)
+            }
         
-        if let err = canAttemptOperation
-        {
-            endReadDescriptor(descriptor, err)
-            return
-        }
+            if let err = canAttemptOperation
+            {
+                endReadDescriptor(descriptor, err)
+                return
+            }
         
-        startTimer(timerId, timeout)
-        {
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endReadDescriptor(descriptor, err)
-        }
+            startTimer(timerId, timeout)
+            {
+                let err = NSError.uuCoreBluetoothError(.timeout)
+                self.endReadDescriptor(descriptor, err)
+            }
         
-        if let err = underlyingPeripheral.readValue(descriptor)
-        {
-            endReadDescriptor(descriptor, err)
-            return
+            if let err = underlyingPeripheral.readValue(descriptor)
+            {
+                endReadDescriptor(descriptor, err)
+                return
+            }
+            // else, wait for delegate to invoke callback block, or timeout to happen
         }
-        // else, wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endReadDescriptor(_ descriptor: UUCBDescriptor, _ error: Error?)
@@ -638,34 +715,43 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         timeout: TimeInterval = UUBluetooth.Defaults.operationTimeout,
         completion: @escaping UUErrorBlock)
     {
-        UULog.debug(tag: LOG_TAG, message: "Write value \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
+        dispatchQueue.async
+        { [self] in
+            UULog.debug(tag: LOG_TAG, message: "Write value \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
         
-        let timerId = TimerId.writeCharacteristic(characteristic.uuid)
+            let timerId = TimerId.writeCharacteristic(characteristic.uuid)
+
+            guard delegate.writeValueForCharacteristicBlocks[characteristic.uuid.uuidString] == nil else
+            {
+                completion(NSError.uuCoreBluetoothError(.operationInProgress))
+                return
+            }
         
-        delegate.registerCharacteristicWriteHandler(characteristic.uuid)
-        { error in
+            delegate.registerCharacteristicWriteHandler(characteristic.uuid)
+            { error in
             
-            self.finishOperation(timerId, error, completion)
-        }
+                self.finishOperation(timerId, error, completion)
+            }
         
-        if let err = canAttemptOperation
-        {
-            endWriteValue(characteristic, err)
-            return
-        }
+            if let err = canAttemptOperation
+            {
+                endWriteValue(characteristic, err)
+                return
+            }
         
-        startTimer(timerId, timeout)
-        {
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endWriteValue(characteristic, err)
-        }
+            startTimer(timerId, timeout)
+            {
+                let err = NSError.uuCoreBluetoothError(.timeout)
+                self.endWriteValue(characteristic, err)
+            }
         
-        if let err = underlyingPeripheral.writeCharacteristicValue(data, characteristic, .withResponse)
-        {
-            endWriteValue(characteristic, err)
-            return
+            if let err = underlyingPeripheral.writeCharacteristicValue(data, characteristic, .withResponse)
+            {
+                endWriteValue(characteristic, err)
+                return
+            }
+            // else, wait for delegate to invoke callback block, or timeout to happen
         }
-        // else, wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endWriteValue(_ characteristic: UUCBCharacteristic, _ error: Error?)
@@ -684,32 +770,35 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         for characteristic: UUCBCharacteristic,
         completion: @escaping UUErrorBlock)
     {
-        UULog.debug(tag: LOG_TAG, message: "Write value without response \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic)")
-        
-        if let err = canAttemptOperation
-        {
-            dispatchQueue.async
-            {
-                completion(err)
-            }
-            
-            return
-        }
-        
-        if let err = underlyingPeripheral.writeCharacteristicValue(data, characteristic, .withoutResponse)
-        {
-            dispatchQueue.async
-            {
-                completion(err)
-            }
-            
-            return
-        }
-        
-        // Immediately invoke the completion callback because write without response will not trigger a delegate callback
         dispatchQueue.async
-        {
-            completion(nil)
+        { [self] in
+            UULog.debug(tag: LOG_TAG, message: "Write value without response \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic)")
+        
+            if let err = canAttemptOperation
+            {
+                dispatchQueue.async
+                {
+                    completion(err)
+                }
+
+                return
+            }
+
+            if let err = underlyingPeripheral.writeCharacteristicValue(data, characteristic, .withoutResponse)
+            {
+                dispatchQueue.async
+                {
+                    completion(err)
+                }
+            
+                return
+            }
+        
+            // Immediately invoke the completion callback because write without response will not trigger a delegate callback
+            dispatchQueue.async
+            {
+                completion(nil)
+            }
         }
     }
     
@@ -722,34 +811,43 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         timeout: TimeInterval = UUBluetooth.Defaults.operationTimeout,
         completion: @escaping UUErrorBlock)
     {
-        UULog.debug(tag: LOG_TAG, message: "Write value \(data.uuToHexString()), for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
+        dispatchQueue.async
+        { [self] in
+            UULog.debug(tag: LOG_TAG, message: "Write value \(data.uuToHexString()), for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
         
-        let timerId = TimerId.writeDescriptor(descriptor.uuid)
+            let timerId = TimerId.writeDescriptor(descriptor.uuid)
+
+            guard delegate.writeValueForDescriptorBlocks[descriptor.uuid.uuidString] == nil else
+            {
+                completion(NSError.uuCoreBluetoothError(.operationInProgress))
+                return
+            }
         
-        delegate.registerDescriptorWriteHandler(descriptor.uuid)
-        { error in
+            delegate.registerDescriptorWriteHandler(descriptor.uuid)
+            { error in
             
-            self.finishOperation(timerId, error, completion)
-        }
+                self.finishOperation(timerId, error, completion)
+            }
         
-        if let err = canAttemptOperation
-        {
-            endWriteValue(descriptor, err)
-            return
-        }
+            if let err = canAttemptOperation
+            {
+                endWriteValue(descriptor, err)
+                return
+            }
         
-        startTimer(timerId, timeout)
-        {
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endWriteValue(descriptor, err)
-        }
+            startTimer(timerId, timeout)
+            {
+                let err = NSError.uuCoreBluetoothError(.timeout)
+                self.endWriteValue(descriptor, err)
+            }
         
-        if let err = underlyingPeripheral.writeDescriptorValue(data, descriptor)
-        {
-            endWriteValue(descriptor, err)
-            return
+            if let err = underlyingPeripheral.writeDescriptorValue(data, descriptor)
+            {
+                endWriteValue(descriptor, err)
+                return
+            }
+            // else, wait for delegate to invoke callback block, or timeout to happen
         }
-        // else, wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endWriteValue(_ descriptor: UUCBDescriptor, _ error: Error?)
@@ -766,31 +864,40 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         timeout: TimeInterval = UUBluetooth.Defaults.operationTimeout,
         completion: @escaping UUObjectErrorBlock<Int>)
     {
-        UULog.debug(tag: LOG_TAG, message: "Reading RSSI for \(self.debugName), timeout: \(timeout)")
+        dispatchQueue.async
+        { [self] in
+            UULog.debug(tag: LOG_TAG, message: "Reading RSSI for \(self.debugName), timeout: \(timeout)")
         
-        let timerId = TimerId.readRssi
+            let timerId = TimerId.readRssi
+
+            guard delegate.didReadRssiBlock == nil else
+            {
+                completion(nil, NSError.uuCoreBluetoothError(.operationInProgress))
+                return
+            }
         
-        delegate.didReadRssiBlock =
-        { rssi, error in
+            delegate.didReadRssiBlock =
+            { rssi, error in
             
-            self.finishOperation(timerId, rssi, error, completion)
+                self.finishOperation(timerId, rssi, error, completion)
+            }
+        
+            if let err = canAttemptOperation
+            {
+                endReadRssi(UUBluetooth.Constants.noRssi, err)
+                return
+            }
+        
+            startTimer(timerId, timeout)
+            {
+                let err = NSError.uuCoreBluetoothError(.timeout)
+                self.endReadRssi(UUBluetooth.Constants.noRssi, err)
+            }
+        
+            underlyingPeripheral.readRSSI()
+        
+            // wait for delegate to invoke callback block, or timeout to happen
         }
-        
-        if let err = canAttemptOperation
-        {
-            endReadRssi(UUBluetooth.Constants.noRssi, err)
-            return
-        }
-        
-        startTimer(timerId, timeout)
-        {
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endReadRssi(UUBluetooth.Constants.noRssi, err)
-        }
-        
-        underlyingPeripheral.readRSSI()
-        
-        // wait for delegate to invoke callback block, or timeout to happen
     }
     
     private func endReadRssi(_ rssi: Int, _ error: Error?)
@@ -841,32 +948,41 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         timeout: TimeInterval,
         completion: @escaping UUObjectErrorBlock<UUCBL2CAPChannel>)
     {
-        UULog.debug(tag: LOG_TAG, message: "Opening L2Cap channel for \(self.debugName), psm: \(psm),  timeout: \(timeout)")
+        dispatchQueue.async
+        { [self] in
+            UULog.debug(tag: LOG_TAG, message: "Opening L2Cap channel for \(self.debugName), psm: \(psm),  timeout: \(timeout)")
         
-        let timerId = TimerId.openL2CapChannel
+            let timerId = TimerId.openL2CapChannel
+
+            guard delegate.l2CapChannelOpenedBlock == nil else
+            {
+                completion(nil, NSError.uuCoreBluetoothError(.operationInProgress))
+                return
+            }
         
-        delegate.l2CapChannelOpenedBlock =
-        { channel, error in
+            delegate.l2CapChannelOpenedBlock =
+            { channel, error in
             
-            self.finishOperation(timerId, channel, error, completion)
+                self.finishOperation(timerId, channel, error, completion)
+            }
+        
+            if let err = canAttemptOperation
+            {
+                endOpenL2CapChannel(nil, err)
+                return
+            }
+        
+            startTimer(timerId, timeout)
+            {
+                let err = NSError.uuCoreBluetoothError(.timeout)
+                self.endOpenL2CapChannel(nil, err)
+            }
+        
+            underlyingPeripheral.openL2CAPChannel(psm)
+        
+            // wait for delegate to invoke callback block, or timeout to happen
+        
         }
-        
-        if let err = canAttemptOperation
-        {
-            endOpenL2CapChannel(nil, err)
-            return
-        }
-        
-        startTimer(timerId, timeout)
-        {
-            let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endOpenL2CapChannel(nil, err)
-        }
-        
-        underlyingPeripheral.openL2CAPChannel(psm)
-        
-        // wait for delegate to invoke callback block, or timeout to happen
-        
     }
     
     private func endOpenL2CapChannel(_ channel: UUCBL2CAPChannel?, _ error: Error?)
@@ -931,8 +1047,8 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         case connect
         case disconnect
         case serviceDiscovery
-        case characteristicDiscovery
-        case includedServicesDiscovery
+        case characteristicDiscovery(CBUUID)
+        case includedServicesDiscovery(CBUUID)
         case descriptorDiscovery(CBUUID)
         case characteristicNotifyState(CBUUID)
         case readCharacteristic(CBUUID)
@@ -950,8 +1066,8 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
             case .connect: return "connect"
             case .disconnect: return "disconnect"
             case .serviceDiscovery: return "serviceDiscovery"
-            case .characteristicDiscovery: return "characteristicDiscovery"
-            case .includedServicesDiscovery: return "includedServicesDiscovery"
+            case .characteristicDiscovery(let uuid): return "characteristicDiscovery__\(uuid.uuidString)"
+            case .includedServicesDiscovery(let uuid): return "includedServicesDiscovery__\(uuid.uuidString)"
             case .descriptorDiscovery(let uuid): return "descriptorDiscovery__\(uuid.uuidString)"
             case .characteristicNotifyState(let uuid): return "characteristicNotifyState__\(uuid.uuidString)"
             case .readCharacteristic(let uuid): return "readCharacteristic__\(uuid.uuidString)"

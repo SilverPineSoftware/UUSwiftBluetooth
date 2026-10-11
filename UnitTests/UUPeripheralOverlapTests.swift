@@ -3,13 +3,14 @@ import CoreBluetooth
 @testable import UUSwiftBluetooth
 
 /// Review #4: every overlapping request must complete or be explicitly rejected.
-/// These regressions intentionally remain failing until operation ownership is fixed.
+/// Distinct targets proceed independently; conflicting requests preserve their owner.
 final class UUPeripheralOverlapTests: XCTestCase
 {
-    private enum Operation
+    private enum Operation: CaseIterable
     {
         case services, includedServices, characteristics, descriptors
         case notifyState, rssi, channelOpen
+        case characteristicRead, characteristicWrite, descriptorRead, descriptorWrite
     }
 
     func test_overlappingServiceDiscoveryCompleteBothCallers()
@@ -47,6 +48,26 @@ final class UUPeripheralOverlapTests: XCTestCase
         assertBothComplete(.channelOpen)
     }
 
+    func test_overlappingCharacteristicReadRejectsDuplicate()
+    {
+        assertBothComplete(.characteristicRead)
+    }
+
+    func test_overlappingCharacteristicWriteRejectsDuplicate()
+    {
+        assertBothComplete(.characteristicWrite)
+    }
+
+    func test_overlappingDescriptorReadRejectsDuplicate()
+    {
+        assertBothComplete(.descriptorRead)
+    }
+
+    func test_overlappingDescriptorWriteRejectsDuplicate()
+    {
+        assertBothComplete(.descriptorWrite)
+    }
+
     private func assertBothComplete(_ operation: Operation,
                                     file: StaticString = #filePath, line: UInt = #line)
     {
@@ -57,12 +78,30 @@ final class UUPeripheralOverlapTests: XCTestCase
             for index in 0..<2
             {
                 self.start(operation, fixture: fixture, timeout: 60)
-                { _ in counts[index] += 1 }
+                { error in
+                    counts[index] += 1
+                    if index == 0 { XCTAssertNil(error, file: file, line: line) }
+                    else { XCTAssertEqual(error?.uuBluetoothErrorCode, .operationInProgress, file: file, line: line) }
+                }
             }
-            // Drain also supports a future implementation that serializes requests:
-            // releasing the first response may submit the queued second request.
+        }
+        fixture.central.dispatchQueue.sync
+        {
+            XCTAssertEqual(counts, [0, 1], file: file, line: line)
+            XCTAssertEqual(fixture.backend.responses.count, 1, file: file, line: line)
+            // Only the original request reaches the backend.
             while !fixture.backend.responses.isEmpty { fixture.backend.deliverResponses() }
             XCTAssertEqual(counts, [1, 1], "Every caller needs a result or explicit rejection", file: file, line: line)
+            self.start(operation, fixture: fixture, timeout: 60)
+            { error in
+                XCTAssertNil(error, file: file, line: line)
+                counts[0] += 1
+            }
+        }
+        fixture.central.dispatchQueue.sync
+        {
+            fixture.backend.deliverResponses()
+            XCTAssertEqual(counts, [2, 1], "Completed keys must be reusable", file: file, line: line)
         }
         disconnect(fixture)
     }
@@ -104,6 +143,9 @@ final class UUPeripheralOverlapTests: XCTestCase
                 XCTAssertNotNil(error, "A missing native response must terminate with an error", file: file, line: line)
                 timedOut.fulfill()
             }
+        }
+        fixture.central.dispatchQueue.sync
+        {
             if completeFirst { fixture.backend.responses.removeFirst()() }
         }
         // The short interval is the API deadline under test, not a scheduling sleep.
@@ -189,6 +231,9 @@ final class UUPeripheralOverlapTests: XCTestCase
                         timeout: timeout, completion: completion)
                 }
             }
+        }
+        fixture.central.dispatchQueue.sync
+        {
             XCTAssertEqual(fixture.backend.responses.count, 2)
             if completeFirst { fixture.backend.responses.removeFirst()() }
         }
@@ -235,7 +280,8 @@ final class UUPeripheralOverlapTests: XCTestCase
                 { error in
                     if observing
                     {
-                        XCTAssertNotNil(error)
+                        XCTAssertEqual(error?.uuBluetoothErrorCode, .operationInProgress)
+                        XCTAssertEqual(index, 1)
                         counts[index] += 1
                         completed.fulfill()
                     }
@@ -247,6 +293,248 @@ final class UUPeripheralOverlapTests: XCTestCase
         {
             XCTAssertEqual(counts, [1, 1])
             observing = false
+        }
+        disconnect(fixture)
+    }
+
+    func test_distinctCharacteristicsCompleteIndependently()
+    {
+        assertDistinctTargets(.characteristics, disconnectPending: false)
+    }
+
+    func test_distinctCharacteristicsDrainOnDisconnect()
+    {
+        assertDistinctTargets(.characteristics, disconnectPending: true)
+    }
+
+    func test_distinctIncludedServicesCompleteIndependently()
+    {
+        assertDistinctTargets(.includedServices, disconnectPending: false)
+    }
+
+    func test_distinctIncludedServicesDrainOnDisconnect()
+    {
+        assertDistinctTargets(.includedServices, disconnectPending: true)
+    }
+
+    func test_distinctDescriptorsCompleteIndependently()
+    {
+        assertDistinctTargets(.descriptors, disconnectPending: false)
+    }
+
+    func test_distinctDescriptorsDrainOnDisconnect()
+    {
+        assertDistinctTargets(.descriptors, disconnectPending: true)
+    }
+
+    func test_distinctNotifyStateCompleteIndependently()
+    {
+        assertDistinctTargets(.notifyState, disconnectPending: false)
+    }
+
+    func test_distinctNotifyStateDrainOnDisconnect()
+    {
+        assertDistinctTargets(.notifyState, disconnectPending: true)
+    }
+
+    private func assertDistinctTargets(_ operation: Operation, disconnectPending: Bool)
+    {
+        let fixture = connectedFixture()
+        var counts = [0, 0]
+        fixture.central.dispatchQueue.sync
+        {
+            for index in 0..<2
+            {
+                let service = index == 0 ? fixture.service : fixture.otherService
+                let characteristic = index == 0 ? fixture.characteristic : fixture.otherCharacteristic
+                let completion: (Error?) -> Void = { error in
+                    counts[index] += 1
+                    if disconnectPending { XCTAssertEqual(error?.uuBluetoothErrorCode, .disconnected) }
+                    else { XCTAssertNil(error) }
+                }
+                switch operation
+                {
+                case .characteristics:
+                    fixture.peripheral.discoverCharacteristics(characteristicUUIDs: nil, for: service, timeout: 60)
+                    { values, error in
+                        if !disconnectPending { XCTAssertEqual(values?.first?.uuid, service.characteristics?.first?.uuid) }
+                        completion(error)
+                    }
+                case .includedServices:
+                    fixture.peripheral.discoverIncludedServices(includedServiceUUIDs: nil, for: service, timeout: 60)
+                    { values, error in
+                        if !disconnectPending { XCTAssertEqual(values?.first?.uuid, service.includedServices?.first?.uuid) }
+                        completion(error)
+                    }
+                case .descriptors:
+                    fixture.peripheral.discoverDescriptors(for: characteristic, timeout: 60)
+                    { values, error in
+                        if !disconnectPending { XCTAssertEqual(values?.first?.uuid, characteristic.descriptors?.first?.uuid) }
+                        completion(error)
+                    }
+                case .notifyState:
+                    fixture.peripheral.setNotifyValue(enabled: true, for: characteristic, timeout: 60,
+                        notifyHandler: nil, completion: completion)
+                default: XCTFail("Unsupported test operation")
+                }
+            }
+        }
+        fixture.central.dispatchQueue.sync
+        {
+            XCTAssertEqual(fixture.backend.responses.count, 2)
+            if !disconnectPending
+            {
+                fixture.backend.responses.removeLast()()
+                XCTAssertEqual(counts, [0, 1], "The response must reach its own target")
+                fixture.backend.deliverResponses()
+                XCTAssertEqual(counts, [1, 1])
+            }
+        }
+        disconnect(fixture)
+        fixture.central.dispatchQueue.sync { XCTAssertEqual(counts, [1, 1]) }
+    }
+
+    func test_duplicateNotifyChangePreservesOriginalSubscription()
+    {
+        let fixture = connectedFixture()
+        var notifications = 0
+        fixture.central.dispatchQueue.sync
+        {
+            fixture.peripheral.setNotifyValue(enabled: true, for: fixture.characteristic, notifyHandler:
+                { _, _ in notifications += 1 }, completion: { XCTAssertNil($0) })
+            fixture.peripheral.setNotifyValue(enabled: false, for: fixture.characteristic, notifyHandler: nil,
+                completion: { XCTAssertEqual($0?.uuBluetoothErrorCode, .operationInProgress) })
+        }
+        fixture.central.dispatchQueue.sync
+        {
+            fixture.backend.deliverResponses()
+            fixture.backend.delegate?.peripheral?(fixture.backend.backingPeripheral,
+                didUpdateValueFor: fixture.characteristic, error: nil)
+            XCTAssertEqual(notifications, 1)
+        }
+        disconnect(fixture)
+    }
+
+    func test_connectWhileConnectedPreservesOriginalDisconnectCallback()
+    {
+        let fixture = Fixture()
+        let connected = expectation(description: "Original connection")
+        let disconnected = expectation(description: "Original owner disconnected")
+        fixture.connect(connected: { connected.fulfill() }, disconnected:
+            { error in XCTAssertNil(error); disconnected.fulfill() })
+        wait(for: [connected], timeout: 2)
+        fixture.peripheral.connect(connected: { XCTFail("Duplicate connect succeeded") }, disconnected:
+            { XCTAssertEqual($0?.uuBluetoothErrorCode, .operationInProgress) })
+        disconnect(fixture)
+        wait(for: [disconnected], timeout: 2)
+    }
+
+    func test_readCompletionCanImmediatelyStartSameRead()
+    {
+        let fixture = connectedFixture()
+        var completions = 0
+        fixture.peripheral.readValue(for: fixture.characteristic, timeout: 60)
+        { _, error in
+            XCTAssertNil(error)
+            completions += 1
+            fixture.peripheral.readValue(for: fixture.characteristic, timeout: 60)
+            { _, error in XCTAssertNil(error); completions += 1 }
+        }
+        fixture.central.dispatchQueue.sync
+        {
+            fixture.backend.deliverResponses()
+        }
+        fixture.central.dispatchQueue.sync
+        {
+            fixture.backend.deliverResponses()
+            XCTAssertEqual(completions, 2)
+        }
+        disconnect(fixture)
+    }
+
+    func test_simultaneousCallersReserveReadAtomically()
+    {
+        let fixture = connectedFixture()
+        var accepted = 0
+        var rejected = 0
+        DispatchQueue.concurrentPerform(iterations: 20)
+        { _ in
+            fixture.peripheral.readValue(for: fixture.characteristic, timeout: 60)
+            { _, error in
+                // All completions run on the central queue.
+                if let error = error
+                {
+                    XCTAssertEqual(error.uuBluetoothErrorCode, .operationInProgress)
+                    rejected += 1
+                }
+                else { accepted += 1 }
+            }
+        }
+        fixture.central.dispatchQueue.sync
+        {
+            XCTAssertEqual(fixture.backend.responses.count, 1)
+            XCTAssertEqual(rejected, 19)
+            fixture.backend.deliverResponses()
+            XCTAssertEqual(accepted, 1)
+        }
+        disconnect(fixture)
+    }
+
+    func test_setupAndBusyRejectionAreDeferredEvenOnCentralQueue()
+    {
+        let fixture = connectedFixture()
+        var completions = 0
+        fixture.central.dispatchQueue.sync
+        {
+            for operation in Operation.allCases
+            {
+                self.start(operation, fixture: fixture, timeout: 60)
+                { error in XCTAssertNil(error); completions += 1 }
+                self.start(operation, fixture: fixture, timeout: 60)
+                { error in
+                    XCTAssertEqual(error?.uuBluetoothErrorCode, .operationInProgress)
+                    completions += 1
+                }
+            }
+            XCTAssertTrue(fixture.backend.responses.isEmpty, "Setup must always be queued")
+            XCTAssertEqual(completions, 0, "No inline rejection on the central queue")
+        }
+        fixture.central.dispatchQueue.sync
+        {
+            XCTAssertEqual(completions, Operation.allCases.count)
+            XCTAssertEqual(fixture.backend.responses.count, Operation.allCases.count)
+            fixture.backend.deliverResponses()
+            XCTAssertEqual(completions, Operation.allCases.count * 2)
+        }
+        disconnect(fixture)
+    }
+
+    func test_callDoesNotWaitForCentralQueue()
+    {
+        let fixture = connectedFixture()
+        let returned = expectation(description: "Call returns while central queue is suspended")
+        let caller = DispatchQueue(label: "OverlapTests.caller", qos: .userInteractive)
+
+        // Hold queued work without blocking a high-priority worker on a semaphore.
+        // A separate caller keeps XCTest's timeout usable if synchronous dispatch regresses.
+        fixture.central.dispatchQueue.suspend()
+        do
+        {
+            defer { fixture.central.dispatchQueue.resume() }
+            caller.async
+            {
+                fixture.peripheral.readValue(for: fixture.characteristic, timeout: 60)
+                { _, error in XCTAssertNil(error) }
+                returned.fulfill()
+            }
+            wait(for: [returned], timeout: 2)
+        }
+        // Join the caller after resuming, including on the test's failure path.
+        caller.sync {}
+        fixture.central.dispatchQueue.sync
+        {
+            XCTAssertEqual(fixture.backend.responses.count, 1)
+            fixture.backend.deliverResponses()
         }
         disconnect(fixture)
     }
@@ -277,6 +565,14 @@ final class UUPeripheralOverlapTests: XCTestCase
         let p = fixture.peripheral
         switch operation
         {
+        case .characteristicRead:
+            p.readValue(for: fixture.characteristic, timeout: timeout) { _, error in completion(error) }
+        case .characteristicWrite:
+            p.writeValue(data: Data([1]), for: fixture.characteristic, timeout: timeout, completion: completion)
+        case .descriptorRead:
+            p.readValue(for: fixture.characteristic.descriptors![0], timeout: timeout) { _, error in completion(error) }
+        case .descriptorWrite:
+            p.writeValue(data: Data([1]), for: fixture.characteristic.descriptors![0], timeout: timeout, completion: completion)
         case .services:
             p.discoverServices(timeout: timeout) { _, error in completion(error) }
         case .includedServices:
@@ -301,10 +597,11 @@ final class UUPeripheralOverlapTests: XCTestCase
     private final class Fixture
     {
         let service = CBMutableService(type: CBUUID(string: "180A"), primary: true)
+        let otherService = CBMutableService(type: CBUUID(string: "180F"), primary: true)
         let characteristic = CBMutableCharacteristic(type: CBUUID(string: "2A29"),
             properties: [.read, .write, .notify], value: nil, permissions: [.readable, .writeable])
         let otherCharacteristic = CBMutableCharacteristic(type: CBUUID(string: "2A24"),
-            properties: [.read, .write], value: nil, permissions: [.readable, .writeable])
+            properties: [.read, .write, .notify], value: nil, permissions: [.readable, .writeable])
         let backend: HeldResponsePeripheral
         let central: UUCentralManager
         let mockCentral: UUMockCBCentralManager
@@ -313,11 +610,16 @@ final class UUPeripheralOverlapTests: XCTestCase
         init()
         {
             characteristic.descriptors = [CBMutableDescriptor(type: CBUUID(string: "2901"), value: "Test")]
-            service.characteristics = [characteristic, otherCharacteristic]
-            otherCharacteristic.setValue(service, forKey: "service")
+            characteristic.descriptors![0].setValue(characteristic, forKey: "characteristic")
+            service.characteristics = [characteristic]
+            otherService.characteristics = [otherCharacteristic]
+            service.includedServices = [otherService]
+            otherService.includedServices = [CBMutableService(type: CBUUID(string: "1810"), primary: false)]
+            otherCharacteristic.descriptors = [CBMutableDescriptor(type: CBUUID(string: "2904"), value: Data([0]))]
+            otherCharacteristic.setValue(otherService, forKey: "service")
             // Match the existing mocks' GATT back-pointer setup.
             characteristic.setValue(service, forKey: "service")
-            backend = HeldResponsePeripheral(services: [service])
+            backend = HeldResponsePeripheral(services: [service, otherService])
             let native = backend.backingPeripheral
             var injected: UUMockCBCentralManager!
             central = UUCentralManager(options: UUCentralManagerOptions(), injection:
