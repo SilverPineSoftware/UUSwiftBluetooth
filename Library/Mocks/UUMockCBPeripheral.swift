@@ -48,10 +48,12 @@ public class UUMockCBPeripheral: UUCBPeripheral
         return backingPeripheral.canSendWriteWithoutResponse
     }
     
+#if os(iOS)
     public var ancsAuthorized: Bool
     {
         return backingPeripheral.ancsAuthorized
     }
+#endif
     
     public var backingPeripheral: CBPeripheral
     

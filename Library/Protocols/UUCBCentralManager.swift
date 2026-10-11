@@ -35,8 +35,9 @@ public protocol UUCBCentralManager : UUCBManager
      *  @discussion     Returns a boolean value representing the support for the provided features.
      *
      */
-    @available(iOS 13.0, *)
+#if os(iOS)
     static func supports(_ features: CBCentralManager.Feature) -> Bool
+#endif
 
     //convenience init()
 
@@ -171,8 +172,9 @@ public protocol UUCBCentralManager : UUCBManager
      *  @seealso            CBConnectionEventMatchingOptionServiceUUIDs
      *  @seealso            CBConnectionEventMatchingOptionPeripheralUUIDs
      */
-    //@available(iOS 13.0, *)
+#if os(iOS)
     func registerForConnectionEvents(options: [CBConnectionEventMatchingOption : Any]?)
+#endif
 }
 
 

@@ -68,8 +68,9 @@ public protocol UUCBPeripheral: UUCBPeer
      *                the value will be set to YES after a user authorization occurs and
      *                <link>didUpdateANCSAuthorizationForPeripheral:</link> will be called.
      */
-    //@available(iOS 13.0, *)
+#if os(iOS)
     var ancsAuthorized: Bool { get }
+#endif
 
     /**
      *  @method readRSSI

@@ -95,6 +95,7 @@ public class UUMockCBCentralManager: UUCBCentralManager
         }
     }
     
+    @available(iOS 13.0, *)
     public func registerForConnectionEvents(options: [CBConnectionEventMatchingOption : Any]?)
     {
     }
