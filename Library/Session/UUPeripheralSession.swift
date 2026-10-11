@@ -552,7 +552,7 @@ public extension UUPeripheralSession // Read Methods
         }
     }
     
-    func readInt32(
+    func readInt64(
         from characteristic: CBUUID,
         order: UUByteOrder,
         completion: @escaping UUPeripheralSessionObjectErrorCallback<Int64>)
