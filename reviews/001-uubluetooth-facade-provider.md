@@ -1,5 +1,7 @@
 # Review 001: `UUBluetooth` facade and `UUBluetoothProvider`
 
+> Historical review. The [2026-10-10 full-library review](002-full-library-deep-dive.md) reassesses the renamed stack API, records resolved findings, and validates the current build/test state. The provider filenames and current-state statements below describe the earlier snapshot.
+
 **Reviewed:** 2026-10-06  
 **Scope:** `Library/UUBluetooth.swift`, `Library/Protocols/UUBluetoothProvider.swift`, and `Library/UUCoreBluetoothProvider.swift` where provider lifecycle affects the facade.  
 **Review only:** No library code was changed.
