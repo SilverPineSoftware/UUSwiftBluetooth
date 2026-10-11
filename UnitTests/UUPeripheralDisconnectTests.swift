@@ -353,7 +353,7 @@ final class UUPeripheralDisconnectTests: XCTestCase
 
 /// Test-only backend: native responses are released by the test, never by sleeps.
 /// It inherits the existing mock's native object bridge but bypasses delayed responses.
-private final class HeldResponsePeripheral: UUMockCBPeripheral
+final class HeldResponsePeripheral: UUMockCBPeripheral
 {
     var responses: [() -> Void] = []
 
