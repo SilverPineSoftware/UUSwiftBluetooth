@@ -388,7 +388,7 @@ final class UUMockPeripheralTests: XCTestCase
         XCTAssertEqual(nsUnderlyingErr.domain, domain)
         XCTAssertEqual(nsUnderlyingErr.code, code)
         
-        //XCTAssertNil(descResult)
+        XCTAssertNil(descResult)
     }
     
 }

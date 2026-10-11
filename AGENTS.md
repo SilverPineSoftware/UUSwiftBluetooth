@@ -44,6 +44,14 @@ swift build
 xcodebuild test -project UUSwiftBluetooth.xcodeproj -scheme Library -testPlan UnitTests -destination 'platform=iOS Simulator,name=<iOS Simulator>'
 ```
 
+Run the same unit test plan on macOS with:
+
+```sh
+xcodebuild test -project UUSwiftBluetooth.xcodeproj -scheme Library -testPlan UnitTests -destination 'platform=macOS'
+```
+
+On macOS, UnitTests runs inside `TestHost.app`, whose generated Info.plist contains `NSBluetoothAlwaysUsageDescription`. Keep the macOS-specific `TEST_HOST` and `BUNDLE_LOADER` settings: the current mocks create native CoreBluetooth managers, so an unhosted XCTest process can crash without that usage description.
+
 Live tests require a real Bluetooth environment and nearby peripherals; current peripheral and session tests look for a peripheral named `CC2650 SensorTag`. Run the live test plan only when that hardware and environment are available:
 
 ```sh

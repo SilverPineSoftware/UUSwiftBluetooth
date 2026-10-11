@@ -5,7 +5,9 @@
 **Scope:** Library stack/configuration, central and peripheral delegates, scanning, GATT operations, sessions, operations, L2CAP client/server, representations, mocks, extensions, sniffer, sample integration, package/project configuration, and test coverage.  
 **Review only:** No implementation or existing test files changed. This review supersedes the current-state assessment in Review 001 while retaining that document as history.
 
-## Overall assessment
+**Status update — 2026-10-11:** Findings #1 (macOS compilation and test setup), #2 (unit-test build entry point), and #3 (disconnect completion loss) are resolved. The original assessment and validation below describe the 2026-10-10 snapshot; each resolved finding records its follow-up evidence. Other findings remain open.
+
+## Overall assessment (original review)
 
 The thin CoreBluetooth wrappers and the session/operation workflow remain useful. The stack's synchronized, externally read-only manager/scanner construction is a substantial improvement over the provider reviewed previously. The iOS sample builds successfully.
 
@@ -13,7 +15,7 @@ The primary risk is lifecycle correctness. Callback slots and timers are shared 
 
 **Verdict:** Prioritize build/test recovery and operation completion guarantees before adding async wrappers. Checked continuations would expose the current lost/double-completion paths as hangs or runtime failures. A broad framework rewrite is unnecessary; explicit ownership, serialized state transitions, and narrowly defined request state are the important changes.
 
-## Validation and limits
+## Validation and limits (original review)
 
 | Check | Result |
 | --- | --- |
@@ -32,7 +34,11 @@ The executed iOS commands used derived data under `/tmp/uu-bluetooth-review-deri
 
 ## Findings
 
-### 1. [P1] The declared macOS product cannot compile
+### 1. [Resolved — P1] The declared macOS product cannot compile
+
+**Resolved 2026-10-11:** The iOS-only `supports`, `registerForConnectionEvents`, and `ancsAuthorized` requirements, plus the mock's native `ancsAuthorized` forwarding, are now guarded by `#if os(iOS)`. The manifest retains macOS 13 and iOS 15 support. The related Xcode test setup is also fixed: UnitTests and TestHost support macOS, and macOS UnitTests uses TestHost through SDK-specific `TEST_HOST` and `BUNDLE_LOADER` settings. This gives the test process the host's existing `NSBluetoothAlwaysUsageDescription`, avoiding the unhosted XCTest privacy crash.
+
+**Follow-up validation:** Xcode-selected `swift build` now passes for the macOS package. The macOS UnitTests plan passed all 76 tests in the preceding validation run. A fresh iOS Simulator framework build with `IPHONEOS_DEPLOYMENT_TARGET=15.0` passed, and the iOS Simulator unit-test build also passed in the preceding run. These checks resolve the issues in this finding; they do not claim live Bluetooth validation or execution on a macOS 13 machine. AGENTS.md now documents the macOS test command and host requirement. The original finding below is retained as history.
 
 **Locations:** [`UUCBCentralManager.swift`](../Library/Protocols/UUCBCentralManager.swift#L11), [`UUCBPeripheral.swift:72`](../Library/Protocols/UUCBPeripheral.swift#L72), [`UUMockCBPeripheral.swift:51`](../Library/Mocks/UUMockCBPeripheral.swift#L51), [`Package.swift`](../Package.swift).
 
