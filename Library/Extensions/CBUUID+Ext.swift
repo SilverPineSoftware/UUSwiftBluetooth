@@ -65,7 +65,7 @@ public extension CBUUID
     }
 }
 
-public extension UUCoreBluetooth
+public extension UUBluetooth
 {
     static func register(commonName: String?, for uuidString: String?)
     {

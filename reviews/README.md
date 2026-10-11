@@ -5,3 +5,4 @@ This folder contains focused reviews of UUSwiftBluetooth APIs and design decisio
 ## Reviews
 
 - [UUBluetooth facade and provider](001-uubluetooth-facade-provider.md) — dependency injection, default access, lifecycle risks, and comparison with Foundation.
+- [Full library deep dive](002-full-library-deep-dive.md) — current stack, scanning, operation lifecycles, sessions, L2CAP, mocks, serialization, build validation, and prioritized regression scenarios; supersedes Review 001's current-state assessment.

@@ -1,14 +1,18 @@
 //
-//  UUBluetoothConstants.swift
+//  UUBluetooth+Constants.swift
 //  UUSwiftBluetooth
 //
 //  Created by Ryan DeVore on 12/6/21.
+//  Copyright © 2026 Silver Pine Software, LLC. All rights reserved.
+//
+//  This file is part of UUSwiftCore, distributed under the MIT License.
+//  See LICENSE file for details.
 //
 
 import Foundation
 import CoreBluetooth
 
-public extension UUCoreBluetooth
+public extension UUBluetooth
 {
     struct Constants
     {

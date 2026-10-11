@@ -142,7 +142,7 @@ open class UUPeripheral: Identifiable
     // is disconnected from the phone side, or if the remote device disconnects
     // from the phone
     public func connect(
-        timeout: TimeInterval = UUCoreBluetooth.Defaults.connectTimeout,
+        timeout: TimeInterval = UUBluetooth.Defaults.connectTimeout,
         connected: @escaping UUVoidBlock,
         disconnected: @escaping UUErrorBlock)
     {
@@ -204,7 +204,7 @@ open class UUPeripheral: Identifiable
     
     // Wrapper around CBCentralManager cancelPeripheralConnection.  After calling this
     // method, the disconnected block passed in at connect time will be invoked.
-    public func disconnect(timeout: TimeInterval = UUCoreBluetooth.Defaults.disconnectTimeout)
+    public func disconnect(timeout: TimeInterval = UUBluetooth.Defaults.disconnectTimeout)
     {
         let identifier = underlyingPeripheral.identifier
         
@@ -240,7 +240,7 @@ open class UUPeripheral: Identifiable
     // timeout value.  A negative timeout value will disable the timeout.
     public func discoverServices(
         serviceUUIDs: [CBUUID]? = nil,
-        timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
+        timeout: TimeInterval = UUBluetooth.Defaults.operationTimeout,
         completion: @escaping UUListErrorBlock<UUCBService>)
     {
         UULog.debug(tag: LOG_TAG, message: "Discovering services for \(self.debugName), timeout: \(timeout), service list: \(String(describing: serviceUUIDs))")
@@ -439,7 +439,7 @@ open class UUPeripheral: Identifiable
     }
     
     public func discoverAllServicesAndCharacteristics(
-        timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
+        timeout: TimeInterval = UUBluetooth.Defaults.operationTimeout,
         completion: @escaping UUErrorBlock)
     {
         connect(timeout: timeout)
@@ -479,7 +479,7 @@ open class UUPeripheral: Identifiable
     public func setNotifyValue(
         enabled: Bool,
         for characteristic: UUCBCharacteristic,
-        timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
+        timeout: TimeInterval = UUBluetooth.Defaults.operationTimeout,
         notifyHandler: UUObjectErrorBlock<Data>?,
         completion: @escaping UUErrorBlock)
     {
@@ -579,7 +579,7 @@ open class UUPeripheral: Identifiable
     // optional timeout value.  A negative timeout value will disable the timeout.
     public func readValue(
         for descriptor: UUCBDescriptor,
-        timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
+        timeout: TimeInterval = UUBluetooth.Defaults.operationTimeout,
         completion: @escaping UUObjectErrorBlock<Any>)
     {
         UULog.debug(tag: LOG_TAG, message: "Read value for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
@@ -626,7 +626,7 @@ open class UUPeripheral: Identifiable
     public func writeValue(
         data: Data,
         for characteristic: UUCBCharacteristic,
-        timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
+        timeout: TimeInterval = UUBluetooth.Defaults.operationTimeout,
         completion: @escaping UUErrorBlock)
     {
         UULog.debug(tag: LOG_TAG, message: "Write value \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
@@ -710,7 +710,7 @@ open class UUPeripheral: Identifiable
     public func writeValue(
         data: Data,
         for descriptor: UUCBDescriptor,
-        timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
+        timeout: TimeInterval = UUBluetooth.Defaults.operationTimeout,
         completion: @escaping UUErrorBlock)
     {
         UULog.debug(tag: LOG_TAG, message: "Write value \(data.uuToHexString()), for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
@@ -754,7 +754,7 @@ open class UUPeripheral: Identifiable
     // Block based wrapper around CBPeripheral readRssi, with an optional
     // timeout value.  A negative timeout value will disable the timeout.
     public func readRSSI(
-        timeout: TimeInterval = UUCoreBluetooth.Defaults.operationTimeout,
+        timeout: TimeInterval = UUBluetooth.Defaults.operationTimeout,
         completion: @escaping UUObjectErrorBlock<Int>)
     {
         UULog.debug(tag: LOG_TAG, message: "Reading RSSI for \(self.debugName), timeout: \(timeout)")
@@ -769,14 +769,14 @@ open class UUPeripheral: Identifiable
         
         if let err = canAttemptOperation
         {
-            endReadRssi(UUCoreBluetooth.Constants.noRssi, err)
+            endReadRssi(UUBluetooth.Constants.noRssi, err)
             return
         }
         
         startTimer(timerId, timeout)
         {
             let err = NSError.uuCoreBluetoothError(.timeout)
-            self.endReadRssi(UUCoreBluetooth.Constants.noRssi, err)
+            self.endReadRssi(UUBluetooth.Constants.noRssi, err)
         }
         
         underlyingPeripheral.readRSSI()

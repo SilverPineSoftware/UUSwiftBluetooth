@@ -23,8 +23,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     private lazy var scanner: UUPeripheralScanner =
     {
-        let scanner = UUBluetooth.scanner
-        UUBluetooth.monitor.registerForStateChanges(identifier: "UUSwiftBluetoothTester")
+        let scanner = UUBluetooth.shared.scanner
+        
+        UUBluetooth.shared.managerStateMonitor.registerForStateChanges(identifier: "UUSwiftBluetoothTester")
         { state in
             NSLog("App handed state change: \(state)")
         }

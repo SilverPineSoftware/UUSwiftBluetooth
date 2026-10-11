@@ -119,7 +119,7 @@ public extension Dictionary where Key == String, Value == Any
      */
     var uuPrimaryPhy: Int?
     {
-        return self.uuGetInt(UUCoreBluetooth.Constants.AdvertisementDataKeys.rxPrimaryPHY)
+        return self.uuGetInt(UUBluetooth.Constants.AdvertisementDataKeys.rxPrimaryPHY)
     }
     
     /**
@@ -128,7 +128,7 @@ public extension Dictionary where Key == String, Value == Any
      */
     var uuSecondaryPhy: Int?
     {
-        return self.uuGetInt(UUCoreBluetooth.Constants.AdvertisementDataKeys.rxSecondaryPHY)
+        return self.uuGetInt(UUBluetooth.Constants.AdvertisementDataKeys.rxSecondaryPHY)
     }
     
     /**
@@ -137,7 +137,7 @@ public extension Dictionary where Key == String, Value == Any
      */
     var uuTimestamp: Date
     {
-        guard let num = self.uuGetDouble(UUCoreBluetooth.Constants.AdvertisementDataKeys.timestamp) else
+        guard let num = self.uuGetDouble(UUBluetooth.Constants.AdvertisementDataKeys.timestamp) else
         {
             return Date()
         }

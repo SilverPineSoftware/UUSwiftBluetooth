@@ -121,7 +121,7 @@ import UUSwiftBluetooth
         
         private static func appSpecName(_ uuid: CBUUID, _ name: String)
         {
-            UUCoreBluetooth.register(commonName: name, for: uuid.uuidString)
+            UUBluetooth.register(commonName: name, for: uuid.uuidString)
         }
         
         static func addSpecNames()

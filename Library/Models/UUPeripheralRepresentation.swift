@@ -138,26 +138,26 @@ final public class UUPeripheralRepresentation: Codable
 
         for service in services
         {
-            UUCoreBluetooth.register(commonName: service.name, for: service.uuid)
+            UUBluetooth.register(commonName: service.name, for: service.uuid)
 
             if let chars = service.characteristics
             {
                 for chr in chars
                 {
-                    UUCoreBluetooth.register(commonName: chr.name, for: chr.uuid)
+                    UUBluetooth.register(commonName: chr.name, for: chr.uuid)
 
                     if let descs = chr.descriptors
                     {
                         for desc in descs
                         {
-                            UUCoreBluetooth.register(commonName: desc.name, for: desc.uuid)
+                            UUBluetooth.register(commonName: desc.name, for: desc.uuid)
                         }
                     }
                 }
             }
         }
 
-        let map = UUCoreBluetooth.mappedCommonNames
+        let map = UUBluetooth.mappedCommonNames
         UULog.debug(tag: "Mapped common names", message: "\(map)")
     }
 }

@@ -1,19 +1,18 @@
 //
-//  UUCoreBluetooth.swift
+//  UUBluetooth+Defaults.swift
 //  UUSwiftBluetooth
 //
 //  Created by Ryan DeVore on 12/16/24.
+//  Copyright © 2026 Silver Pine Software, LLC. All rights reserved.
+//
+//  This file is part of UUSwiftCore, distributed under the MIT License.
+//  See LICENSE file for details.
 //
 
 import Foundation
 import CoreBluetooth
 
-public struct UUCoreBluetooth
-{
-    private init() {}
-}
-
-public extension UUCoreBluetooth // Constants
+public extension UUBluetooth // Constants
 {
     struct Defaults
     {

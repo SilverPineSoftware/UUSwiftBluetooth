@@ -49,13 +49,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate
     
     private func setupCoreBluetooth()
     {
-        let config = UUBluetoothConfig(
-            centralOptions: UUCentralManagerOptions(
-                stateRestorationIdentifier: "com.silverpine.uu.bluetooth.tester"
-            )
-        )
+//        let config = UUBluetoothConfiguration(
+//            centralOptions: UUCentralManagerOptions(
+//                stateRestorationIdentifier: "com.silverpine.uu.bluetooth.tester"
+//            )
+//        )
         
-        UUBluetooth.initialize(config: config)
+        UUBluetooth.shared.initialize()
     }
 
 

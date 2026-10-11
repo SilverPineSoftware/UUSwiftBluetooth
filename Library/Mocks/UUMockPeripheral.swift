@@ -504,7 +504,7 @@ public extension UUMockPeripheral
             return nil
         }
         
-        let check = peripheralData.uuToJsonString()
+        //let check = peripheralData.uuToJsonString()
         //UULog.debug(tag: "Import", message: check)
         
         return peripheralData.mockPeripheral
