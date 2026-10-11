@@ -386,7 +386,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
     {
         UULog.debug(tag: LOG_TAG, message: "Discovering descriptors for \(self.debugName), timeout: \(timeout), characteristic: \(characteristic)")
         
-        let timerId = TimerId.descriptorDiscovery
+        let timerId = TimerId.descriptorDiscovery(characteristic.uuid)
         
         delegate.discoverDescriptorsBlock =
         { descriptors, error in
@@ -494,7 +494,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
     {
         UULog.debug(tag: LOG_TAG, message: "Set Notify State for \(self.debugName), enabled: \(enabled), timeout: \(timeout), characateristic: \(characteristic)")
         
-        let timerId = TimerId.characteristicNotifyState
+        let timerId = TimerId.characteristicNotifyState(characteristic.uuid)
         
         delegate.setNotifyValueForCharacteristicBlock =
         { error in
@@ -548,7 +548,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
     {
         UULog.debug(tag: LOG_TAG, message: "Read value for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
         
-        let timerId = TimerId.readCharacteristic
+        let timerId = TimerId.readCharacteristic(characteristic.uuid)
         
         delegate.registerCharacteristicReadHandler(characteristic.uuid)
         { data, error in
@@ -593,7 +593,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
     {
         UULog.debug(tag: LOG_TAG, message: "Read value for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
         
-        let timerId = TimerId.readDescriptor
+        let timerId = TimerId.readDescriptor(descriptor.uuid)
         
         delegate.registerDescriptorReadHandler(descriptor.uuid)
         { data, error in
@@ -640,7 +640,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
     {
         UULog.debug(tag: LOG_TAG, message: "Write value \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
         
-        let timerId = TimerId.writeCharacteristic
+        let timerId = TimerId.writeCharacteristic(characteristic.uuid)
         
         delegate.registerCharacteristicWriteHandler(characteristic.uuid)
         { error in
@@ -724,7 +724,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
     {
         UULog.debug(tag: LOG_TAG, message: "Write value \(data.uuToHexString()), for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
         
-        let timerId = TimerId.writeDescriptor
+        let timerId = TimerId.writeDescriptor(descriptor.uuid)
         
         delegate.registerDescriptorWriteHandler(descriptor.uuid)
         { error in
@@ -926,22 +926,43 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
     // MARK: Timers
     
     
-    private enum TimerId: String
+    private enum TimerId
     {
         case connect
         case disconnect
         case serviceDiscovery
         case characteristicDiscovery
         case includedServicesDiscovery
-        case descriptorDiscovery
-        case characteristicNotifyState
-        case readCharacteristic
-        case writeCharacteristic
-        case readDescriptor
-        case writeDescriptor
+        case descriptorDiscovery(CBUUID)
+        case characteristicNotifyState(CBUUID)
+        case readCharacteristic(CBUUID)
+        case writeCharacteristic(CBUUID)
+        case readDescriptor(CBUUID)
+        case writeDescriptor(CBUUID)
         case readRssi
         case pollRssi
         case openL2CapChannel
+
+        var rawValue: String
+        {
+            switch self
+            {
+            case .connect: return "connect"
+            case .disconnect: return "disconnect"
+            case .serviceDiscovery: return "serviceDiscovery"
+            case .characteristicDiscovery: return "characteristicDiscovery"
+            case .includedServicesDiscovery: return "includedServicesDiscovery"
+            case .descriptorDiscovery(let uuid): return "descriptorDiscovery__\(uuid.uuidString)"
+            case .characteristicNotifyState(let uuid): return "characteristicNotifyState__\(uuid.uuidString)"
+            case .readCharacteristic(let uuid): return "readCharacteristic__\(uuid.uuidString)"
+            case .writeCharacteristic(let uuid): return "writeCharacteristic__\(uuid.uuidString)"
+            case .readDescriptor(let uuid): return "readDescriptor__\(uuid.uuidString)"
+            case .writeDescriptor(let uuid): return "writeDescriptor__\(uuid.uuidString)"
+            case .readRssi: return "readRssi"
+            case .pollRssi: return "pollRssi"
+            case .openL2CapChannel: return "openL2CapChannel"
+            }
+        }
     }
     
     private func formatTimerId(_ name: String) -> String

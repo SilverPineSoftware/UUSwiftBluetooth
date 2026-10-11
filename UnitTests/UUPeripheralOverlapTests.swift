@@ -116,6 +116,87 @@ final class UUPeripheralOverlapTests: XCTestCase
         disconnect(fixture)
     }
 
+    func test_CharacteristicWriteStartPreservesOtherTimeout()
+    {
+        assertAttributeTimeouts(kind: .characteristicWrite, completeFirst: false)
+    }
+
+    func test_CharacteristicWriteCompletionPreservesOtherTimeout()
+    {
+        assertAttributeTimeouts(kind: .characteristicWrite, completeFirst: true)
+    }
+
+    func test_DescriptorReadStartPreservesOtherTimeout()
+    {
+        assertAttributeTimeouts(kind: .descriptorRead, completeFirst: false)
+    }
+
+    func test_DescriptorReadCompletionPreservesOtherTimeout()
+    {
+        assertAttributeTimeouts(kind: .descriptorRead, completeFirst: true)
+    }
+
+    func test_DescriptorWriteStartPreservesOtherTimeout()
+    {
+        assertAttributeTimeouts(kind: .descriptorWrite, completeFirst: false)
+    }
+
+    func test_DescriptorWriteCompletionPreservesOtherTimeout()
+    {
+        assertAttributeTimeouts(kind: .descriptorWrite, completeFirst: true)
+    }
+
+    private enum AttributeOperation
+    {
+        case characteristicWrite, descriptorRead, descriptorWrite
+    }
+
+    private func assertAttributeTimeouts(kind: AttributeOperation, completeFirst: Bool)
+    {
+        let fixture = connectedFixture()
+        let timedOut = expectation(description: "Independent attribute timeout")
+        var observing = true
+        fixture.central.dispatchQueue.sync
+        {
+            let descriptors = [
+                CBMutableDescriptor(type: CBUUID(string: "2901"), value: "First"),
+                CBMutableDescriptor(type: CBUUID(string: "2904"), value: Data([0]))]
+            fixture.characteristic.descriptors = descriptors
+            descriptors.forEach { $0.setValue(fixture.characteristic, forKey: "characteristic") }
+            for index in 0..<2
+            {
+                let timeout: TimeInterval = index == 0 || completeFirst ? 0.05 : 60
+                let completion: (Error?) -> Void = { error in
+                    guard observing else { return }
+                    if index == (completeFirst ? 1 : 0)
+                    {
+                        XCTAssertEqual(error?.uuBluetoothErrorCode, .timeout)
+                        timedOut.fulfill()
+                    }
+                    else if completeFirst { XCTAssertNil(error) }
+                }
+                switch kind
+                {
+                case .characteristicWrite:
+                    fixture.peripheral.writeValue(data: Data([1]),
+                        for: index == 0 ? fixture.characteristic : fixture.otherCharacteristic,
+                        timeout: timeout, completion: completion)
+                case .descriptorRead:
+                    fixture.peripheral.readValue(for: descriptors[index], timeout: timeout)
+                    { _, error in completion(error) }
+                case .descriptorWrite:
+                    fixture.peripheral.writeValue(data: Data([1]), for: descriptors[index],
+                        timeout: timeout, completion: completion)
+                }
+            }
+            XCTAssertEqual(fixture.backend.responses.count, 2)
+            if completeFirst { fixture.backend.responses.removeFirst()() }
+        }
+        wait(for: [timedOut], timeout: 2)
+        fixture.central.dispatchQueue.sync { observing = false }
+        disconnect(fixture)
+    }
+
     func test_isolatedReadTimesOutWithoutNativeResponse()
     {
         let fixture = connectedFixture()
@@ -223,7 +304,7 @@ final class UUPeripheralOverlapTests: XCTestCase
         let characteristic = CBMutableCharacteristic(type: CBUUID(string: "2A29"),
             properties: [.read, .write, .notify], value: nil, permissions: [.readable, .writeable])
         let otherCharacteristic = CBMutableCharacteristic(type: CBUUID(string: "2A24"),
-            properties: [.read], value: nil, permissions: [.readable])
+            properties: [.read, .write], value: nil, permissions: [.readable, .writeable])
         let backend: HeldResponsePeripheral
         let central: UUCentralManager
         let mockCentral: UUMockCBCentralManager
