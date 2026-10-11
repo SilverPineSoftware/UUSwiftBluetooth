@@ -140,13 +140,13 @@ fileprivate class TestPeripheralSessionImplementation: UUPeripheralSession, Test
     {
         super.init(peripheral: peripheral)
         
-        configuration.servicesToDiscover = [ UUCoreBluetooth.Constants.Services.deviceInformation ]
+        configuration.servicesToDiscover = [ UUBluetooth.Constants.Services.deviceInformation ]
         configuration.characteristicsToDiscover =
         [
-            UUCoreBluetooth.Constants.Services.deviceInformation:
+            UUBluetooth.Constants.Services.deviceInformation:
             [
-                UUCoreBluetooth.Constants.Characteristics.manufacturerNameString,
-                UUCoreBluetooth.Constants.Characteristics.modelNumberString
+                UUBluetooth.Constants.Characteristics.manufacturerNameString,
+                UUBluetooth.Constants.Characteristics.modelNumberString
         ]   ]
     }
     
@@ -173,7 +173,7 @@ fileprivate class TestPeripheralSessionImplementation: UUPeripheralSession, Test
     
     func readManufacturerName(_ completion: @escaping UUObjectErrorBlock<String>)
     {
-        readUtf8(from: UUCoreBluetooth.Constants.Characteristics.manufacturerNameString)
+        readUtf8(from: UUBluetooth.Constants.Characteristics.manufacturerNameString)
         { session, stringOpt, errorOpt in
             completion(stringOpt, errorOpt)
         }
@@ -181,7 +181,7 @@ fileprivate class TestPeripheralSessionImplementation: UUPeripheralSession, Test
     
     func readModelNumber(_ completion: @escaping UUObjectErrorBlock<String>)
     {
-        readUtf8(from: UUCoreBluetooth.Constants.Characteristics.modelNumberString)
+        readUtf8(from: UUBluetooth.Constants.Characteristics.modelNumberString)
         { session, stringOpt, errorOpt in
             completion(stringOpt, errorOpt)
         }

@@ -54,7 +54,7 @@ public extension XCTestCase
 {
     func scanForPeripheral(name: String, timeout: TimeInterval = 10.0) throws -> UUPeripheral
     {
-        let scanner = UUBluetooth.scanner
+        let scanner = UUBluetooth.shared.scanner
         let peripheralOpt = scanForPeripheral(scanner: scanner, timeout: timeout, filter: UUPeripheralNameFilter(name))
         let peripheral = try XCTUnwrap(peripheralOpt)
         return peripheral
