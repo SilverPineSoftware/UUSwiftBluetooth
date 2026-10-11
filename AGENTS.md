@@ -1,6 +1,6 @@
 # UUSwiftBluetooth Agent Instructions
 
-Read `.uu-agents/AGENTS.md` and the applicable shared guidance before making changes. For Swift work, also read `.uu-agents/agents/SWIFT.md`, `API_DESIGN.md`, `LIBRARY_COMPATIBILITY.md`, and `TESTING.md`. These project instructions add the Bluetooth library's purpose and workflow.
+Read `.uu-agents/AGENTS.md` and the applicable shared guidance before making changes. For Swift work, also read `.uu-agents/agents/SWIFT.md`, `.uu-agents/agents/API_DESIGN.md`, `.uu-agents/agents/LIBRARY_COMPATIBILITY.md`, and `.uu-agents/agents/TESTING.md`. These project instructions add the Bluetooth library's purpose and workflow.
 
 ## Project
 
@@ -15,16 +15,16 @@ The Swift package manifest, `Package.swift`, is the source of truth for deployme
 ## Source Layout
 
 - `Library/` contains the library source.
-- `Protocols/` defines CoreBluetooth-facing protocols and test seams.
-- `Delegates/` adapts delegate callbacks into the library's callback flow.
-- `Central/`, `Peripheral/`, `Scanning/`, `Session/`, and `L2Cap/` contain the corresponding APIs.
-- `Operations/` contains asynchronous operation helpers.
-- `Mocks/` contains mock CoreBluetooth implementations.
+- `Library/Protocols/` defines CoreBluetooth-facing protocols and test seams.
+- `Library/Delegates/` adapts delegate callbacks into the library's callback flow.
+- `Library/Central/`, `Library/Peripheral/`, `Library/Scanning/`, `Library/Session/`, and `Library/L2Cap/` contain the corresponding APIs.
+- `Library/Operations/` contains asynchronous operation helpers.
+- `Library/Mocks/` contains mock CoreBluetooth implementations.
 - `UnitTests/` contains device-independent XCTest coverage.
 - `LiveTests/` contains tests that scan for or communicate with nearby Bluetooth peripherals.
 - `TestPlans/` separates the unit and live test plans.
 - `Sample/` is a sample reference app.
-- TestHost/ is the test shell for live interaction tests
+- `TestHost/` contains the test host app.
 
 ## API and Implementation Guidance
 
@@ -37,17 +37,17 @@ The Swift package manifest, `Package.swift`, is the source of truth for deployme
 
 ## Build and Test
 
-The Xcode project has a shared `UUSwiftBluetooth` scheme with `UnitTests` and `LiveTests` test plans. Use a currently installed simulator in place of `<iOS Simulator>`:
+The Xcode project has a shared `Library` scheme with `UnitTests` and `LiveTests` test plans. Use a currently installed simulator in place of `<iOS Simulator>`:
 
 ```sh
 swift build
-xcodebuild test -project UUSwiftBluetooth.xcodeproj -scheme UUSwiftBluetooth -testPlan UnitTests -destination 'platform=iOS Simulator,name=<iOS Simulator>'
+xcodebuild test -project UUSwiftBluetooth.xcodeproj -scheme Library -testPlan UnitTests -destination 'platform=iOS Simulator,name=<iOS Simulator>'
 ```
 
-Live tests require a real Bluetooth environment and nearby peripherals; current tests look for a peripheral named `Code Ninja Mac`. Run the live test plan only when that hardware and environment are available:
+Live tests require a real Bluetooth environment and nearby peripherals; current peripheral and session tests look for a peripheral named `CC2650 SensorTag`. Run the live test plan only when that hardware and environment are available:
 
 ```sh
-xcodebuild test -project UUSwiftBluetooth.xcodeproj -scheme UUSwiftBluetooth -testPlan LiveTests -destination 'platform=iOS,id=<device-identifier>'
+xcodebuild test -project UUSwiftBluetooth.xcodeproj -scheme Library -testPlan LiveTests -destination 'platform=iOS,id=<device-identifier>'
 ```
 
 The Xcode project and simulator tests require full Xcode with the relevant SDKs. If Xcode, a simulator, a device, or the required peripheral is unavailable, report that test as not run and say what was missing. Do not report a test as passing unless it ran.

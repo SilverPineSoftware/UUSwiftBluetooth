@@ -35,20 +35,6 @@
                ReferencedContainer = "container:UUSwiftBluetooth.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "NO"
-            buildForProfiling = "NO"
-            buildForArchiving = "NO"
-            buildForAnalyzing = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "08E958322DD26C6F007A0C97"
-               BuildableName = "LiveTests.xctest"
-               BlueprintName = "LiveTests"
-               ReferencedContainer = "container:UUSwiftBluetooth.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

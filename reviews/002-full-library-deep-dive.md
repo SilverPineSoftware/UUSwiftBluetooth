@@ -42,7 +42,9 @@ The protocols unconditionally require `CBCentralManager.supports`, `registerForC
 
 **Regression:** Compile the package for macOS and the framework for the minimum supported iOS deployment target.
 
-### 2. [P1] The unit test scheme builds live tests that still call the removed facade API
+### 2. [Resolved — P1] The unit test scheme builds live tests that still call the removed facade API
+
+**Resolved 2026-10-11:** Active live-test calls now use `UUBluetooth.shared.scanner`, AGENTS.md documents the `Library` scheme, and the unconditional LiveTests build-action entry has been removed. Xcode `build-for-testing` succeeded for both `UnitTests` and `LiveTests` plans using the generic iOS Simulator destination. The UnitTests build graph excludes LiveTests; selecting the LiveTests plan still includes and builds LiveTests. These checks compiled the tests without executing them; the maintainer separately reported a passing unit-test run. The original finding below is retained as review history.
 
 **Locations:** [`Library.xcscheme:35`](../UUSwiftBluetooth.xcodeproj/xcshareddata/xcschemes/Library.xcscheme#L35), [`UULivePeripheralTests.swift:23`](../LiveTests/UULivePeripheralTests.swift#L23), [`UUSwiftBluetoothLiveTests.swift:36`](../LiveTests/UUSwiftBluetoothLiveTests.swift#L36), [`Helpers.swift:57`](../LiveTests/Helpers.swift#L57).
 
