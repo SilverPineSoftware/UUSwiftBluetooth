@@ -2,8 +2,8 @@ import XCTest
 import CoreBluetooth
 @testable import UUSwiftBluetooth
 
-/// Review #5: a timed-out native request must not consume a later request's callback.
-/// These regressions intentionally fail until timeout recovery has a safe boundary.
+/// Review #5: native responses may satisfy the current matching request, but
+/// local timeout work must only complete the request that scheduled it.
 final class UUPeripheralLateResponseTests: XCTestCase
 {
     private enum Operation
@@ -13,68 +13,68 @@ final class UUPeripheralLateResponseTests: XCTestCase
         case notifyState, rssi, channelOpen
     }
 
-    func test_lateServiceDiscoveryResponseDoesNotCompleteRetry()
+    func test_lateServiceDiscoveryResponseCompletesRetryOnce()
     {
-        assertLateResponseDoesNotCompleteRetry(.services)
+        assertLateResponseCompletesRetryOnce(.services)
     }
 
-    func test_lateIncludedServiceDiscoveryResponseDoesNotCompleteRetry()
+    func test_lateIncludedServiceDiscoveryResponseCompletesRetryOnce()
     {
-        assertLateResponseDoesNotCompleteRetry(.includedServices)
+        assertLateResponseCompletesRetryOnce(.includedServices)
     }
 
-    func test_lateCharacteristicDiscoveryResponseDoesNotCompleteRetry()
+    func test_lateCharacteristicDiscoveryResponseCompletesRetryOnce()
     {
-        assertLateResponseDoesNotCompleteRetry(.characteristics)
+        assertLateResponseCompletesRetryOnce(.characteristics)
     }
 
-    func test_lateDescriptorDiscoveryResponseDoesNotCompleteRetry()
+    func test_lateDescriptorDiscoveryResponseCompletesRetryOnce()
     {
-        assertLateResponseDoesNotCompleteRetry(.descriptors)
+        assertLateResponseCompletesRetryOnce(.descriptors)
     }
 
-    func test_lateCharacteristicReadResponseDoesNotCompleteRetry()
+    func test_lateCharacteristicReadResponseCompletesRetryOnce()
     {
-        assertLateResponseDoesNotCompleteRetry(.characteristicRead)
+        assertLateResponseCompletesRetryOnce(.characteristicRead)
     }
 
-    func test_lateDescriptorReadResponseDoesNotCompleteRetry()
+    func test_lateDescriptorReadResponseCompletesRetryOnce()
     {
-        assertLateResponseDoesNotCompleteRetry(.descriptorRead)
+        assertLateResponseCompletesRetryOnce(.descriptorRead)
     }
 
-    func test_lateCharacteristicWriteResponseDoesNotCompleteRetry()
+    func test_lateCharacteristicWriteResponseCompletesRetryOnce()
     {
-        assertLateResponseDoesNotCompleteRetry(.characteristicWrite)
+        assertLateResponseCompletesRetryOnce(.characteristicWrite)
     }
 
-    func test_lateDescriptorWriteResponseDoesNotCompleteRetry()
+    func test_lateDescriptorWriteResponseCompletesRetryOnce()
     {
-        assertLateResponseDoesNotCompleteRetry(.descriptorWrite)
+        assertLateResponseCompletesRetryOnce(.descriptorWrite)
     }
 
-    func test_lateNotifyStateResponseDoesNotCompleteRetry()
+    func test_lateNotifyStateResponseCompletesRetryOnce()
     {
-        assertLateResponseDoesNotCompleteRetry(.notifyState)
+        assertLateResponseCompletesRetryOnce(.notifyState)
     }
 
-    func test_lateRSSIReadResponseDoesNotCompleteRetry()
+    func test_lateRSSIReadResponseCompletesRetryOnce()
     {
-        assertLateResponseDoesNotCompleteRetry(.rssi)
+        assertLateResponseCompletesRetryOnce(.rssi)
     }
 
-    func test_lateChannelOpenResponseDoesNotCompleteRetry()
+    func test_lateChannelOpenResponseCompletesRetryOnce()
     {
-        assertLateResponseDoesNotCompleteRetry(.channelOpen)
+        assertLateResponseCompletesRetryOnce(.channelOpen)
     }
 
-    func test_lateReadErrorDoesNotFailRetry()
+    func test_lateReadErrorCompletesRetryOnce()
     {
-        assertLateResponseDoesNotCompleteRetry(.characteristicRead,
+        assertLateResponseCompletesRetryOnce(.characteristicRead,
             lateError: NSError(domain: "LateResponseFromRequestA", code: 42))
     }
 
-    private func assertLateResponseDoesNotCompleteRetry(
+    private func assertLateResponseCompletesRetryOnce(
         _ operation: Operation, lateError: Error? = nil,
         file: StaticString = #filePath, line: UInt = #line)
     {
@@ -95,77 +95,139 @@ final class UUPeripheralLateResponseTests: XCTestCase
         fixture.central.dispatchQueue.sync
         {
             XCTAssertEqual(firstCount, 1, file: file, line: line)
-            // A recovery policy may reject B until the old native request is drained.
-            if fixture.backend.responses.count == 1
-            {
-                XCTAssertEqual(retryResults.count, 1, file: file, line: line)
-                XCTAssertNotNil(retryResults.first ?? nil, "Unsubmitted retry needs an explicit error", file: file, line: line)
-                fixture.backend.responses.removeFirst()(lateError)
-                XCTAssertEqual(retryResults.count, 1, file: file, line: line)
-                return
-            }
             XCTAssertEqual(fixture.backend.responses.count, 2, file: file, line: line)
             XCTAssertTrue(retryResults.isEmpty, file: file, line: line)
             guard fixture.backend.responses.count == 2 else { return }
             fixture.backend.responses.removeFirst()(lateError)
-            XCTAssertTrue(retryResults.isEmpty,
-                "A's late response must not consume accepted request B's completion", file: file, line: line)
+            XCTAssertEqual(retryResults.count, 1, "A matching native response satisfies B", file: file, line: line)
+            if let expected = lateError as NSError?
+            {
+                XCTAssertEqual((retryResults.first ?? nil)?.uuBluetoothErrorCode, .operationFailed, file: file, line: line)
+                let underlying = ((retryResults.first ?? nil) as NSError?)?.userInfo[NSUnderlyingErrorKey] as? NSError
+                XCTAssertEqual(underlying?.domain, expected.domain, file: file, line: line)
+                XCTAssertEqual(underlying?.code, expected.code, file: file, line: line)
+            }
+            else { XCTAssertNil(retryResults.first ?? nil, file: file, line: line) }
             fixture.backend.responses.removeFirst()(nil)
-            XCTAssertEqual(retryResults.count, 1, "B must complete exactly once", file: file, line: line)
-            XCTAssertNil(retryResults.first ?? nil, "B's own response succeeds", file: file, line: line)
+            XCTAssertEqual(retryResults.count, 1, "Later responses must not complete B twice", file: file, line: line)
             XCTAssertEqual(firstCount, 1, file: file, line: line)
         }
     }
 
-    func test_lateReadReturnsNeitherStaleDataNorCancelsRetryDeadline()
+    func test_retryWithoutNativeResponseTimesOut()
+    {
+        let fixture = connectedFixture()
+        defer { disconnect(fixture) }
+        var counts = [0, 0]
+        for index in 0..<2
+        {
+            let timedOut = expectation(description: "Request \(index) times out")
+            fixture.peripheral.readValue(for: fixture.characteristic, timeout: 0.05)
+            { _, error in
+                counts[index] += 1
+                XCTAssertEqual(error?.uuBluetoothErrorCode, .timeout)
+                timedOut.fulfill()
+            }
+            wait(for: [timedOut], timeout: 2)
+        }
+        fixture.central.dispatchQueue.sync
+        {
+            fixture.backend.deliverResponses()
+            XCTAssertEqual(counts, [1, 1])
+        }
+    }
+
+    func test_lateReadDataCompletesRetryAndInvalidatesItsTimeout()
     {
         let fixture = connectedFixture()
         defer { disconnect(fixture) }
         let timedOut = expectation(description: "A timeout")
-        let retryTimedOut = expectation(description: "B retains its own timeout")
-        var retryResults: [(Data?, Error?)] = []
-        var observing = true
         fixture.peripheral.readValue(for: fixture.characteristic, timeout: 0.05)
         { _, error in
             XCTAssertEqual(error?.uuBluetoothErrorCode, .timeout)
             timedOut.fulfill()
         }
         wait(for: [timedOut], timeout: 2)
-        fixture.peripheral.readValue(for: fixture.characteristic, timeout: 0.05)
-        { data, error in
-            guard observing else { return }
-            retryResults.append((data, error))
-            if error != nil { retryTimedOut.fulfill() }
-        }
+        var results: [(Data?, Error?)] = []
+        fixture.peripheral.readValue(for: fixture.characteristic, timeout: 60)
+        { data, error in results.append((data, error)) }
         fixture.central.dispatchQueue.sync
         {
+            guard let timeout = fixture.peripheral.takeTimeout() else { return XCTFail("B needs a timer") }
             fixture.characteristic.value = Data([0xAA])
-            XCTAssertFalse(fixture.backend.responses.isEmpty)
             fixture.backend.responses.removeFirst()(nil)
-            if let result = retryResults.first
-            {
-                // Explicit recovery rejection is valid; a stale success is not.
-                XCTAssertNotNil(result.1, "B must not succeed with A's data")
-                XCTAssertNil(result.0)
-            }
+            XCTAssertEqual(results.count, 1)
+            XCTAssertEqual(results.first?.0, Data([0xAA]))
+            XCTAssertNil(results.first?.1)
+            timeout()
+            fixture.backend.deliverResponses()
         }
-        wait(for: [retryTimedOut], timeout: 2)
-        fixture.central.dispatchQueue.sync
-        {
-            XCTAssertEqual(retryResults.count, 1)
-            XCTAssertNotNil(retryResults.first?.1)
-            observing = false
-        }
+        fixture.central.dispatchQueue.sync { XCTAssertEqual(results.count, 1) }
     }
 
-    func test_queuedTimeoutDoesNotConsumeRetryAfterNativeSuccess()
+    func test_queuedTimeoutDoesNotConsumeServicesRetry()
+    {
+        assertQueuedTimeoutDoesNotConsumeRetry(.services)
+    }
+
+    func test_queuedTimeoutDoesNotConsumeIncludedServicesRetry()
+    {
+        assertQueuedTimeoutDoesNotConsumeRetry(.includedServices)
+    }
+
+    func test_queuedTimeoutDoesNotConsumeCharacteristicsRetry()
+    {
+        assertQueuedTimeoutDoesNotConsumeRetry(.characteristics)
+    }
+
+    func test_queuedTimeoutDoesNotConsumeDescriptorsRetry()
+    {
+        assertQueuedTimeoutDoesNotConsumeRetry(.descriptors)
+    }
+
+    func test_queuedTimeoutDoesNotConsumeCharacteristicReadRetry()
+    {
+        assertQueuedTimeoutDoesNotConsumeRetry(.characteristicRead)
+    }
+
+    func test_queuedTimeoutDoesNotConsumeDescriptorReadRetry()
+    {
+        assertQueuedTimeoutDoesNotConsumeRetry(.descriptorRead)
+    }
+
+    func test_queuedTimeoutDoesNotConsumeCharacteristicWriteRetry()
+    {
+        assertQueuedTimeoutDoesNotConsumeRetry(.characteristicWrite)
+    }
+
+    func test_queuedTimeoutDoesNotConsumeDescriptorWriteRetry()
+    {
+        assertQueuedTimeoutDoesNotConsumeRetry(.descriptorWrite)
+    }
+
+    func test_queuedTimeoutDoesNotConsumeNotifyStateRetry()
+    {
+        assertQueuedTimeoutDoesNotConsumeRetry(.notifyState)
+    }
+
+    func test_queuedTimeoutDoesNotConsumeRssiRetry()
+    {
+        assertQueuedTimeoutDoesNotConsumeRetry(.rssi)
+    }
+
+    func test_queuedTimeoutDoesNotConsumeChannelOpenRetry()
+    {
+        assertQueuedTimeoutDoesNotConsumeRetry(.channelOpen)
+    }
+
+    private func assertQueuedTimeoutDoesNotConsumeRetry(_ operation: Operation)
     {
         let fixture = connectedFixture()
         defer { disconnect(fixture) }
         var firstResults: [Error?] = []
         var retryResults: [Error?] = []
-        fixture.peripheral.readValue(for: fixture.characteristic, timeout: 60)
-        { _, error in firstResults.append(error) }
+        start(operation, fixture: fixture, timeout: 60)
+        { error in firstResults.append(error) }
         fixture.central.dispatchQueue.sync
         {
             // Capture A's actual timeout closure before its native response cancels it.
@@ -176,8 +238,8 @@ final class UUPeripheralLateResponseTests: XCTestCase
             }
             // Queue order after this block: native A success, B setup, synthetic A timeout.
             fixture.central.dispatchQueue.async { fixture.backend.responses.removeFirst()(nil) }
-            fixture.peripheral.readValue(for: fixture.characteristic, timeout: 60)
-            { _, error in retryResults.append(error) }
+            self.start(operation, fixture: fixture, timeout: 60)
+            { error in retryResults.append(error) }
             timeout()
         }
         fixture.central.dispatchQueue.sync
@@ -189,6 +251,71 @@ final class UUPeripheralLateResponseTests: XCTestCase
             fixture.backend.deliverResponses()
             XCTAssertEqual(retryResults.count, 1)
             XCTAssertNil(retryResults.first ?? nil, "B must receive its own successful response")
+        }
+    }
+
+    func test_oldTimeoutDoesNotCancelRetryDeadline()
+    {
+        let fixture = connectedFixture()
+        defer { disconnect(fixture) }
+        let retryTimedOut = expectation(description: "B reaches its own deadline")
+        var firstCount = 0
+        var retryCount = 0
+        fixture.peripheral.readValue(for: fixture.characteristic, timeout: 60)
+        { _, error in XCTAssertNil(error); firstCount += 1 }
+        fixture.central.dispatchQueue.sync
+        {
+            guard let timeout = fixture.peripheral.takeTimeout() else { return XCTFail("A needs a timer") }
+            fixture.central.dispatchQueue.async { fixture.backend.responses.removeFirst()(nil) }
+            fixture.peripheral.readValue(for: fixture.characteristic, timeout: 0.05)
+            { _, error in
+                XCTAssertEqual(error?.uuBluetoothErrorCode, .timeout)
+                retryCount += 1
+                retryTimedOut.fulfill()
+            }
+            timeout()
+        }
+        fixture.central.dispatchQueue.sync
+        {
+            XCTAssertEqual(firstCount, 1)
+            XCTAssertEqual(retryCount, 0, "A's queued timeout must not finish B early")
+        }
+        wait(for: [retryTimedOut], timeout: 2)
+        fixture.central.dispatchQueue.sync
+        {
+            fixture.backend.deliverResponses()
+            XCTAssertEqual(retryCount, 1)
+        }
+    }
+
+    func test_oldTimeoutIsInvalidAfterDisconnectAndReconnect()
+    {
+        let fixture = connectedFixture()
+        defer { disconnect(fixture) }
+        var oldTimeout: (() -> Void)?
+        var firstCount = 0
+        var retryResults: [Error?] = []
+        fixture.peripheral.readValue(for: fixture.characteristic, timeout: 60)
+        { _, error in
+            XCTAssertEqual(error?.uuBluetoothErrorCode, .disconnected)
+            firstCount += 1
+        }
+        fixture.central.dispatchQueue.sync { oldTimeout = fixture.peripheral.takeTimeout() }
+        XCTAssertNotNil(oldTimeout)
+        disconnect(fixture)
+        let connected = expectation(description: "Reconnected")
+        fixture.connect(connected: { connected.fulfill() }, disconnected: { _ in })
+        wait(for: [connected], timeout: 2)
+        fixture.peripheral.readValue(for: fixture.characteristic, timeout: 60)
+        { _, error in retryResults.append(error) }
+        fixture.central.dispatchQueue.sync { oldTimeout?() }
+        fixture.central.dispatchQueue.sync
+        {
+            XCTAssertEqual(firstCount, 1)
+            XCTAssertTrue(retryResults.isEmpty)
+            fixture.backend.deliverResponses()
+            XCTAssertEqual(retryResults.count, 1)
+            XCTAssertNil(retryResults.first ?? nil)
         }
     }
 
@@ -418,6 +545,8 @@ private final class CapturedTimeoutPeripheral: UUPeripheral
     func takeTimeout() -> (() -> Void)?
     {
         guard timeouts.count == 1, let entry = timeouts.first else { return nil }
+        // Stop only the underlying timer source; preserve the accepted request
+        // just as a fired one-shot source would, so its queued work can be interleaved.
         cancelTimer(name: entry.key)
         return entry.value
     }

@@ -24,6 +24,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
     private let dispatchQueue: DispatchQueue
     private let delegate = UUCBPeripheralBlockDelegate()
     private let timerPool: UUTimerPool
+    private var timeoutTokens: [String: UUID] = [:]
 
     // Reference to the underlying CBPeripheral
     public var underlyingPeripheral: UUCBPeripheral
@@ -293,7 +294,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
             startTimer(timerId, timeout)
             {
                 let err = NSError.uuCoreBluetoothError(.timeout)
-                self.endServiceDiscovery(err)
+                self.delegate.handleServicesDiscovered(self.underlyingPeripheral, err)
             }
         
             underlyingPeripheral.discoverServices(serviceUUIDs)
@@ -343,7 +344,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
             startTimer(timerId, timeout)
             {
                 let err = NSError.uuCoreBluetoothError(.timeout)
-                self.endCharacteristicDiscovery(service, err)
+                self.delegate.handleDiscoverCharacteristics(self.underlyingPeripheral, service, err)
             }
         
             if let err = underlyingPeripheral.discoverCharacteristics(characteristicUUIDs, service)
@@ -398,7 +399,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
             startTimer(timerId, timeout)
             {
                 let err = NSError.uuCoreBluetoothError(.timeout)
-                self.endDiscoverIncludedServices(service, err)
+                self.delegate.handleDiscoverIncludedServices(self.underlyingPeripheral, service, err)
             }
         
             if let err = underlyingPeripheral.discoverIncludedServices(includedServiceUUIDs, service)
@@ -452,7 +453,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
             startTimer(timerId, timeout)
             {
                 let err = NSError.uuCoreBluetoothError(.timeout)
-                self.endDescriptorDiscovery(characteristic, err)
+                self.delegate.handleDescriptorDiscovery(self.underlyingPeripheral, characteristic, err)
             }
         
             if let err = underlyingPeripheral.discoverDescriptors(characteristic)
@@ -578,7 +579,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
             startTimer(timerId, timeout)
             {
                 let err = NSError.uuCoreBluetoothError(.timeout)
-                self.endSetNotify(characteristic, err)
+                self.delegate.handleDidUpdateNotificationState(self.underlyingPeripheral, characteristic, err)
             }
         
             if let err = underlyingPeripheral.setNotifyValue(enabled, for: characteristic)
@@ -626,7 +627,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
             startTimer(timerId, timeout)
             {
                 let err = NSError.uuCoreBluetoothError(.timeout)
-                self.endReadValue(characteristic, err)
+                self.delegate.handleCharacteristicValueUpdated(self.underlyingPeripheral, characteristic, err)
             }
         
             if let err = canAttemptOperation
@@ -686,7 +687,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
             startTimer(timerId, timeout)
             {
                 let err = NSError.uuCoreBluetoothError(.timeout)
-                self.endReadDescriptor(descriptor, err)
+                self.delegate.handleDescriptorValueUpdated(self.underlyingPeripheral, descriptor, err)
             }
         
             if let err = underlyingPeripheral.readValue(descriptor)
@@ -742,7 +743,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
             startTimer(timerId, timeout)
             {
                 let err = NSError.uuCoreBluetoothError(.timeout)
-                self.endWriteValue(characteristic, err)
+                self.delegate.handleCharacteristicValueWritten(self.underlyingPeripheral, characteristic, err)
             }
         
             if let err = underlyingPeripheral.writeCharacteristicValue(data, characteristic, .withResponse)
@@ -838,7 +839,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
             startTimer(timerId, timeout)
             {
                 let err = NSError.uuCoreBluetoothError(.timeout)
-                self.endWriteValue(descriptor, err)
+                self.delegate.handleDescriptorValueWritten(self.underlyingPeripheral, descriptor, err)
             }
         
             if let err = underlyingPeripheral.writeDescriptorValue(data, descriptor)
@@ -891,7 +892,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
             startTimer(timerId, timeout)
             {
                 let err = NSError.uuCoreBluetoothError(.timeout)
-                self.endReadRssi(UUBluetooth.Constants.noRssi, err)
+                self.delegate.handleRssiRead(self.underlyingPeripheral, NSNumber(value: UUBluetooth.Constants.noRssi), err)
             }
         
             underlyingPeripheral.readRSSI()
@@ -975,7 +976,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
             startTimer(timerId, timeout)
             {
                 let err = NSError.uuCoreBluetoothError(.timeout)
-                self.endOpenL2CapChannel(nil, err)
+                self.delegate.handleL2CapChannelOpened(self.underlyingPeripheral, nil, err)
             }
         
             underlyingPeripheral.openL2CAPChannel(psm)
@@ -1092,6 +1093,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         let completePending = delegate.takePendingCompletions(error: operationError)
 
         UULog.debug(tag: LOG_TAG, message: "Cancelling all timers")
+        timeoutTokens.removeAll()
         timerPool.cancelAllTimers()
 
         completePending()
@@ -1099,11 +1101,30 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
     
     private func startTimer(_ timerBucket: TimerId, _ timeout: TimeInterval, _ block: @escaping ()->())
     {
-        startTimer(name: timerBucket.rawValue, timeout: timeout, block: block)
+        let key = timerBucket.rawValue
+        let token = UUID()
+        timeoutTokens[key] = token
+        startTimer(name: key, timeout: timeout)
+        { [self] in
+            
+            dispatchQueue.async
+            { [self] in
+                
+                // Validate at delivery, after any native completion or replacement request.
+                // The terminal action must execute inline here, without another queue hop.
+                guard timeoutTokens[key] == token else
+                {
+                    return
+                }
+                
+                block()
+            }
+        }
     }
     
     private func cancelTimer(_ timerBucket: TimerId)
     {
+        timeoutTokens.removeValue(forKey: timerBucket.rawValue)
         cancelTimer(name: timerBucket.rawValue)
     }
     

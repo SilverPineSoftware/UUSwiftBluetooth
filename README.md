@@ -37,7 +37,11 @@ A request for an occupied key completes with `UUCoreBluetoothErrorCode.operation
 
 The old `UUCBPeripheralBlockDelegate` properties `discoverIncludedServicesBlock`, `discoverCharacteristicsBlock`, `discoverDescriptorsBlock`, and `setNotifyValueForCharacteristicBlock` were removed. Direct callers should use the corresponding `UUPeripheral` operation APIs.
 
-UUID keys do not distinguish separate attributes sharing the same UUID. A local timeout also does not cancel the native request; retrying before its late response arrives remains a known limitation (review findings #5 and #6).
+With a positive timeout, each accepted operation completes once with a matching native result/error, a local timeout, or another terminal error such as disconnection. A timeout releases its callback immediately so callers may retry. Native responses match the currently pending operation key: a response from an earlier attempt may satisfy a retry, including its data or error. The library does not promise correlation to the native request that originally caused that response. A response with no pending one-shot callback is ignored for that request; notification subscriptions still receive their normal value updates.
+
+Local timeout work is different: it carries a unique token for the request that scheduled it. The token is checked on the central queue immediately before completion, so an old queued timeout cannot complete a newer request or cancel its deadline. Successful/error completion invalidates that token, and disconnect invalidates all pending timeout tokens. Retries are neither blocked pending old responses nor automatically disconnected. Disabling an operation's timeout removes the deadline guarantee.
+
+UUID keys do not distinguish separate attributes sharing the same UUID (review finding #6).
 
 ## Contributing
 
