@@ -8,8 +8,7 @@
 import Foundation
 import CoreBluetooth
 
-//@available(iOS 8.0, *)
-public protocol UUCBAttribute
+public protocol UUCBAttribute: AnyObject
 {
     /**
      * @property UUID
