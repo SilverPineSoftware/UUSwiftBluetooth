@@ -43,7 +43,11 @@ Local timeout work is different: it carries a unique token for the request that 
 
 Use discovered attributes with their parent context populated. Direct users of `UUCBPeripheralBlockDelegate` must now pass the characteristic or descriptor object to its registration/removal methods, rather than just its `CBUUID`, so the full path is available.
 
-Composite UUID paths still do not distinguish repeated instances with identical paths. Session convenience lookups that accept only a characteristic UUID, and the session's descriptor collection keyed only by characteristic UUID, also remain ambiguous for repeated UUIDs. These remaining parts of review finding #6 are open; use the contextual attribute-based `UUPeripheral` operations for cross-service duplicates.
+### Unsupported repeated attribute instances
+
+UUSwiftBluetooth does not support distinct GATT attribute instances with identical UUID paths within one peripheral. This includes repeated services with the same service UUID, repeated characteristics with the same UUID within a service, and repeated descriptors with the same UUID within a characteristic. Behavior for these configurations is undefined: operation keys can collide, and callbacks, notifications, or results may be associated with the wrong instance. The library does not guarantee detection or rejection of these configurations. This is a UUSwiftBluetooth limitation, not a restriction imposed by the BLE specification. Support for these instances is deferred.
+
+Equal characteristic UUIDs under different service UUIDs, and equal descriptor UUIDs under different characteristic paths, are supported by contextual attribute-based `UUPeripheral` operations. However, session convenience lookups that accept only a characteristic UUID, and the session's descriptor collection keyed only by characteristic UUID, remain ambiguous for repeated characteristic UUIDs. Use `UUPeripheral` operations with discovered attributes and their parent context for those cases; the session limitations remain open in review finding #6.
 
 ## Contributing
 

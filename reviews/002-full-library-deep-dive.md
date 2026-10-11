@@ -107,7 +107,9 @@ Discovery/notify-state/RSSI/channel-open operations each have one delegate slot 
 
 **Validation:** All 153 macOS unit tests pass. All 94 focused overlap/composite-key, timeout/retry, and disconnect tests also pass on iOS Simulator. The 13 new composite-key cases cover response routing, independent deadlines, and subscription isolation.
 
-**Remaining scope:** Identical full UUID paths can still represent distinct attribute instances. Session UUID-only characteristic lookup and descriptor result storage also remain unchanged. This finding stays open for those cases. The original assessment follows for history.
+**Support decision 2026-10-11:** Support for distinct attribute instances with identical full UUID paths is deferred. Repeated service UUIDs within a peripheral, repeated characteristic UUIDs within a service, and repeated descriptor UUIDs within a characteristic are explicitly unsupported by UUSwiftBluetooth, with undefined behavior and no guaranteed detection or rejection. The README documents this limitation. This does not imply that BLE prohibits these configurations. No object-identity-based routing change is being made; the Core Bluetooth callback object-identity question remains unsettled by the documentation reviewed.
+
+**Remaining scope:** Session UUID-only characteristic lookup and descriptor result storage remain unchanged and ambiguous even when composite paths differ. This finding remains partially resolved for those session cases; identical-path instance support is deferred as an accepted, documented limitation rather than claimed fixed. The original assessment follows for history.
 
 
 **Locations:** [`UUCBPeripheralBlockDelegate.swift:92`](../Library/Delegates/UUCBPeripheralBlockDelegate.swift#L92), [`UUCBPeripheralBlockDelegate.swift:130`](../Library/Delegates/UUCBPeripheralBlockDelegate.swift#L130), [`UUPeripheralSession.swift:23`](../Library/Session/UUPeripheralSession.swift#L23), [`UUPeripheralSession.swift:434`](../Library/Session/UUPeripheralSession.swift#L434).
