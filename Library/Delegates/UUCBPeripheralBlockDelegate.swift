@@ -119,67 +119,67 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     }
 
     public func registerCharacteristicUpdateHandler(
-        _ characteristic: CBUUID,
+        _ characteristic: UUCBCharacteristic,
         _ handler: UUObjectErrorBlock<Data>?)
     {
-        UULog.verbose(tag: LOG_TAG, message: "Adding Update Handler for \(characteristic.uuCommonName) - \(characteristic.uuidString)")
-        updateValueForCharacteristicBlocks[characteristic.uuidString] = handler
+        UULog.verbose(tag: LOG_TAG, message: "Adding Update Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuAttributeKey)")
+        updateValueForCharacteristicBlocks[characteristic.uuAttributeKey] = handler
     }
 
-    public func removeUpdateHandlerForCharacteristic(_ characteristic: CBUUID)
+    public func removeUpdateHandlerForCharacteristic(_ characteristic: UUCBCharacteristic)
     {
-        UULog.verbose(tag: LOG_TAG, message: "Removing Update Handler for \(characteristic.uuCommonName) - \(characteristic.uuidString)")
-        updateValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuidString)
+        UULog.verbose(tag: LOG_TAG, message: "Removing Update Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuAttributeKey)")
+        updateValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuAttributeKey)
     }
 
     public func registerCharacteristicReadHandler(
-        _ characteristic: CBUUID,
+        _ characteristic: UUCBCharacteristic,
         _ handler: UUObjectErrorBlock<Data>?)
     {
-        UULog.verbose(tag: LOG_TAG, message: "Adding Read Handler for \(characteristic.uuCommonName) - \(characteristic.uuidString)")
-        readValueForCharacteristicBlocks[characteristic.uuidString] = handler
+        UULog.verbose(tag: LOG_TAG, message: "Adding Read Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuAttributeKey)")
+        readValueForCharacteristicBlocks[characteristic.uuAttributeKey] = handler
     }
 
-    public func removeCharacteristicReadHandler(_ characteristic: CBUUID)
+    public func removeCharacteristicReadHandler(_ characteristic: UUCBCharacteristic)
     {
-        UULog.verbose(tag: LOG_TAG, message: "Removing Read Handler for \(characteristic.uuCommonName) - \(characteristic.uuidString)")
-        readValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuidString)
+        UULog.verbose(tag: LOG_TAG, message: "Removing Read Handler for \(characteristic.uuid.uuCommonName) - \(characteristic.uuAttributeKey)")
+        readValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuAttributeKey)
     }
 
     public func registerCharacteristicWriteHandler(
-        _ characteristic: CBUUID,
+        _ characteristic: UUCBCharacteristic,
         _ handler: UUErrorBlock?)
     {
-        writeValueForCharacteristicBlocks[characteristic.uuidString] = handler
+        writeValueForCharacteristicBlocks[characteristic.uuAttributeKey] = handler
     }
 
-    public func removeCharacteristicWriteHandler(_ characteristic: CBUUID)
+    public func removeCharacteristicWriteHandler(_ characteristic: UUCBCharacteristic)
     {
-        writeValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuidString)
+        writeValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuAttributeKey)
     }
 
     public func registerDescriptorReadHandler(
-        _ descriptor: CBUUID,
+        _ descriptor: UUCBDescriptor,
         _ handler: UUObjectErrorBlock<Any>?)
     {
-        readValueForDescriptorBlocks[descriptor.uuidString] = handler
+        readValueForDescriptorBlocks[descriptor.uuAttributeKey] = handler
     }
 
-    public func removeDescriptorReadHandler(_ descriptor: CBUUID)
+    public func removeDescriptorReadHandler(_ descriptor: UUCBDescriptor)
     {
-        readValueForDescriptorBlocks.removeValue(forKey: descriptor.uuidString)
+        readValueForDescriptorBlocks.removeValue(forKey: descriptor.uuAttributeKey)
     }
 
     public func registerDescriptorWriteHandler(
-        _ descriptor: CBUUID,
+        _ descriptor: UUCBDescriptor,
         _ handler: UUErrorBlock?)
     {
-        writeValueForDescriptorBlocks[descriptor.uuidString] = handler
+        writeValueForDescriptorBlocks[descriptor.uuAttributeKey] = handler
     }
 
-    public func removeDescriptorWriteHandler(_ descriptor: CBUUID)
+    public func removeDescriptorWriteHandler(_ descriptor: UUCBDescriptor)
     {
-        writeValueForDescriptorBlocks.removeValue(forKey: descriptor.uuidString)
+        writeValueForDescriptorBlocks.removeValue(forKey: descriptor.uuAttributeKey)
     }
     
     // ////////////////////////////////////////////////////////////////////////////////////////////
@@ -314,57 +314,57 @@ public class UUCBPeripheralBlockDelegate: NSObject, CBPeripheralDelegate
     
     public func handleCharacteristicValueUpdated(_ peripheral: UUCBPeripheral, _ characteristic: UUCBCharacteristic, _ error: Error?)
     {
-        let key = characteristic.uuid.uuidString
+        let key = characteristic.uuAttributeKey
         if let updateBlock = updateValueForCharacteristicBlocks[key]
         {
-            UULog.verbose(tag: LOG_TAG, message: "Invoking Update Block for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
+            UULog.verbose(tag: LOG_TAG, message: "Invoking Update Block for \(characteristic.uuid.uuCommonName) - \(characteristic.uuAttributeKey)")
             // Do not clear the block because updates can come in async
             updateBlock(characteristic.value, error)
         }
         
         if let readBlock = readValueForCharacteristicBlocks[key]
         {
-            UULog.verbose(tag: LOG_TAG, message: "Invoking Read Block for \(characteristic.uuid.uuCommonName) - \(characteristic.uuid.uuidString)")
-            removeCharacteristicReadHandler(characteristic.uuid)
+            UULog.verbose(tag: LOG_TAG, message: "Invoking Read Block for \(characteristic.uuid.uuCommonName) - \(characteristic.uuAttributeKey)")
+            removeCharacteristicReadHandler(characteristic)
             readBlock(characteristic.value, error)
         }
     }
     
     public func handleCharacteristicValueWritten(_ peripheral: UUCBPeripheral, _ characteristic: UUCBCharacteristic, _ error: Error?)
     {
-        if let writeBlock = writeValueForCharacteristicBlocks[characteristic.uuid.uuidString]
+        if let writeBlock = writeValueForCharacteristicBlocks[characteristic.uuAttributeKey]
         {
-            removeCharacteristicWriteHandler(characteristic.uuid)
+            removeCharacteristicWriteHandler(characteristic)
             writeBlock(error)
         }
     }
     
     public func handleDidUpdateNotificationState(_ peripheral: UUCBPeripheral, _ characteristic: UUCBCharacteristic, _ error: Error?)
     {
-        let block = setNotifyValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuid.uuidString)
+        let block = setNotifyValueForCharacteristicBlocks.removeValue(forKey: characteristic.uuAttributeKey)
         block?(error)
     }
     
     public func handleDescriptorDiscovery(_ peripheral: UUCBPeripheral, _ characteristic: UUCBCharacteristic, _ error: Error?)
     {
-        let block = discoverDescriptorsBlocks.removeValue(forKey: characteristic.uuid.uuidString)
+        let block = discoverDescriptorsBlocks.removeValue(forKey: characteristic.uuAttributeKey)
         block?(characteristic.descriptors, error)
     }
     
     public func handleDescriptorValueUpdated(_ peripheral: UUCBPeripheral, _ descriptor: UUCBDescriptor, _ error: Error?)
     {
-        if let readBlock = readValueForDescriptorBlocks[descriptor.uuid.uuidString]
+        if let readBlock = readValueForDescriptorBlocks[descriptor.uuAttributeKey]
         {
-            removeDescriptorReadHandler(descriptor.uuid)
+            removeDescriptorReadHandler(descriptor)
             readBlock(descriptor.value, error)
         }
     }
     
     public func handleDescriptorValueWritten(_ peripheral: UUCBPeripheral, _ descriptor: UUCBDescriptor, _ error: Error?)
     {
-        if let writeBlock = writeValueForDescriptorBlocks[descriptor.uuid.uuidString]
+        if let writeBlock = writeValueForDescriptorBlocks[descriptor.uuAttributeKey]
         {
-            removeDescriptorWriteHandler(descriptor.uuid)
+            removeDescriptorWriteHandler(descriptor)
             writeBlock(error)
         }
     }

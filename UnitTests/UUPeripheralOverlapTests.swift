@@ -539,9 +539,176 @@ final class UUPeripheralOverlapTests: XCTestCase
         disconnect(fixture)
     }
 
-    private func connectedFixture() -> Fixture
+    func test_compositeKeysRouteCharacteristicReadAcrossServices()
     {
-        let fixture = Fixture()
+        assertCompositeRouting(.characteristicRead)
+    }
+
+    func test_compositeKeysRouteCharacteristicWriteAcrossServices()
+    {
+        assertCompositeRouting(.characteristicWrite)
+    }
+
+    func test_compositeKeysRouteDescriptorReadAcrossServices()
+    {
+        assertCompositeRouting(.descriptorRead)
+    }
+
+    func test_compositeKeysRouteDescriptorWriteAcrossServices()
+    {
+        assertCompositeRouting(.descriptorWrite)
+    }
+
+    func test_compositeKeysRouteNotifyStateAcrossServices()
+    {
+        assertCompositeRouting(.notifyState)
+    }
+
+    func test_compositeKeysRouteDescriptorsAcrossServices()
+    {
+        assertCompositeRouting(.descriptors)
+    }
+
+    func test_compositeKeysRouteDescriptorReadWithinService()
+    {
+        assertCompositeRouting(.descriptorRead, sameService: true)
+    }
+
+    func test_compositeKeysRouteDescriptorWriteWithinService()
+    {
+        assertCompositeRouting(.descriptorWrite, sameService: true)
+    }
+
+    func test_compositeKeysPreserveCharacteristicReadTimeout()
+    {
+        assertCompositeRouting(.characteristicRead, secondTimesOut: true)
+    }
+
+    func test_compositeKeysPreserveCharacteristicWriteTimeout()
+    {
+        assertCompositeRouting(.characteristicWrite, secondTimesOut: true)
+    }
+
+    func test_compositeKeysPreserveDescriptorReadTimeout()
+    {
+        assertCompositeRouting(.descriptorRead, secondTimesOut: true)
+    }
+
+    func test_compositeKeysPreserveDescriptorWriteTimeout()
+    {
+        assertCompositeRouting(.descriptorWrite, secondTimesOut: true)
+    }
+
+    private func assertCompositeRouting(_ operation: Operation, sameService: Bool = false,
+                                        secondTimesOut: Bool = false)
+    {
+        let fixture = connectedFixture(duplicateUUIDs: !sameService)
+        let completed = expectation(description: "Both paths complete independently")
+        completed.expectedFulfillmentCount = 2
+        completed.assertForOverFulfill = true
+        var counts = [0, 0]
+        fixture.central.dispatchQueue.sync
+        {
+            if sameService
+            {
+                fixture.otherService.characteristics = []
+                fixture.service.characteristics = [fixture.characteristic, fixture.otherCharacteristic]
+                fixture.otherCharacteristic.setValue(fixture.service, forKey: "service")
+                let descriptor = CBMutableDescriptor(type: CBUUID(string: "2901"), value: "Other")
+                descriptor.setValue(fixture.otherCharacteristic, forKey: "characteristic")
+                fixture.otherCharacteristic.descriptors = [descriptor]
+            }
+            for (index, characteristic) in [fixture.characteristic, fixture.otherCharacteristic].enumerated()
+            {
+                let timeout: TimeInterval = secondTimesOut && index == 1 ? 0.05 : 60
+                let completion: (Error?) -> Void = { error in
+                    counts[index] += 1
+                    if secondTimesOut && index == 1 { XCTAssertEqual(error?.uuBluetoothErrorCode, .timeout) }
+                    else { XCTAssertNil(error) }
+                    completed.fulfill()
+                }
+                switch operation
+                {
+                case .characteristicRead:
+                    fixture.peripheral.readValue(for: characteristic, timeout: timeout) { _, error in completion(error) }
+                case .characteristicWrite:
+                    fixture.peripheral.writeValue(data: Data([1]), for: characteristic, timeout: timeout, completion: completion)
+                case .descriptorRead:
+                    fixture.peripheral.readValue(for: characteristic.descriptors![0], timeout: timeout)
+                    { value, error in
+                        if error == nil { XCTAssertEqual(value as? String, index == 0 ? "Test" : "Other") }
+                        completion(error)
+                    }
+                case .descriptorWrite:
+                    fixture.peripheral.writeValue(data: Data([1]), for: characteristic.descriptors![0], timeout: timeout, completion: completion)
+                case .notifyState:
+                    fixture.peripheral.setNotifyValue(enabled: true, for: characteristic, timeout: timeout, notifyHandler: nil, completion: completion)
+                case .descriptors:
+                    fixture.peripheral.discoverDescriptors(for: characteristic, timeout: timeout)
+                    { values, error in
+                        XCTAssertEqual(values?.first?.value as? String, characteristic.descriptors?.first?.value as? String)
+                        completion(error)
+                    }
+                default: XCTFail("Unsupported composite-key test")
+                }
+            }
+        }
+        fixture.central.dispatchQueue.sync
+        {
+            XCTAssertEqual(fixture.backend.responses.count, 2)
+            guard fixture.backend.responses.count == 2 else { return }
+            if secondTimesOut
+            {
+                fixture.backend.responses.removeFirst()()
+                XCTAssertEqual(counts, [1, 0])
+            }
+            else
+            {
+                fixture.backend.responses.removeLast()()
+                XCTAssertEqual(counts, [0, 1], "Response must reach the correct UUID path")
+                fixture.backend.deliverResponses()
+            }
+        }
+        wait(for: [completed], timeout: 2)
+        fixture.central.dispatchQueue.sync { XCTAssertEqual(counts, [1, 1]) }
+        disconnect(fixture)
+    }
+
+    func test_compositeKeysKeepNotificationSubscriptionsIndependent()
+    {
+        let fixture = connectedFixture(duplicateUUIDs: true)
+        var notifications = [0, 0]
+        for (index, characteristic) in [fixture.characteristic, fixture.otherCharacteristic].enumerated()
+        {
+            fixture.peripheral.setNotifyValue(enabled: true, for: characteristic,
+                notifyHandler: { _, error in XCTAssertNil(error); notifications[index] += 1 },
+                completion: { XCTAssertNil($0) })
+        }
+        fixture.central.dispatchQueue.sync
+        {
+            fixture.backend.deliverResponses()
+            fixture.backend.delegate?.peripheral?(fixture.backend.backingPeripheral,
+                didUpdateValueFor: fixture.otherCharacteristic, error: nil)
+            XCTAssertEqual(notifications, [0, 1])
+        }
+        fixture.peripheral.setNotifyValue(enabled: false, for: fixture.characteristic,
+            notifyHandler: nil, completion: { XCTAssertNil($0) })
+        fixture.central.dispatchQueue.sync
+        {
+            fixture.backend.deliverResponses()
+            for characteristic in [fixture.characteristic, fixture.otherCharacteristic]
+            {
+                fixture.backend.delegate?.peripheral?(fixture.backend.backingPeripheral,
+                    didUpdateValueFor: characteristic, error: nil)
+            }
+            XCTAssertEqual(notifications, [0, 2], "Disabling one path must preserve the other subscription")
+        }
+        disconnect(fixture)
+    }
+
+    private func connectedFixture(duplicateUUIDs: Bool = false) -> Fixture
+    {
+        let fixture = Fixture(duplicateUUIDs: duplicateUUIDs)
         let connected = expectation(description: "Connected")
         fixture.connect(connected: { connected.fulfill() }, disconnected: { _ in })
         wait(for: [connected], timeout: 2)
@@ -600,22 +767,24 @@ final class UUPeripheralOverlapTests: XCTestCase
         let otherService = CBMutableService(type: CBUUID(string: "180F"), primary: true)
         let characteristic = CBMutableCharacteristic(type: CBUUID(string: "2A29"),
             properties: [.read, .write, .notify], value: nil, permissions: [.readable, .writeable])
-        let otherCharacteristic = CBMutableCharacteristic(type: CBUUID(string: "2A24"),
-            properties: [.read, .write, .notify], value: nil, permissions: [.readable, .writeable])
+        let otherCharacteristic: CBMutableCharacteristic
         let backend: HeldResponsePeripheral
         let central: UUCentralManager
         let mockCentral: UUMockCBCentralManager
         let peripheral: UUPeripheral
 
-        init()
+        init(duplicateUUIDs: Bool = false)
         {
+            otherCharacteristic = CBMutableCharacteristic(type: CBUUID(string: duplicateUUIDs ? "2A29" : "2A24"),
+                properties: [.read, .write, .notify], value: nil, permissions: [.readable, .writeable])
             characteristic.descriptors = [CBMutableDescriptor(type: CBUUID(string: "2901"), value: "Test")]
             characteristic.descriptors![0].setValue(characteristic, forKey: "characteristic")
             service.characteristics = [characteristic]
             otherService.characteristics = [otherCharacteristic]
             service.includedServices = [otherService]
             otherService.includedServices = [CBMutableService(type: CBUUID(string: "1810"), primary: false)]
-            otherCharacteristic.descriptors = [CBMutableDescriptor(type: CBUUID(string: "2904"), value: Data([0]))]
+            otherCharacteristic.descriptors = [CBMutableDescriptor(type: CBUUID(string: duplicateUUIDs ? "2901" : "2904"), value: duplicateUUIDs ? "Other" as Any : Data([0]) as Any)]
+            otherCharacteristic.descriptors![0].setValue(otherCharacteristic, forKey: "characteristic")
             otherCharacteristic.setValue(otherService, forKey: "service")
             // Match the existing mocks' GATT back-pointer setup.
             characteristic.setValue(service, forKey: "service")

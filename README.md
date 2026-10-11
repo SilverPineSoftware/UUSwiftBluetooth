@@ -31,7 +31,7 @@ UUSwiftBluetooth currently supports Swift version 5.3
 
 `UUPeripheral` always enqueues operation setup asynchronously on its central manager queue, including calls made from that queue. Calls do not wait for the queue. Validation, callback registration, timer creation, and native submission run together on the queue; operation deadlines start when queued setup executes. Completion handlers run on that queue and may enqueue another operation without blocking it. Busy rejection is also dispatched, never invoked inline by the public method.
 
-Reads and writes use separate pending callback/timer keys per characteristic or descriptor UUID. Characteristic and included-service discovery use service UUIDs; descriptor discovery and notification-state changes use characteristic UUIDs. Different keys may operate concurrently. Service discovery, RSSI reads, and L2CAP channel opening each allow one pending request per peripheral.
+Reads and writes use separate operation keys built from full UUID paths: `service/characteristic` for characteristics and `service/characteristic/descriptor` for descriptors. Notification subscriptions, notification-state changes, and descriptor discovery use the same characteristic path. Characteristic and included-service discovery use service UUIDs. Callback registration, response routing, timers, and timeout tokens use matching keys, so equal characteristic UUIDs in different services and equal descriptor UUIDs under different characteristics remain independent. Different keys may operate concurrently. Service discovery, RSSI reads, and L2CAP channel opening each allow one pending request per peripheral.
 
 A request for an occupied key completes with `UUCoreBluetoothErrorCode.operationInProgress` without changing the original request, timer, or notification subscription. Connection ownership is per peripheral identifier and lasts through disconnection: a duplicate `connect` reports that error through its own `disconnected` callback without replacing the owner's callbacks.
 
@@ -41,7 +41,9 @@ With a positive timeout, each accepted operation completes once with a matching 
 
 Local timeout work is different: it carries a unique token for the request that scheduled it. The token is checked on the central queue immediately before completion, so an old queued timeout cannot complete a newer request or cancel its deadline. Successful/error completion invalidates that token, and disconnect invalidates all pending timeout tokens. Retries are neither blocked pending old responses nor automatically disconnected. Disabling an operation's timeout removes the deadline guarantee.
 
-UUID keys do not distinguish separate attributes sharing the same UUID (review finding #6).
+Use discovered attributes with their parent context populated. Direct users of `UUCBPeripheralBlockDelegate` must now pass the characteristic or descriptor object to its registration/removal methods, rather than just its `CBUUID`, so the full path is available.
+
+Composite UUID paths still do not distinguish repeated instances with identical paths. Session convenience lookups that accept only a characteristic UUID, and the session's descriptor collection keyed only by characteristic UUID, also remain ambiguous for repeated UUIDs. These remaining parts of review finding #6 are open; use the contextual attribute-based `UUPeripheral` operations for cross-service duplicates.
 
 ## Contributing
 

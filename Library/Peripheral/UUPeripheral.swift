@@ -430,15 +430,15 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         { [self] in
             UULog.debug(tag: LOG_TAG, message: "Discovering descriptors for \(self.debugName), timeout: \(timeout), characteristic: \(characteristic)")
         
-            let timerId = TimerId.descriptorDiscovery(characteristic.uuid)
+            let timerId = TimerId.descriptorDiscovery(characteristic.uuAttributeKey)
 
-            guard delegate.discoverDescriptorsBlocks[characteristic.uuid.uuidString] == nil else
+            guard delegate.discoverDescriptorsBlocks[characteristic.uuAttributeKey] == nil else
             {
                 completion(nil, NSError.uuCoreBluetoothError(.operationInProgress))
                 return
             }
         
-            delegate.discoverDescriptorsBlocks[characteristic.uuid.uuidString] =
+            delegate.discoverDescriptorsBlocks[characteristic.uuAttributeKey] =
             { descriptors, error in
             
                 self.finishOperation(timerId, descriptors, error, completion)
@@ -547,15 +547,15 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         { [self] in
             UULog.debug(tag: LOG_TAG, message: "Set Notify State for \(self.debugName), enabled: \(enabled), timeout: \(timeout), characateristic: \(characteristic)")
         
-            let timerId = TimerId.characteristicNotifyState(characteristic.uuid)
+            let timerId = TimerId.characteristicNotifyState(characteristic.uuAttributeKey)
 
-            guard delegate.setNotifyValueForCharacteristicBlocks[characteristic.uuid.uuidString] == nil else
+            guard delegate.setNotifyValueForCharacteristicBlocks[characteristic.uuAttributeKey] == nil else
             {
                 completion(NSError.uuCoreBluetoothError(.operationInProgress))
                 return
             }
         
-            delegate.setNotifyValueForCharacteristicBlocks[characteristic.uuid.uuidString] =
+            delegate.setNotifyValueForCharacteristicBlocks[characteristic.uuAttributeKey] =
             { error in
             
                 self.finishOperation(timerId, error, completion)
@@ -563,11 +563,11 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         
             if (enabled)
             {
-                delegate.registerCharacteristicUpdateHandler(characteristic.uuid, notifyHandler)
+                delegate.registerCharacteristicUpdateHandler(characteristic, notifyHandler)
             }
             else
             {
-                delegate.removeUpdateHandlerForCharacteristic(characteristic.uuid)
+                delegate.removeUpdateHandlerForCharacteristic(characteristic)
             }
         
             if let err = canAttemptOperation
@@ -610,15 +610,15 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         { [self] in
             UULog.debug(tag: LOG_TAG, message: "Read value for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
         
-            let timerId = TimerId.readCharacteristic(characteristic.uuid)
+            let timerId = TimerId.readCharacteristic(characteristic.uuAttributeKey)
 
-            guard delegate.readValueForCharacteristicBlocks[characteristic.uuid.uuidString] == nil else
+            guard delegate.readValueForCharacteristicBlocks[characteristic.uuAttributeKey] == nil else
             {
                 completion(nil, NSError.uuCoreBluetoothError(.operationInProgress))
                 return
             }
         
-            delegate.registerCharacteristicReadHandler(characteristic.uuid)
+            delegate.registerCharacteristicReadHandler(characteristic)
             { data, error in
             
                 self.finishOperation(timerId, data, error, completion)
@@ -664,15 +664,15 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         { [self] in
             UULog.debug(tag: LOG_TAG, message: "Read value for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
         
-            let timerId = TimerId.readDescriptor(descriptor.uuid)
+            let timerId = TimerId.readDescriptor(descriptor.uuAttributeKey)
 
-            guard delegate.readValueForDescriptorBlocks[descriptor.uuid.uuidString] == nil else
+            guard delegate.readValueForDescriptorBlocks[descriptor.uuAttributeKey] == nil else
             {
                 completion(nil, NSError.uuCoreBluetoothError(.operationInProgress))
                 return
             }
         
-            delegate.registerDescriptorReadHandler(descriptor.uuid)
+            delegate.registerDescriptorReadHandler(descriptor)
             { data, error in
             
                 self.finishOperation(timerId, data, error, completion)
@@ -720,15 +720,15 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         { [self] in
             UULog.debug(tag: LOG_TAG, message: "Write value \(data.uuToHexString()), for \(self.debugName), characteristic: \(characteristic), timeout: \(timeout)")
         
-            let timerId = TimerId.writeCharacteristic(characteristic.uuid)
+            let timerId = TimerId.writeCharacteristic(characteristic.uuAttributeKey)
 
-            guard delegate.writeValueForCharacteristicBlocks[characteristic.uuid.uuidString] == nil else
+            guard delegate.writeValueForCharacteristicBlocks[characteristic.uuAttributeKey] == nil else
             {
                 completion(NSError.uuCoreBluetoothError(.operationInProgress))
                 return
             }
         
-            delegate.registerCharacteristicWriteHandler(characteristic.uuid)
+            delegate.registerCharacteristicWriteHandler(characteristic)
             { error in
             
                 self.finishOperation(timerId, error, completion)
@@ -816,15 +816,15 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         { [self] in
             UULog.debug(tag: LOG_TAG, message: "Write value \(data.uuToHexString()), for \(self.debugName), descriptor: \(descriptor), timeout: \(timeout)")
         
-            let timerId = TimerId.writeDescriptor(descriptor.uuid)
+            let timerId = TimerId.writeDescriptor(descriptor.uuAttributeKey)
 
-            guard delegate.writeValueForDescriptorBlocks[descriptor.uuid.uuidString] == nil else
+            guard delegate.writeValueForDescriptorBlocks[descriptor.uuAttributeKey] == nil else
             {
                 completion(NSError.uuCoreBluetoothError(.operationInProgress))
                 return
             }
         
-            delegate.registerDescriptorWriteHandler(descriptor.uuid)
+            delegate.registerDescriptorWriteHandler(descriptor)
             { error in
             
                 self.finishOperation(timerId, error, completion)
@@ -1050,12 +1050,12 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         case serviceDiscovery
         case characteristicDiscovery(CBUUID)
         case includedServicesDiscovery(CBUUID)
-        case descriptorDiscovery(CBUUID)
-        case characteristicNotifyState(CBUUID)
-        case readCharacteristic(CBUUID)
-        case writeCharacteristic(CBUUID)
-        case readDescriptor(CBUUID)
-        case writeDescriptor(CBUUID)
+        case descriptorDiscovery(String)
+        case characteristicNotifyState(String)
+        case readCharacteristic(String)
+        case writeCharacteristic(String)
+        case readDescriptor(String)
+        case writeDescriptor(String)
         case readRssi
         case pollRssi
         case openL2CapChannel
@@ -1069,12 +1069,12 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
             case .serviceDiscovery: return "serviceDiscovery"
             case .characteristicDiscovery(let uuid): return "characteristicDiscovery__\(uuid.uuidString)"
             case .includedServicesDiscovery(let uuid): return "includedServicesDiscovery__\(uuid.uuidString)"
-            case .descriptorDiscovery(let uuid): return "descriptorDiscovery__\(uuid.uuidString)"
-            case .characteristicNotifyState(let uuid): return "characteristicNotifyState__\(uuid.uuidString)"
-            case .readCharacteristic(let uuid): return "readCharacteristic__\(uuid.uuidString)"
-            case .writeCharacteristic(let uuid): return "writeCharacteristic__\(uuid.uuidString)"
-            case .readDescriptor(let uuid): return "readDescriptor__\(uuid.uuidString)"
-            case .writeDescriptor(let uuid): return "writeDescriptor__\(uuid.uuidString)"
+            case .descriptorDiscovery(let key): return "descriptorDiscovery__\(key)"
+            case .characteristicNotifyState(let key): return "characteristicNotifyState__\(key)"
+            case .readCharacteristic(let key): return "readCharacteristic__\(key)"
+            case .writeCharacteristic(let key): return "writeCharacteristic__\(key)"
+            case .readDescriptor(let key): return "readDescriptor__\(key)"
+            case .writeDescriptor(let key): return "writeDescriptor__\(key)"
             case .readRssi: return "readRssi"
             case .pollRssi: return "pollRssi"
             case .openL2CapChannel: return "openL2CapChannel"

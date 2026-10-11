@@ -101,7 +101,14 @@ Discovery/notify-state/RSSI/channel-open operations each have one delegate slot 
 
 **Original assessment, superseded:** The review originally treated any late native response satisfying a retry as a defect and suggested draining/resetting the connection. That was stricter than the intended request/response contract. The tests and documentation now explicitly allow that behavior; only stale locally scheduled timeout delivery required correction. Native attempt identity is not guaranteed, and retries do not wait for old responses.
 
-### 6. [P1] GATT UUID keys conflate distinct attributes
+### 6. [P1] GATT UUID keys conflate distinct attributes — Partially resolved
+
+**Update 2026-10-11:** UUPeripheral and its delegate now share composite UUID paths: service/characteristic for characteristic reads, writes, subscriptions, notification-state changes, and descriptor discovery; service/characteristic/descriptor for descriptor reads/writes. Timer IDs and timeout-token keys include the same path and operation type. Direct delegate registration/removal methods now accept contextual characteristic/descriptor objects instead of bare UUIDs. Tests exercise equal characteristic UUIDs across services, repeated descriptor UUIDs across services and within one service, independent deadlines, response routing, and notification subscription removal.
+
+**Validation:** All 153 macOS unit tests pass. All 94 focused overlap/composite-key, timeout/retry, and disconnect tests also pass on iOS Simulator. The 13 new composite-key cases cover response routing, independent deadlines, and subscription isolation.
+
+**Remaining scope:** Identical full UUID paths can still represent distinct attribute instances. Session UUID-only characteristic lookup and descriptor result storage also remain unchanged. This finding stays open for those cases. The original assessment follows for history.
+
 
 **Locations:** [`UUCBPeripheralBlockDelegate.swift:92`](../Library/Delegates/UUCBPeripheralBlockDelegate.swift#L92), [`UUCBPeripheralBlockDelegate.swift:130`](../Library/Delegates/UUCBPeripheralBlockDelegate.swift#L130), [`UUPeripheralSession.swift:23`](../Library/Session/UUPeripheralSession.swift#L23), [`UUPeripheralSession.swift:434`](../Library/Session/UUPeripheralSession.swift#L434).
 
