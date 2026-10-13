@@ -33,6 +33,8 @@ UUSwiftBluetooth currently supports Swift version 5.3
 
 Each peripheral wrapper namespaces its timer identifiers, so two wrappers for the same native identifier cannot replace or cancel each other's deadlines. Disconnect cleanup cancels only the timers owned by that wrapper.
 
+Scan start and stop remain synchronous, including when called from a central callback. The central serializes scan state and callback registration on its callback queue; `isScanning` and scanner peripheral lookups return protected snapshots. Scanner settings are captured when a scan starts, so changing `scanner.config` takes effect on the next scan. Configure a scan before calling `start`, and do not mutate filter or comparator objects while that scan is active. State listeners receive notifications on the central callback queue and may register another listener from a callback.
+
 Callers must retain a `UUPeripheralSession` for as long as they want to receive its `started` and `ended` callbacks. Its internal connection, GATT operation, and notification callbacks refer to the session weakly, so those callbacks do not keep an abandoned session alive. Caller-provided closures can still retain the session if they capture it strongly. Session callbacks do not run after the session is released; releasing a session does not disconnect the peripheral.
 
 ## Concurrent operations

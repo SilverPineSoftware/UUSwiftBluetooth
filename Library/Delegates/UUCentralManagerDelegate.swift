@@ -13,7 +13,13 @@ fileprivate let LOG_TAG = "UUCentralManagerDelegate"
 
 public class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
 {
-    var centralStateChangedBlock: UUCentralStateChangedBlock? = nil
+    private let centralStateChangedBlockLock = NSLock()
+    private var _centralStateChangedBlock: UUCentralStateChangedBlock? = nil
+    var centralStateChangedBlock: UUCentralStateChangedBlock?
+    {
+        get { centralStateChangedBlockLock.withLock { _centralStateChangedBlock } }
+        set { centralStateChangedBlockLock.withLock { _centralStateChangedBlock = newValue } }
+    }
     var didDiscoverPeripheralBlock: UUBluetoothAdvertisementBlock? = nil
     var connectBlocks: [UUID: UUCBPeripheralBlock] = [:]
     var disconnectBlocks: [UUID: UUCBPeripheralErrorBlock] = [:]
@@ -259,4 +265,3 @@ public class UUCentralManagerRestoringDelegate: UUCentralManagerDelegate
         willRestoreBlock?(dict)
     }
 }
-

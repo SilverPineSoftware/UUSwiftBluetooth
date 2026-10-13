@@ -27,12 +27,16 @@ public typealias UUWillRestoreStateBlock = (([String:Any])->())
 public class UUCentralManager: UUManagerStateMonitor
 {
     private(set) internal var dispatchQueue = DispatchQueue(label: "UUCentralManagerQueue", qos: .userInteractive, attributes: [], autoreleaseFrequency: .inherit, target: nil)
+    private let queueKey = DispatchSpecificKey<UUID>()
+    private let queueID = UUID()
+    private let scanStateLock = NSLock()
+    private var _isScanning = false
     
     private var delegate: UUCentralManagerDelegate
     private var centralManager: UUCBCentralManager
     
     private var scanConfig: UUPeripheralScannerConfig = UUPeripheralScannerConfig()
-    private(set) public var isScanning: Bool = false
+    public var isScanning: Bool { scanStateLock.withLock { _isScanning } }
     
     private var willRestoreStateBlock: UUWillRestoreStateBlock? = nil
     //private var options: [String:Any]? = nil
@@ -45,12 +49,14 @@ public class UUCentralManager: UUManagerStateMonitor
     private var disconnectTimeoutTokens: [UUID: UUID] = [:]
 
     private var managerStateListeners: [String:UUCBManagerStateBlock] = [:]
+    private let managerStateListenersLock = NSLock()
     
     required init(
         options: UUCentralManagerOptions,
         injection: (DispatchQueue, UUCentralManagerOptions)->(UUCentralManagerDelegate, UUCBCentralManager) = injectCentral)
     {
         UULog.debug(tag: LOG_TAG, message: "Initializing UUCoreBluetooth with options: \(String(describing: options))")
+        dispatchQueue.setSpecific(key: queueKey, value: queueID)
         
         let injected = injection(dispatchQueue, options)
         delegate = injected.0
@@ -93,7 +99,24 @@ public class UUCentralManager: UUManagerStateMonitor
     
     public func registerForStateChanges(identifier: String, handler: @escaping UUCBManagerStateBlock)
     {
-        self.managerStateListeners[identifier] = handler
+        managerStateListenersLock.withLock
+        {
+            managerStateListeners[identifier] = handler
+        }
+    }
+
+    // Scan APIs remain synchronous for callers, including callbacks already on
+    // the central queue. Only that queue touches scan configuration and handlers.
+    func performOnDispatchQueue(_ block: () -> Void)
+    {
+        if DispatchQueue.getSpecific(key: queueKey) == queueID
+        {
+            block()
+        }
+        else
+        {
+            dispatchQueue.sync(execute: block)
+        }
     }
     
     
@@ -137,7 +160,8 @@ public class UUCentralManager: UUManagerStateMonitor
     
     private func notifyManagerStateListeners(_ state: CBManagerState)
     {
-        for (_, handler) in managerStateListeners
+        let handlers = managerStateListenersLock.withLock { Array(managerStateListeners.values) }
+        for handler in handlers
         {
             handler(state)
         }
@@ -166,18 +190,20 @@ public class UUCentralManager: UUManagerStateMonitor
         advertisementHandler: @escaping UUPeripheralBlock,
         willRestoreCallback: UUWillRestoreStateBlock? = nil)
     {
-        UULog.debug(tag: LOG_TAG, message: "starting scan")
-        
-        scanConfig = config
-        isScanning = true
-        UULog.debug(tag: LOG_TAG, message: "isScanning: \(isScanning)")
-        peripheralFoundBlock = advertisementHandler
-        willRestoreStateBlock = willRestoreCallback
-        delegate.didDiscoverPeripheralBlock =
-        { [weak self] peripheral, advertisementData, rssi in
-            self?.handleAdvertisement(peripheral, advertisementData, rssi)
+        let settings = config.snapshot()
+        performOnDispatchQueue
+        {
+            UULog.debug(tag: LOG_TAG, message: "starting scan")
+            scanConfig = settings
+            scanStateLock.withLock { _isScanning = true }
+            peripheralFoundBlock = advertisementHandler
+            willRestoreStateBlock = willRestoreCallback
+            delegate.didDiscoverPeripheralBlock =
+            { [weak self] peripheral, advertisementData, rssi in
+                self?.handleAdvertisement(peripheral, advertisementData, rssi)
+            }
+            resumeScanning()
         }
-        resumeScanning()
     }
     
     private func handleAdvertisement(_ peripheral: CBPeripheral, _ advertisementData: [String : Any], _ rssi: NSNumber)
@@ -217,18 +243,19 @@ public class UUCentralManager: UUManagerStateMonitor
     
     public func stopScan()
     {
-        UULog.debug(tag: LOG_TAG, message: "stopping scan, isScanning: \(isScanning)")
-        
-        isScanning = false
-        UULog.debug(tag: LOG_TAG, message: "isScanning: \(isScanning)")
-        delegate.didDiscoverPeripheralBlock = nil
-        peripheralFoundBlock = nil
-        willRestoreStateBlock = nil
-        
-        // Xcode logs API misuse warnings if we make this call while state is anything but poweredOn
-        if (isPoweredOn)
+        performOnDispatchQueue
         {
-            centralManager.stopScan()
+            UULog.debug(tag: LOG_TAG, message: "stopping scan, isScanning: \(isScanning)")
+            scanStateLock.withLock { _isScanning = false }
+            delegate.didDiscoverPeripheralBlock = nil
+            peripheralFoundBlock = nil
+            willRestoreStateBlock = nil
+
+            // Xcode logs API misuse warnings if we make this call while state is anything but poweredOn
+            if (isPoweredOn)
+            {
+                centralManager.stopScan()
+            }
         }
     }
     

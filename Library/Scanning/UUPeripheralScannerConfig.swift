@@ -58,6 +58,18 @@ open class UUPeripheralScannerConfig
      Sorting method used.  Common sorting comparators are provided by UUSwiftBluetooth.  See UUPeripheralRssiSortComparator, UUPeripheralFirstDiscoveryTimeComparator, and UUPeripheralFriendlyNameComparator
      */
     public var peripheralSorting: (any UUPeripheralComparator)? = nil
+
+    // Capture the configurable fields for one scan. Filter and comparator
+    // objects are caller-owned and must not be mutated during an active scan.
+    func snapshot() -> UUPeripheralScannerConfig
+    {
+        UUPeripheralScannerConfig(
+            allowDuplicates: allowDuplicates,
+            serviceUUIDs: serviceUUIDs,
+            discoveryFilters: discoveryFilters,
+            callbackThrottle: callbackThrottle,
+            peripheralSorting: peripheralSorting)
+    }
     
     
     /**

@@ -22,6 +22,7 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
     private let centralManager: UUCentralManager
     private var nearbyPeripheralMap: [UUID: (UUPeripheral)] = [:]
     private var nearbyPeripheralMapLock = NSRecursiveLock()
+    private var activeConfig = UUPeripheralScannerConfig()
     
     @Published private var nearbyPeripherals: [UUPeripheral] = []
     
@@ -51,18 +52,30 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
     
     open func start()
     {
+        // Capture the settings for this scan; later changes to config apply to
+        // the next scan rather than racing advertisement filtering and sorting.
+        let settings = config.snapshot()
+        centralManager.performOnDispatchQueue
+        {
+            startOnDispatchQueue(settings)
+        }
+    }
+
+    private func startOnDispatchQueue(_ settings: UUPeripheralScannerConfig)
+    {
         if let err = checkCentralState()
         {
             endScanning(err)
             return
         }
-        
+
+        activeConfig = settings
         clearNearbyPeripherals()
-        
-        if (config.callbackThrottle > 0)
+
+        if (settings.callbackThrottle > 0)
         {
             nearbyPeripheralSubscription = self.$nearbyPeripherals
-                .throttle(for: .seconds(config.callbackThrottle), scheduler: centralManager.dispatchQueue, latest: true)
+                .throttle(for: .seconds(settings.callbackThrottle), scheduler: centralManager.dispatchQueue, latest: true)
                 .receive(on: centralManager.dispatchQueue)
                 .sink
                 { [weak self] peripheralList in
@@ -83,7 +96,7 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
         
         notifyScanStarted()
         centralManager.startScan(
-            config: config,
+            config: settings,
             advertisementHandler: { [weak self] peripheral in
                 self?.handleAdvertisement(peripheral: peripheral)
             },
@@ -121,7 +134,7 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
         
         let sorted: [UUPeripheral]
         
-        if let sorting = config.peripheralSorting
+        if let sorting = activeConfig.peripheralSorting
         {
             sorted = list.sorted(by: sorting.compare)
         }
@@ -143,7 +156,7 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
     
     open func stop()
     {
-        endScanning(nil)
+        centralManager.performOnDispatchQueue { endScanning(nil) }
     }
     
     private func endScanning(_ error: Error?)
@@ -157,12 +170,12 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
     
     public var peripherals: [UUPeripheral]
     {
-        return nearbyPeripherals
+        return nearbyPeripheralMapLock.withLock { nearbyPeripherals }
     }
     
     public func getPeripheral(identifier: UUID) -> UUPeripheral?
     {
-        return nearbyPeripheralMap[identifier]
+        return nearbyPeripheralMapLock.withLock { nearbyPeripheralMap[identifier] }
     }
     
     private func clearNearbyPeripherals()
@@ -176,19 +189,18 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
     
     private func handleAdvertisement(peripheral: UUPeripheral)
     {
-        defer { nearbyPeripheralMapLock.unlock() }
-        nearbyPeripheralMapLock.lock()
-
-        nearbyPeripheralMap[peripheral.identifier] = peripheral
-        
-        self.nearbyPeripherals = nearbyPeripheralMap.values.filter(shouldDiscoverPeripheral)
-        
-        UULog.verbose(tag: LOG_TAG, message: "There are \(self.nearbyPeripherals.count) peripherals nearby")
+        let candidates = nearbyPeripheralMapLock.withLock { () -> [UUPeripheral] in
+            nearbyPeripheralMap[peripheral.identifier] = peripheral
+            return Array(nearbyPeripheralMap.values)
+        }
+        let discovered = candidates.filter(shouldDiscoverPeripheral)
+        nearbyPeripheralMapLock.withLock { nearbyPeripherals = discovered }
+        UULog.verbose(tag: LOG_TAG, message: "There are \(discovered.count) peripherals nearby")
     }
     
     private func shouldDiscoverPeripheral(_ peripheral: UUPeripheral) -> Bool
     {
-        guard let filters = config.discoveryFilters else
+        guard let filters = activeConfig.discoveryFilters else
         {
             return true
         }
