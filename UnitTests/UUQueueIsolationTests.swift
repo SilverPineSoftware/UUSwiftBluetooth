@@ -68,18 +68,25 @@ final class UUQueueIsolationTests: XCTestCase
     {
         let fixture = Fixture()
         var secondListenerCalls = 0
+        var handlingTestEvent = false
         fixture.central.registerForStateChanges(identifier: "first")
         { _ in
+            guard handlingTestEvent else { return }
             fixture.central.registerForStateChanges(identifier: "second")
-            { _ in secondListenerCalls += 1 }
+            { _ in
+                if handlingTestEvent { secondListenerCalls += 1 }
+            }
         }
 
         fixture.central.dispatchQueue.sync
         {
+            // Ignore CoreBluetooth's asynchronous initial state notification.
+            handlingTestEvent = true
             fixture.delegate.centralStateChangedBlock?(.resetting)
             XCTAssertEqual(secondListenerCalls, 0)
             fixture.delegate.centralStateChangedBlock?(.resetting)
             XCTAssertEqual(secondListenerCalls, 1)
+            handlingTestEvent = false
         }
     }
 
