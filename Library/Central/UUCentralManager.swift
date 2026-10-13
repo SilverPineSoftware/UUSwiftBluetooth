@@ -14,7 +14,8 @@ fileprivate let LOG_TAG = "UUCentralManager"
 // MARK:- Common Type Alias Definitions
 
 public typealias UUCentralStateChangedBlock = ((CBManagerState)->())
-public typealias UUBluetoothAdvertisementBlock = ((UUAdvertisement)->())
+public typealias UUPeripheralBlock = ((UUPeripheral)->())
+public typealias UUBluetoothAdvertisementBlock = ((CBPeripheral, [String : Any], NSNumber)->())
 public typealias UUWillRestoreStateBlock = (([String:Any])->())
 
 /**
@@ -36,6 +37,13 @@ public class UUCentralManager: UUManagerStateMonitor
     private var willRestoreStateBlock: UUWillRestoreStateBlock? = nil
     //private var options: [String:Any]? = nil
     
+    private var peripheralMap: [UUID: (UUPeripheral)] = [:]
+    private var peripheralMapLock = NSRecursiveLock()
+
+    private var peripheralFoundBlock: UUPeripheralBlock? = nil
+    private var connectTimeoutTokens: [UUID: UUID] = [:]
+    private var disconnectTimeoutTokens: [UUID: UUID] = [:]
+
     private var managerStateListeners: [String:UUCBManagerStateBlock] = [:]
     
     required init(
@@ -47,7 +55,7 @@ public class UUCentralManager: UUManagerStateMonitor
         let injected = injection(dispatchQueue, options)
         delegate = injected.0
         centralManager = injected.1
-        delegate.centralStateChangedBlock = handleCentralStateChanged
+        delegate.centralStateChangedBlock = { [weak self] state in self?.handleCentralStateChanged(state) }
         
         let state = centralManager.state
         UULog.debug(tag: LOG_TAG, message: "Central State is: \(state)")
@@ -111,6 +119,19 @@ public class UUCentralManager: UUManagerStateMonitor
                 break
         }
         
+        for peripheral in Array(peripheralMap.values)
+        {
+            peripheral.updateCentralState(state)
+        }
+        
+        if state != .poweredOn
+        {
+            for identifier in Array(delegate.disconnectBlocks.keys)
+            {
+                notifyDisconnect(identifier, NSError.uuCentralStateNotReadyError(state))
+            }
+        }
+        
         notifyManagerStateListeners(state)
     }
     
@@ -142,7 +163,7 @@ public class UUCentralManager: UUManagerStateMonitor
     
     public func startScan(
         config: UUPeripheralScannerConfig,
-        advertisementHandler: @escaping UUBluetoothAdvertisementBlock,
+        advertisementHandler: @escaping UUPeripheralBlock,
         willRestoreCallback: UUWillRestoreStateBlock? = nil)
     {
         UULog.debug(tag: LOG_TAG, message: "starting scan")
@@ -150,11 +171,33 @@ public class UUCentralManager: UUManagerStateMonitor
         scanConfig = config
         isScanning = true
         UULog.debug(tag: LOG_TAG, message: "isScanning: \(isScanning)")
+        peripheralFoundBlock = advertisementHandler
         willRestoreStateBlock = willRestoreCallback
-        delegate.didDiscoverPeripheralBlock = advertisementHandler
+        delegate.didDiscoverPeripheralBlock =
+        { [weak self] peripheral, advertisementData, rssi in
+            self?.handleAdvertisement(peripheral, advertisementData, rssi)
+        }
         resumeScanning()
     }
     
+    private func handleAdvertisement(_ peripheral: CBPeripheral, _ advertisementData: [String : Any], _ rssi: NSNumber)
+    {
+        peripheralMapLock.withLock
+        {
+            guard let block = self.peripheralFoundBlock else
+            {
+                return
+            }
+
+            let advertisement = UUAdvertisement(peripheral.identifier, advertisementData, rssi.intValue)
+            let uuPeripheral = self.peripheralMap[peripheral.identifier] ?? UUPeripheral(dispatchQueue: dispatchQueue, centralState: centralState, peripheral: peripheral, advertisement: advertisement)
+            uuPeripheral.update(advertisement: advertisement)
+            self.peripheralMap[peripheral.identifier] = uuPeripheral
+
+            block(uuPeripheral)
+        }
+    }
+
     private func resumeScanning()
     {
         if (self.canStartScanning)
@@ -179,6 +222,8 @@ public class UUCentralManager: UUManagerStateMonitor
         isScanning = false
         UULog.debug(tag: LOG_TAG, message: "isScanning: \(isScanning)")
         delegate.didDiscoverPeripheralBlock = nil
+        peripheralFoundBlock = nil
+        willRestoreStateBlock = nil
         
         // Xcode logs API misuse warnings if we make this call while state is anything but poweredOn
         if (isPoweredOn)
@@ -199,6 +244,111 @@ public class UUCentralManager: UUManagerStateMonitor
     }
     
     
+    /// Connect a peripheral owned by this central. Completions run on the
+    /// central callback queue.
+    public func connect(_ peripheral: UUPeripheral,
+                        timeout: TimeInterval = UUBluetooth.Defaults.connectTimeout,
+                        connected: @escaping UUVoidBlock,
+                        disconnected: @escaping UUErrorBlock)
+    {
+        dispatchQueue.async
+        { [self] in
+
+            let identifier = peripheral.identifier
+
+            guard isPoweredOn else
+            {
+                disconnected(NSError.uuCentralStateNotReadyError(centralState))
+                return
+            }
+
+            let timerName = "connect"
+            let token = UUID()
+
+            let connectedBlock: UUCBPeripheralBlock =
+            { [weak self] _ in
+                self?.connectTimeoutTokens.removeValue(forKey: identifier)
+                peripheral.cancelTimer(name: timerName)
+                connected()
+            }
+
+            let disconnectedBlock: UUCBPeripheralErrorBlock =
+            { [weak self] _, error in
+                self?.connectTimeoutTokens.removeValue(forKey: identifier)
+                self?.disconnectTimeoutTokens.removeValue(forKey: identifier)
+                peripheral.cancelTimer(name: timerName)
+                peripheral.cancelTimer(name: "disconnect")
+                peripheral.connectionEnded(error)
+                disconnected(error)
+            }
+
+            guard registerConnectionBlocks(identifier, connectedBlock, disconnectedBlock) else
+            {
+                disconnected(NSError.uuCoreBluetoothError(.operationInProgress))
+                return
+            }
+
+            connectTimeoutTokens[identifier] = token
+
+            peripheral.startTimer(name: timerName, timeout: timeout)
+            { [self] in
+
+                dispatchQueue.async
+                { [self] in
+
+                    guard connectTimeoutTokens[identifier] == token else
+                    {
+                        return
+                    }
+
+                    connectTimeoutTokens.removeValue(forKey: identifier)
+                    peripheral.cancelTimer(name: timerName)
+                    removeConnectionBlocks(identifier)
+                    cancelPeripheralConnection(identifier)
+
+                    let error = NSError.uuCoreBluetoothError(.timeout)
+                    peripheral.connectionEnded(error)
+                    disconnected(error)
+                }
+            }
+
+            connect(identifier, nil)
+        }
+    }
+
+    /// Cancel the connection. The `disconnected` callback registered at connect
+    /// time completes after the peripheral's pending operations are drained.
+    public func disconnect(_ peripheral: UUPeripheral,
+                           timeout: TimeInterval = UUBluetooth.Defaults.disconnectTimeout)
+    {
+        dispatchQueue.async
+        { [self] in
+            let identifier = peripheral.identifier
+            guard isPoweredOn else
+            {
+                notifyDisconnect(identifier, NSError.uuCentralStateNotReadyError(centralState))
+                return
+            }
+
+            let token = UUID()
+            disconnectTimeoutTokens[identifier] = token
+            peripheral.startTimer(name: "disconnect", timeout: timeout)
+            { [self] in
+
+                dispatchQueue.async
+                { [self] in
+                    guard disconnectTimeoutTokens[identifier] == token else { return }
+                    disconnectTimeoutTokens.removeValue(forKey: identifier)
+                    peripheral.cancelTimer(name: "disconnect")
+                    notifyDisconnect(identifier, NSError.uuCoreBluetoothError(.timeout))
+                    cancelPeripheralConnection(identifier)
+                }
+            }
+
+            cancelPeripheralConnection(identifier)
+        }
+    }
+
     func registerConnectionBlocks(_ identifier: UUID, _ connectedBlock: @escaping UUCBPeripheralBlock, _ disconnectedBlock: @escaping UUCBPeripheralErrorBlock) -> Bool
     {
         let key = identifier

@@ -52,7 +52,8 @@ class L2CapClientController:L2CapController
     func connect()
     {
         self.addOutputLine("Connecting...")
-        self.peripheral?.connect(timeout: 20.0)
+        guard let peripheral = self.peripheral else { return }
+        UUBluetooth.shared.centralManager.connect(peripheral, timeout: 20.0)
         {
             self.addOutputLine("Connected")
             self.startChannel()
@@ -62,9 +63,7 @@ class L2CapClientController:L2CapController
             
             self.addOutputLine("Disconnected. Error: \(self.errorDescription(error))")
         }
-
     }
-    
     
     func startChannel()
     {

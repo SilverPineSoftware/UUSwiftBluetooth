@@ -20,10 +20,11 @@ fileprivate let LOG_TAG = "UUPeripheral"
 //
 open class UUPeripheral: Identifiable, CustomStringConvertible
 {
-    private let centralManager: UUCentralManager
     private let dispatchQueue: DispatchQueue
+    private var centralState: CBManagerState
     private let delegate = UUCBPeripheralBlockDelegate()
     private let timerPool: UUTimerPool
+    private let timerIdPrefix: String
     private var timeoutTokens: [String: UUID] = [:]
 
     // Reference to the underlying CBPeripheral
@@ -36,15 +37,17 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
     public var userInfo: Codable? = nil
     
     public init(
-        centralManager: UUCentralManager,
+        dispatchQueue: DispatchQueue,
+        centralState: CBManagerState,
         peripheral: UUCBPeripheral,
         advertisement: UUAdvertisement)
     {
-        self.dispatchQueue = centralManager.dispatchQueue
-        self.centralManager = centralManager
+        self.dispatchQueue = dispatchQueue
+        self.centralState = centralState
         self.underlyingPeripheral = peripheral
         self.underlyingPeripheral.delegate = delegate
-        self.timerPool = UUTimerPool.getPool("UUPeripheral_\(peripheral.identifier)", queue: centralManager.dispatchQueue)
+        self.timerPool = UUTimerPool.getPool("UUPeripheral_\(peripheral.identifier)", queue: dispatchQueue)
+        self.timerIdPrefix = "\(peripheral.identifier)__\(UUID().uuidString)__"
         self.advertisement = advertisement
         self.rssi = advertisement.rssi
         self.firstDiscoveryTime = advertisement.timestamp
@@ -143,123 +146,22 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
     }
     
     
-    // Block based wrapper around CBCentralManager connectPeripheral:options with a
-    // timeout value.  If a negative timeout is passed there will be no timeout used.
-    // The connected block is only invoked upon successfully connection.  The
-    // disconnected block is invoked in the case of a connection failure, timeout
-    // or disconnection.
-    //
-    // Each block will only be invoked at most one time.  After a successful
-    // connection, the disconnect block will be called back when the peripheral
-    // is disconnected from the phone side, or if the remote device disconnects
-    // from the phone
-    public func connect(
-        timeout: TimeInterval = UUBluetooth.Defaults.connectTimeout,
-        connected: @escaping UUVoidBlock,
-        disconnected: @escaping UUErrorBlock)
+    // The owning central updates this snapshot on its callback queue. GATT
+    // operations can validate power state without retaining the central.
+    func updateCentralState(_ state: CBManagerState)
     {
-        dispatchQueue.async
-        { [self] in
-            guard centralManager.isPoweredOn else
-            {
-                let err = NSError.uuCentralStateNotReadyError(centralManager.centralState)
-                disconnected(err)
-                return
-            }
-        
-            let timerId = TimerId.connect
-        
-            let connectedBlock: UUCBPeripheralBlock =
-            { p in
-            
-                self.cancelTimer(timerId)
-                connected()
-            }
-        
-            let disconnectedBlock: UUCBPeripheralErrorBlock =
-            { p, error in
-            
-                self.cleanupAfterDisconnect(error)
-            
-                disconnected(error)
-            }
-        
-            let identifier = underlyingPeripheral.identifier
-        
-            guard centralManager.registerConnectionBlocks(identifier, connectedBlock, disconnectedBlock) else
-            {
-                disconnected(NSError.uuCoreBluetoothError(.operationInProgress))
-                return
-            }
-        
-            startTimer(timerId, timeout)
-            {
-            
-                UULog.debug(tag: LOG_TAG, message: "Connect timeout for \(self.debugName)")
-            
-                self.centralManager.removeConnectionBlocks(identifier)
-            
-                // Issue the disconnect but disconnect any delegate's.  In the case of
-                // CBCentralManager being off or reset when this happens, immediately
-                // calling the disconnected block ensures there is not an infinite
-                // timeout situation.
-                self.centralManager.cancelPeripheralConnection(identifier)
-            
-                let err = NSError.uuCoreBluetoothError(.timeout)
-                self.cancelTimer(timerId)
-                disconnected(err)
-            }
-        
-            //var options: [String: Any] = [:]
-            /*if #available(iOS 17.0, *) {
-                options[CBConnectPeripheralOptionEnableAutoReconnect] = true
-            } else {
-                // Fallback on earlier versions
-            }*/
-        
-            centralManager.connect(identifier, nil)
+        centralState = state
+        if state != .poweredOn
+        {
+            cleanupAfterDisconnect(NSError.uuCentralStateNotReadyError(state))
         }
     }
-    
-    // Wrapper around CBCentralManager cancelPeripheralConnection.  After calling this
-    // method, the disconnected block passed in at connect time will be invoked.
-    // Pending operations complete with an error before that block is invoked, even
-    // when the connection disconnects cleanly. Persistent notification handlers are removed.
-    public func disconnect(timeout: TimeInterval = UUBluetooth.Defaults.disconnectTimeout)
+
+    func connectionEnded(_ error: Error?)
     {
-        dispatchQueue.async
-        { [self] in
-            let identifier = underlyingPeripheral.identifier
-        
-            guard centralManager.isPoweredOn else
-            {
-                UULog.debug(tag: LOG_TAG, message: "Central is not powered on, cannot cancel a connection!")
-                let err = NSError.uuCentralStateNotReadyError(centralManager.centralState)
-                centralManager.notifyDisconnect(identifier, err)
-                return
-            }
-        
-            let timerId = TimerId.disconnect
-        
-            UULog.debug(tag: LOG_TAG, message: "Starting disconnect timeout")
-            startTimer(timerId, timeout)
-            {
-                UULog.debug(tag: LOG_TAG, message: "Disconnect timeout for \(self.debugName)")
-            
-                self.cancelTimer(timerId)
-                self.centralManager.notifyDisconnect(identifier, NSError.uuCoreBluetoothError(.timeout))
-            
-                // Just in case the timeout fires and a real disconnect is needed, this is the last
-                // ditch effort to close the connection
-                self.centralManager.cancelPeripheralConnection(identifier)
-            }
-        
-        
-            UULog.debug(tag: LOG_TAG, message: "Cancelling peripheral connection for \(self.debugName)")
-            centralManager.cancelPeripheralConnection(identifier)
-        }
+        cleanupAfterDisconnect(error)
     }
-    
+
     // Block based wrapper around CBPeripheral discoverServices, with an optional
     // timeout value.  A negative timeout value will disable the timeout.
     public func discoverServices(
@@ -499,10 +401,11 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
     }
     
     public func discoverAllServicesAndCharacteristics(
+        using centralManager: UUCentralManager,
         timeout: TimeInterval = UUBluetooth.Defaults.operationTimeout,
         completion: @escaping UUErrorBlock)
     {
-        connect(timeout: timeout)
+        centralManager.connect(self, timeout: timeout)
         {
             self.discoverServices
             { services, discoverServicesError in
@@ -522,7 +425,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
                 self.discoverNextCharacteristics(actualServices, timeout: timeout)
                 { error in
                     
-                    self.disconnect()
+                    centralManager.disconnect(self)
                 }
             }
         }
@@ -1084,7 +987,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
     
     private func formatTimerId(_ name: String) -> String
     {
-        return "\(identifier)__\(name)"
+        return timerIdPrefix + name
     }
     
     private func cleanupAfterDisconnect(_ error: Error?)
@@ -1092,9 +995,12 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         let operationError = error ?? NSError.uuCoreBluetoothError(.disconnected)
         let completePending = delegate.takePendingCompletions(error: operationError)
 
-        UULog.debug(tag: LOG_TAG, message: "Cancelling all timers")
+        UULog.debug(tag: LOG_TAG, message: "Cancelling this peripheral wrapper's timers")
         timeoutTokens.removeAll()
-        timerPool.cancelAllTimers()
+        for timer in timerPool.listActiveTimers() where timer.identifier.hasPrefix(timerIdPrefix)
+        {
+            timer.cancel()
+        }
 
         completePending()
     }
@@ -1130,9 +1036,9 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
     
     private var canAttemptOperation: Error?
     {
-        if (!centralManager.isPoweredOn)
+        if centralState != .poweredOn
         {
-            return NSError.uuCentralStateNotReadyError(centralManager.centralState)
+            return NSError.uuCentralStateNotReadyError(centralState)
         }
         
         if (underlyingPeripheral.state != .connected)
@@ -1156,4 +1062,3 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         delegate.logBlocks()
     }
 }
-

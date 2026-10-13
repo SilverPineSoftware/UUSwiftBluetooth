@@ -125,7 +125,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         alert.addAction(UIAlertAction(title: "Connect", style: .default, handler:
         { action in
             
-            peripheral.connect(timeout: 30) {
+            UUBluetooth.shared.centralManager.connect(peripheral, timeout: 30) {
                 UULog.debug(tag: LOG_TAG, message: "Connected to \(peripheral.friendlyName)")
             } disconnected: { error in
                 UULog.debug(tag: LOG_TAG, message: "Disconnected from \(peripheral.friendlyName), error: \(String(describing: error))")
@@ -135,7 +135,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         alert.addAction(UIAlertAction(title: "Open Session", style: .default, handler:
         { action in
             
-            let session = UUPeripheralSession(peripheral: peripheral)
+            let session = UUPeripheralSession(peripheral: peripheral, centralManager: UUBluetooth.shared.centralManager)
             session.started = { session in
                 UULog.debug(tag: LOG_TAG, message: "Session started with peripheral: \(session.peripheral.friendlyName)")
             }
@@ -154,7 +154,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
         alert.addAction(UIAlertAction(title: "Export Peripheral", style: .default, handler:
         { action in
-            let op = UUExportPeripheralOperation(peripheral)
+            let op = UUExportPeripheralOperation(peripheral, centralManager: UUBluetooth.shared.centralManager)
             op.start
             { exportResult, err in
                 //UULog.debug(tag: LOG_TAG, message: "op is done")
@@ -304,7 +304,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
         self.exportingPripheralProgressText = "Exporting\nPeripheral"
         self.isExportingPeripheral = true
-        let op = UUExportPeripheralOperation(p)
+        let op = UUExportPeripheralOperation(p, centralManager: UUBluetooth.shared.centralManager)
         op.start
         { exportResult, exportError in
             

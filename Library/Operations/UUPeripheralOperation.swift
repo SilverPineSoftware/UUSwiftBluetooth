@@ -21,11 +21,11 @@ open class UUPeripheralOperation<Result>
     
     private(set) public var operationResult: Result? = nil
     
-    public init(_ peripheral: UUPeripheral, configuration: UUPeripheralSessionConfiguration = UUPeripheralSessionConfiguration())
+    public init(_ peripheral: UUPeripheral, centralManager: UUCentralManager, configuration: UUPeripheralSessionConfiguration = UUPeripheralSessionConfiguration())
     {
         self.peripheral = peripheral
         
-        self.session = UUPeripheralSession(peripheral: peripheral)
+        self.session = UUPeripheralSession(peripheral: peripheral, centralManager: centralManager)
         self.session.configuration = configuration
         session.started = { session in
             self.internalExecute()

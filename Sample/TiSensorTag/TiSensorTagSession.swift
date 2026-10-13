@@ -236,9 +236,9 @@ public extension TiSensorTagSession // Async
 
 public class TiSensorTagCoreBluetoothSession: UUPeripheralSession, TiSensorTagSession
 {
-    public required init(peripheral: UUPeripheral)
+    public required init(peripheral: UUPeripheral, centralManager: UUCentralManager)
     {
-        super.init(peripheral: peripheral)
+        super.init(peripheral: peripheral, centralManager: centralManager)
     }
     
     public override func finishSessionStart(_ completion: @escaping () -> Void)

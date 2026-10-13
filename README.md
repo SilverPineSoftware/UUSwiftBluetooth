@@ -27,6 +27,14 @@ Then, following the instructions for [integrating Carthage frameworks into your 
 This library requires a deployment target of iOS 15.0 or greater or OSX 10.13 or greater.
 UUSwiftBluetooth currently supports Swift version 5.3 
 
+## Peripheral ownership and connections
+
+`UUCentralManager` owns the `UUPeripheral` wrappers it discovers and reuses a wrapper when the same peripheral appears in a later scan. `UUPeripheral` retains its Core Bluetooth peripheral, callback queue, and a snapshot of central state; it does not retain the central manager. Keep the central manager that discovered a peripheral while connecting or disconnecting it. Connect with `centralManager.connect(peripheral, ...)` and disconnect with `centralManager.disconnect(peripheral, ...)`. `UUPeripheralSession` and `UUPeripheralOperation` constructors, and `discoverAllServicesAndCharacteristics(using:)`, now require that central manager. Callers of the former `peripheral.connect` and `peripheral.disconnect` APIs must migrate to the manager methods. Direct `UUPeripheral` construction now requires a dispatch queue and initial central state; normal callers should use the wrapper supplied by scanning. The central updates cached wrappers when its Bluetooth state changes so pending GATT operations can complete with a state error.
+
+Each peripheral wrapper namespaces its timer identifiers, so two wrappers for the same native identifier cannot replace or cancel each other's deadlines. Disconnect cleanup cancels only the timers owned by that wrapper.
+
+Callers must retain a `UUPeripheralSession` for as long as they want to receive its `started` and `ended` callbacks. Its internal connection, GATT operation, and notification callbacks refer to the session weakly, so those callbacks do not keep an abandoned session alive. Caller-provided closures can still retain the session if they capture it strongly. Session callbacks do not run after the session is released; releasing a session does not disconnect the peripheral.
+
 ## Concurrent operations
 
 `UUPeripheral` always enqueues operation setup asynchronously on its central manager queue, including calls made from that queue. Calls do not wait for the queue. Validation, callback registration, timer creation, and native submission run together on the queue; operation deadlines start when queued setup executes. Completion handlers run on that queue and may enqueue another operation without blocking it. Busy rejection is also dispatched, never invoked inline by the public method.

@@ -83,7 +83,7 @@ final class UUMockPeripheralTests: XCTestCase
         
         let connectExp = uuExpectationForMethod(tag: "connect")
         
-        peripheral.connect(timeout: 10.0)
+        peripheral.mockCentral.connect(peripheral, timeout: 10.0)
         {
             connectExp.fulfill()
         }
@@ -107,7 +107,7 @@ final class UUMockPeripheralTests: XCTestCase
         peripheral.mockCallbackError = NSError(domain: domain, code: code)
         
         
-        peripheral.connect(timeout: 10.0)
+        peripheral.mockCentral.connect(peripheral, timeout: 10.0)
         {
             XCTFail("Connect block not expected in this case")
         }
@@ -142,7 +142,7 @@ final class UUMockPeripheralTests: XCTestCase
         
         var error: Error? = nil
         
-        peripheral.connect(timeout: 10.0)
+        peripheral.mockCentral.connect(peripheral, timeout: 10.0)
         {
             connectExp.fulfill()
         }
@@ -157,7 +157,7 @@ final class UUMockPeripheralTests: XCTestCase
         let domain = "mock"
         let code = 1
         peripheral.mockCallbackError = NSError(domain: domain, code: code)
-        peripheral.disconnect(timeout: 10.0)
+        peripheral.mockCentral.disconnect(peripheral, timeout: 10.0)
         
         wait(for: [disconnectExp], timeout: 5.0)
         

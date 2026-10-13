@@ -46,7 +46,7 @@ public class UUMockPeripheral: UUPeripheral
         advertisement.timestamp = firstDiscoveryTime
         advertisement.rssi = rssi
         
-        super.init(centralManager: self.mockCentral, peripheral: self.mockPeripheral, advertisement: advertisement)
+        super.init(dispatchQueue: self.mockCentral.dispatchQueue, centralState: self.mockCentral.centralState, peripheral: self.mockPeripheral, advertisement: advertisement)
         
     }
     

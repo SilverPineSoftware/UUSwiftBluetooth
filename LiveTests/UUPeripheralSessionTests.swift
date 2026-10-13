@@ -47,7 +47,7 @@ final class UUPeripheralSessionTests: XCTestCase
         UUTestAddLine("Found peripheral")
         //let session = UUCoreBluetoothPeripheralSession(peripheral: peripheral)
         //let session = TiSensorTagCoreBluetoothSession(peripheral: peripheral)
-        let session = TestPeripheralSessionImplementation(peripheral: peripheral)
+        let session = TestPeripheralSessionImplementation(peripheral: peripheral, centralManager: UUBluetooth.shared.centralManager)
         
         session.started =
         { s in
@@ -91,7 +91,7 @@ final class UUPeripheralSessionTests: XCTestCase
         UUTestAddLine("Found peripheral")
         //let session = UUCoreBluetoothPeripheralSession(peripheral: peripheral)
         //let session = TiSensorTagCoreBluetoothSession(peripheral: peripheral)
-        let session = TestPeripheralSessionImplementation(peripheral: peripheral)
+        let session = TestPeripheralSessionImplementation(peripheral: peripheral, centralManager: UUBluetooth.shared.centralManager)
         
         session.started =
         { s in
@@ -133,9 +133,9 @@ fileprivate protocol TestPeripheralSession
 
 fileprivate class TestPeripheralSessionImplementation: UUPeripheralSession, TestPeripheralSession
 {
-    public required init(peripheral: UUPeripheral)
+    public required init(peripheral: UUPeripheral, centralManager: UUCentralManager)
     {
-        super.init(peripheral: peripheral)
+        super.init(peripheral: peripheral, centralManager: centralManager)
         
         configuration.servicesToDiscover = [ UUBluetooth.Constants.Services.deviceInformation ]
         configuration.characteristicsToDiscover =

@@ -38,7 +38,7 @@ class ReadDeviceInfoOperation: UUPeripheralOperation<Any>
     
     public init(_ peripheral: UUPeripheral)
     {
-        super.init(peripheral, configuration: OperationConfig())
+        super.init(peripheral, centralManager: UUBluetooth.shared.centralManager, configuration: OperationConfig())
     }
     
     /*

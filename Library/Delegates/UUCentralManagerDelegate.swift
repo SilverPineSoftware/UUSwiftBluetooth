@@ -74,8 +74,8 @@ public class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
         }
         
         UULog.debug(tag: LOG_TAG, message: "peripheral: \(peripheral), RSSI: \(RSSI), advertisement: \(advertisementData)")
-        block(UUAdvertisement(peripheral.identifier, advertisementData, RSSI.intValue))
-        //peripheralFoundBlock?(peripheral, advertisementData, RSSI.intValue)
+
+        block(peripheral, advertisementData, RSSI)
     }
     
     /**

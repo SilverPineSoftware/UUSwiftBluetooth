@@ -272,7 +272,7 @@ final class UUPeripheralOverlapTests: XCTestCase
             // both requests have registered their connection callbacks.
             for index in 0..<2
             {
-                fixture.peripheral.connect(timeout: 60, connected:
+                fixture.central.connect(fixture.peripheral, timeout: 60, connected:
                 {
                     counts[index] += 1
                     if observing { completed.fulfill() }
@@ -423,7 +423,7 @@ final class UUPeripheralOverlapTests: XCTestCase
         fixture.connect(connected: { connected.fulfill() }, disconnected:
             { error in XCTAssertNil(error); disconnected.fulfill() })
         wait(for: [connected], timeout: 2)
-        fixture.peripheral.connect(connected: { XCTFail("Duplicate connect succeeded") }, disconnected:
+        fixture.central.connect(fixture.peripheral, connected: { XCTFail("Duplicate connect succeeded") }, disconnected:
             { XCTAssertEqual($0?.uuBluetoothErrorCode, .operationInProgress) })
         disconnect(fixture)
         wait(for: [disconnected], timeout: 2)
@@ -802,7 +802,7 @@ final class UUPeripheralOverlapTests: XCTestCase
                 return (delegate, mock)
             })
             mockCentral = injected
-            peripheral = UUPeripheral(centralManager: central, peripheral: backend,
+            peripheral = UUPeripheral(dispatchQueue: central.dispatchQueue, centralState: central.centralState, peripheral: backend,
                                       advertisement: UUAdvertisement(identifier: native.identifier))
         }
 
@@ -810,7 +810,7 @@ final class UUPeripheralOverlapTests: XCTestCase
         {
             central.dispatchQueue.sync
             {
-                peripheral.connect(connected: connected, disconnected: disconnected)
+                central.connect(peripheral, connected: connected, disconnected: disconnected)
             }
         }
     }

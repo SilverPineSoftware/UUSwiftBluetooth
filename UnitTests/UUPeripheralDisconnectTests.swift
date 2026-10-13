@@ -100,7 +100,7 @@ final class UUPeripheralDisconnectTests: XCTestCase
             fixture.backend.deliverResponses()
             XCTAssertEqual(results.count, 1)
             XCTAssertNil(results.first!)
-            fixture.peripheral.disconnect()
+            fixture.central.disconnect(fixture.peripheral)
         }
         wait(for: [disconnected], timeout: 2)
         fixture.central.dispatchQueue.sync
@@ -136,7 +136,7 @@ final class UUPeripheralDisconnectTests: XCTestCase
         fixture.central.dispatchQueue.sync
         {
             XCTAssertEqual(fixture.backend.responses.count, Operation.allCases.count)
-            fixture.peripheral.disconnect()
+            fixture.central.disconnect(fixture.peripheral)
         }
         wait(for: [disconnected], timeout: 2)
         fixture.central.dispatchQueue.sync
@@ -176,7 +176,7 @@ final class UUPeripheralDisconnectTests: XCTestCase
                     retried.fulfill()
                 }
             }
-            fixture.peripheral.disconnect()
+            fixture.central.disconnect(fixture.peripheral)
         }
         wait(for: [disconnected, retried], timeout: 2)
         fixture.central.dispatchQueue.sync
@@ -209,7 +209,7 @@ final class UUPeripheralDisconnectTests: XCTestCase
         {
             fixture.backend.deliverResponses()
             XCTAssertTrue(enabled)
-            fixture.peripheral.disconnect()
+            fixture.central.disconnect(fixture.peripheral)
         }
         wait(for: [disconnected], timeout: 2)
         fixture.central.dispatchQueue.sync
@@ -269,7 +269,7 @@ final class UUPeripheralDisconnectTests: XCTestCase
             XCTAssertEqual(fixture.backend.responses.count, 1, file: file, line: line)
             XCTAssertTrue(results.isEmpty, "The response is explicitly held pending", file: file, line: line)
             fixture.mockCentral.mockCallbackError = disconnectError
-            fixture.peripheral.disconnect()
+            fixture.central.disconnect(fixture.peripheral)
         }
 
         wait(for: [disconnected, completed], timeout: 2)
@@ -349,7 +349,7 @@ final class UUPeripheralDisconnectTests: XCTestCase
                 return (delegate, mock)
             })
             mockCentral = injected
-            peripheral = UUPeripheral(centralManager: central, peripheral: backend,
+            peripheral = UUPeripheral(dispatchQueue: central.dispatchQueue, centralState: central.centralState, peripheral: backend,
                                       advertisement: UUAdvertisement(identifier: native.identifier))
         }
 
@@ -357,7 +357,7 @@ final class UUPeripheralDisconnectTests: XCTestCase
         {
             central.dispatchQueue.sync
             {
-                peripheral.connect(connected: connected, disconnected: disconnected)
+                central.connect(peripheral, connected: connected, disconnected: disconnected)
             }
         }
     }

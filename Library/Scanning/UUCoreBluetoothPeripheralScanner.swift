@@ -65,9 +65,9 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
                 .throttle(for: .seconds(config.callbackThrottle), scheduler: centralManager.dispatchQueue, latest: true)
                 .receive(on: centralManager.dispatchQueue)
                 .sink
-                { peripheralList in
+                { [weak self] peripheralList in
                     
-                    self.notifyNearbyPeripherals(peripheralList)
+                    self?.notifyNearbyPeripherals(peripheralList)
                 }
         }
         else
@@ -75,17 +75,21 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
             nearbyPeripheralSubscription = self.$nearbyPeripherals
                 .receive(on: centralManager.dispatchQueue)
                 .sink
-                { peripheralList in
+                { [weak self] peripheralList in
                     
-                    self.notifyNearbyPeripherals(peripheralList)
+                    self?.notifyNearbyPeripherals(peripheralList)
                 }
         }
         
         notifyScanStarted()
         centralManager.startScan(
             config: config,
-            advertisementHandler: handleAdvertisement,
-            willRestoreCallback: handleWillRestoreState)
+            advertisementHandler: { [weak self] peripheral in
+                self?.handleAdvertisement(peripheral: peripheral)
+            },
+            willRestoreCallback: { [weak self] state in
+                self?.handleWillRestoreState(arg: state)
+            })
     }
     
     private func notifyScanStarted()
@@ -170,20 +174,11 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
         nearbyPeripherals = []
     }
     
-    private func handleAdvertisement(advertisement: UUAdvertisement)
+    private func handleAdvertisement(peripheral: UUPeripheral)
     {
         defer { nearbyPeripheralMapLock.unlock() }
         nearbyPeripheralMapLock.lock()
-        
-        guard let cbPeripheral = centralManager.lookupPeripheral(advertisement.identifier) else
-        {
-            UULog.verbose(tag: LOG_TAG, message: "Unable to obtain CBPeripheral for \(advertisement.identifier)")
-            return
-        }
-        
-        let peripheral = nearbyPeripheralMap[advertisement.identifier] ?? UUPeripheral(centralManager: centralManager, peripheral: cbPeripheral, advertisement: advertisement)
-        peripheral.update(advertisement: advertisement)
-        
+
         nearbyPeripheralMap[peripheral.identifier] = peripheral
         
         self.nearbyPeripherals = nearbyPeripheralMap.values.filter(shouldDiscoverPeripheral)

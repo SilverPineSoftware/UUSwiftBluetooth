@@ -443,7 +443,7 @@ final class UUPeripheralLateResponseTests: XCTestCase
                 return (delegate, mock)
             })
             mockCentral = injected
-            peripheral = CapturedTimeoutPeripheral(centralManager: central, peripheral: backend,
+            peripheral = CapturedTimeoutPeripheral(dispatchQueue: central.dispatchQueue, centralState: central.centralState, peripheral: backend,
                                       advertisement: UUAdvertisement(identifier: native.identifier))
         }
 
@@ -451,7 +451,7 @@ final class UUPeripheralLateResponseTests: XCTestCase
         {
             central.dispatchQueue.sync
             {
-                peripheral.connect(connected: connected, disconnected: disconnected)
+                central.connect(peripheral, connected: connected, disconnected: disconnected)
             }
         }
     }

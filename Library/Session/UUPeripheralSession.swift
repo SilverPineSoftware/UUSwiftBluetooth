@@ -19,6 +19,7 @@ open class UUPeripheralSession
 {
     // Properties
     public var peripheral: UUPeripheral
+    public let centralManager: UUCentralManager
     public var configuration = UUPeripheralSessionConfiguration()
     public private(set) var discoveredServices: [UUCBService] = []
     public private(set) var discoveredCharacteristics: [CBUUID:[UUCBCharacteristic]] = [:]
@@ -28,9 +29,10 @@ open class UUPeripheralSession
     private var servicesNeedingCharacteristicDiscovery: [UUCBService] = []
     private var characteristicsNeedingDescriptorDiscovery: [UUCBCharacteristic] = []
     
-    public required init (peripheral: UUPeripheral)
+    public required init (peripheral: UUPeripheral, centralManager: UUCentralManager)
     {
         self.peripheral = peripheral
+        self.centralManager = centralManager
     }
     
     // Callbacks
@@ -83,7 +85,8 @@ open class UUPeripheralSession
         }
         
         peripheral.readValue(for: char, timeout: self.configuration.readTimeout)
-        { data, error in
+        { [weak self] data, error in
+            guard let self else { return }
             
             completion(self, data, error)
         }
@@ -105,7 +108,8 @@ open class UUPeripheralSession
         if (withResponse)
         {
             peripheral.writeValue(data: data, for: char, timeout: configuration.writeTimeout)
-            { error in
+            { [weak self] error in
+                guard let self else { return }
                 
                 completion(self, error)
             }
@@ -113,7 +117,8 @@ open class UUPeripheralSession
         else
         {
             peripheral.writeValueWithoutResponse(data: data, for: char)
-            { error in
+            { [weak self] error in
+                guard let self else { return }
                 
                 completion(self, error)
             }
@@ -136,12 +141,14 @@ open class UUPeripheralSession
             enabled: true,
             for: char,
             timeout: configuration.readTimeout)
-        { data, error in
+        { [weak self] data, error in
+            guard let self else { return }
             
             dataChanged(self, data, error)
             
         } completion:
-        { err in
+        { [weak self] err in
+            guard let self else { return }
             
             completion(self, err)
         }
@@ -159,7 +166,8 @@ open class UUPeripheralSession
         }
         
         peripheral.setNotifyValue(enabled: false, for: char, timeout: configuration.readTimeout, notifyHandler: nil)
-        { err in
+        { [weak self] err in
+            guard let self else { return }
             
             completion(self, err)
         }
@@ -172,7 +180,9 @@ fileprivate extension UUPeripheralSession
 {
     func connect()
     {
-        peripheral.connect(timeout: configuration.connectTimeout, connected: handleConnected, disconnected: handleDisconnection)
+        centralManager.connect(peripheral, timeout: configuration.connectTimeout,
+                               connected: { [weak self] in self?.handleConnected() },
+                               disconnected: { [weak self] error in self?.handleDisconnection(error) })
     }
     
     func handleSessionStarted()
@@ -180,7 +190,8 @@ fileprivate extension UUPeripheralSession
         UULog.debug(tag: LOG_TAG, message: "handleSessionStarted")
         
         finishSessionStart
-        {
+        { [weak self] in
+            guard let self else { return }
             UULog.debug(tag: LOG_TAG, message: "handleSessionStarted, notifying session started delegate")
             self.started(self)
         }
@@ -188,7 +199,7 @@ fileprivate extension UUPeripheralSession
     
     func disconnect()
     {
-        peripheral.disconnect(timeout: configuration.disconnectTimeout)
+        centralManager.disconnect(peripheral, timeout: configuration.disconnectTimeout)
     }
     
     func handleConnected()
@@ -221,7 +232,8 @@ fileprivate extension UUPeripheralSession
         peripheral.discoverServices(
             serviceUUIDs: configuration.servicesToDiscover,
             timeout: configuration.serviceDiscoveryTimeout)
-        { services, error in
+        { [weak self] services, error in
+            guard let self else { return }
             
             if let err = error
             {
@@ -275,8 +287,8 @@ fileprivate extension UUPeripheralSession
         let service = servicesNeedingCharacteristicDiscovery.remove(at: 0)
 
         discoverCharacteristics(for: service)
-        {
-            self.discoverNextCharacteristics()
+        { [weak self] in
+            self?.discoverNextCharacteristics()
         }
     }
     
@@ -320,7 +332,8 @@ fileprivate extension UUPeripheralSession
             characteristicUUIDs: charsToDiscover,
             for: service,
             timeout: configuration.characteristicDiscoveryTimeout)
-        { characteristics, error in
+        { [weak self] characteristics, error in
+            guard let self else { return }
             
             UULog.debug(tag: LOG_TAG, message: "peripheral.discoverCharacteristics returned for service \(service.uuid)")
             
@@ -377,8 +390,8 @@ fileprivate extension UUPeripheralSession
         let characteristic = characteristicsNeedingDescriptorDiscovery.remove(at: 0)
         
         discoverDescriptors(for: characteristic)
-        {
-            self.discoverNextDescriptors()
+        { [weak self] in
+            self?.discoverNextDescriptors()
         }
     }
     
@@ -397,7 +410,8 @@ fileprivate extension UUPeripheralSession
         peripheral.discoverDescriptors(
             for: characteristic,
             timeout: configuration.descriptorDiscoveryTimeout)
-        { descriptors, error in
+        { [weak self] descriptors, error in
+            guard let self else { return }
             
             UULog.debug(tag: LOG_TAG, message: "peripheral.discoverDescriptorsForCharacteristic returned for characteristic \(characteristic.uuid)")
             

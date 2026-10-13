@@ -39,6 +39,11 @@ open class UUPeripheralTests: XCTestCase
         fatalError("Derived classes must implement acquireTestPeripheral()")
     }
     
+    open func acquireTestCentralManager(for peripheral: UUPeripheral) -> UUCentralManager
+    {
+        return UUBluetooth.shared.centralManager
+    }
+
     func doTest_0001_sessionConnect() throws
     {
         UUTestSetTitle("test_0001_connect_success")
@@ -51,7 +56,7 @@ open class UUPeripheralTests: XCTestCase
         
         var disconnectError: Error? = nil
         
-        peripheral.connect(timeout: 10.0)
+        acquireTestCentralManager(for: peripheral).connect(peripheral, timeout: 10.0)
         {
             connectExp.fulfill()
         }
@@ -63,7 +68,7 @@ open class UUPeripheralTests: XCTestCase
         
         wait(for: [connectExp], timeout: 30)
         
-        peripheral.disconnect(timeout: 10.0)
+        acquireTestCentralManager(for: peripheral).disconnect(peripheral, timeout: 10.0)
         
         wait(for: [disconnectExp], timeout: 30)
         
@@ -86,7 +91,7 @@ open class UUPeripheralTests: XCTestCase
         UUTestSetButtonTitle("Click when device is off", deviceOffNotification)
         uuTestWaitForNotification(.uuTestButtonClickedNotification)
         
-        peripheral.connect(timeout: 10.0)
+        acquireTestCentralManager(for: peripheral).connect(peripheral, timeout: 10.0)
         {
             XCTFail("Connect block not expected in this case")
         }
@@ -116,7 +121,7 @@ open class UUPeripheralTests: XCTestCase
         
         var error: Error? = nil
         
-        peripheral.connect(timeout: 10.0)
+        acquireTestCentralManager(for: peripheral).connect(peripheral, timeout: 10.0)
         {
             connectExp.fulfill()
         }
@@ -131,7 +136,7 @@ open class UUPeripheralTests: XCTestCase
         let domain = "mock"
         let code = 1
         peripheral.mockCallbackError = NSError(domain: domain, code: code)
-        peripheral.disconnect(timeout: 10.0)
+        acquireTestCentralManager(for: peripheral).disconnect(peripheral, timeout: 10.0)
         
         wait(for: [disconnectExp], timeout: 20.0)
         
@@ -275,7 +280,7 @@ open class UUPeripheralTests: XCTestCase
         
         //var error: Error? = nil
         
-        peripheral.connect(timeout: 10.0)
+        acquireTestCentralManager(for: peripheral).connect(peripheral, timeout: 10.0)
         {
             connectExp.fulfill()
         }
@@ -300,7 +305,7 @@ open class UUPeripheralTests: XCTestCase
 //        let domain = "mock"
 //        let code = 1
 //        peripheral.mockCallbackError = NSError(domain: domain, code: code)
-        peripheral.disconnect(timeout: 10.0)
+        acquireTestCentralManager(for: peripheral).disconnect(peripheral, timeout: 10.0)
         
         await fulfillment(of: [disconnectExp], timeout: 30)
         

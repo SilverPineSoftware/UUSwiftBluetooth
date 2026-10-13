@@ -25,7 +25,7 @@ class ServiceViewModel: ObservableObject
     
     func onConnect()
     {
-        peripheral.connect(timeout: 20.0, connected:
+        UUBluetooth.shared.centralManager.connect(peripheral, timeout: 20.0, connected:
         {
             DispatchQueue.main.async
             {
