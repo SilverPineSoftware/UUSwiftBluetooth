@@ -217,7 +217,7 @@ final class UUPeripheralScanRestartTests: XCTestCase
                 return (delegate, mock)
             })
             scanner = UUCoreBluetoothPeripheralScanner(centralManager: central)
-            scanner.config.callbackThrottle = 0
+            scanner.config = UUPeripheralScannerConfig(callbackThrottle: 0)
         }
 
         // Run on the central queue. Deliver an advertisement through the central

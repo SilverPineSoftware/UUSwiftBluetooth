@@ -94,13 +94,13 @@ final class UUQueueIsolationTests: XCTestCase
     {
         let fixture = Fixture()
         let scanner = UUCoreBluetoothPeripheralScanner(centralManager: fixture.central)
-        scanner.config.discoveryFilters = [RejectAllFilter()]
-        scanner.config.callbackThrottle = 0
+        scanner.config = UUPeripheralScannerConfig(
+            discoveryFilters: [RejectAllFilter()], callbackThrottle: 0)
 
         fixture.central.dispatchQueue.sync
         {
             scanner.start()
-            scanner.config.discoveryFilters = nil
+            scanner.config = UUPeripheralScannerConfig(callbackThrottle: 0)
             fixture.delegate.didDiscoverPeripheralBlock?(fixture.peripheral.backingPeripheral, [:], NSNumber(value: -50))
             XCTAssertTrue(scanner.peripherals.isEmpty)
 
@@ -116,7 +116,7 @@ final class UUQueueIsolationTests: XCTestCase
     {
         let fixture = Fixture()
         let scanner = UUCoreBluetoothPeripheralScanner(centralManager: fixture.central)
-        scanner.config.callbackThrottle = 0
+        scanner.config = UUPeripheralScannerConfig(callbackThrottle: 0)
         scanner.start()
         let finished = expectation(description: "Advertisements and scanner lookups finish")
         finished.expectedFulfillmentCount = 2

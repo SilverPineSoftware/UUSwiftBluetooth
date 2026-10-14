@@ -190,11 +190,10 @@ public class UUCentralManager: UUManagerStateMonitor
         advertisementHandler: @escaping UUPeripheralBlock,
         willRestoreCallback: UUWillRestoreStateBlock? = nil)
     {
-        let settings = config.snapshot()
         performOnDispatchQueue
         {
             UULog.debug(tag: LOG_TAG, message: "starting scan")
-            scanConfig = settings
+            scanConfig = config
             scanStateLock.withLock { _isScanning = true }
             peripheralFoundBlock = advertisementHandler
             willRestoreStateBlock = willRestoreCallback

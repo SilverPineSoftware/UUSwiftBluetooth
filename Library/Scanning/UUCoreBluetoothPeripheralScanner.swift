@@ -52,12 +52,9 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
     
     open func start()
     {
-        // Capture the settings for this scan; later changes to config apply to
-        // the next scan rather than racing advertisement filtering and sorting.
-        let settings = config.snapshot()
         centralManager.performOnDispatchQueue
         {
-            startOnDispatchQueue(settings)
+            startOnDispatchQueue(self.config)
         }
     }
 

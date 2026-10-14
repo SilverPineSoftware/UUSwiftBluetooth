@@ -256,12 +256,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             self.tableData.removeAll()
             self.tableView.reloadData()
             
-            let config = UUPeripheralScannerConfig()
-            config.discoveryFilters = filters
-            config.allowDuplicates = true
-            config.peripheralSorting = UUPeripheralRssiComparator(ascending: false) // UUPeripheralRssiSortComparator(order: .reverse)
-            //settings.peripheralSorting = UUPeripheralFirstDiscoveryTimeComparator(order: .reverse)
-            //settings.peripheralSorting = UUPeripheralFriendlyNameComparator(order: .reverse)
+            let config = UUPeripheralScannerConfig(
+                allowDuplicates: true,
+                discoveryFilters: filters,
+                peripheralSorting: UUPeripheralRssiComparator(ascending: false))
         
             
             UULog.debug(tag: LOG_TAG, message: "Starting scan")

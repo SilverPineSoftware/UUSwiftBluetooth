@@ -30,8 +30,7 @@ public extension XCTestCase
         
         let timerId = "scanForPeripheralTimerId"
         
-        let config = UUPeripheralScannerConfig()
-        config.discoveryFilters = [SinglePeripheralFilter(filter) ]
+        let config = UUPeripheralScannerConfig(discoveryFilters: [SinglePeripheralFilter(filter)])
         
         var scanner = scanner
         scanner.config = config
