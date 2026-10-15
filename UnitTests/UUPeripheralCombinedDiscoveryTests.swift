@@ -17,7 +17,7 @@ final class UUPeripheralCombinedDiscoveryTests: XCTestCase
         XCTAssertTrue(fixture.results.isEmpty, "Completion should wait for teardown")
         fixture.finishDisconnect()
         XCTAssertEqual(fixture.results.count, 1)
-        XCTAssertEqual(fixture.results.first as? TestError, discoveryError)
+        assertError(fixture.results.first.flatMap { $0 }, matches: discoveryError)
     }
 
     func test_characteristicFailureSurvivesCleanDisconnect()
@@ -32,7 +32,7 @@ final class UUPeripheralCombinedDiscoveryTests: XCTestCase
         XCTAssertEqual(fixture.cancelCount, 1)
         fixture.finishDisconnect()
         XCTAssertEqual(fixture.results.count, 1)
-        XCTAssertEqual(fixture.results.first as? TestError, .characteristic)
+        assertError(fixture.results.first.flatMap { $0 }, matches: TestError.characteristic)
     }
 
     func test_missingServiceListStillDisconnectsAndCompletesOnce()
@@ -59,7 +59,7 @@ final class UUPeripheralCombinedDiscoveryTests: XCTestCase
         fixture.finishDisconnect(error: TestError.disconnect)
 
         XCTAssertEqual(fixture.results.count, 1)
-        XCTAssertEqual(fixture.results.first as? TestError, .characteristic)
+        assertError(fixture.results.first.flatMap { $0 }, matches: TestError.characteristic)
     }
 
     func test_successfulDiscoveryCompletesAfterDisconnect()
@@ -92,9 +92,21 @@ final class UUPeripheralCombinedDiscoveryTests: XCTestCase
         XCTAssertEqual(fixture.results.first.flatMap { $0 }?.uuBluetoothErrorCode, .timeout)
     }
 
-    private enum TestError: Error, Equatable
+    private func assertError(_ actual: Error?, matches expected: NSError,
+                             file: StaticString = #filePath, line: UInt = #line)
     {
-        case service, characteristic, disconnect
+        let error = actual as NSError?
+        XCTAssertEqual(error?.uuBluetoothErrorCode, .operationFailed, file: file, line: line)
+        let underlying = error?.userInfo[NSUnderlyingErrorKey] as? NSError
+        XCTAssertEqual(underlying?.domain, expected.domain, file: file, line: line)
+        XCTAssertEqual(underlying?.code, expected.code, file: file, line: line)
+    }
+
+    private enum TestError
+    {
+        static let service = NSError(domain: "CombinedDiscoveryTests", code: 1)
+        static let characteristic = NSError(domain: "CombinedDiscoveryTests", code: 2)
+        static let disconnect = NSError(domain: "CombinedDiscoveryTests", code: 3)
     }
 
     private final class Fixture

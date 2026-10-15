@@ -405,34 +405,65 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
         timeout: TimeInterval = UUBluetooth.Defaults.operationTimeout,
         completion: @escaping UUErrorBlock)
     {
+        var discoveryError: Error?
+        var disconnectRequested = false
+        var finished = false
+
+        func disconnectAfterDiscovery(_ error: Error?)
+        {
+            guard !finished, !disconnectRequested else
+            {
+                return
+            }
+            
+            discoveryError = error
+            disconnectRequested = true
+            centralManager.disconnect(self)
+        }
+
         centralManager.connect(self, timeout: timeout)
         {
-            self.discoverServices
+            guard !finished else
+            {
+                return
+            }
+            
+            self.discoverServices(timeout: timeout)
             { services, discoverServicesError in
                 
-                if let err = discoverServicesError
+                guard !finished else
                 {
-                    completion(err)
                     return
                 }
-                
+
+                if let error = discoverServicesError
+                {
+                    disconnectAfterDiscovery(error)
+                    return
+                }
+
                 guard let actualServices = services else
                 {
-                    completion(nil)
+                    disconnectAfterDiscovery(nil)
                     return
                 }
-                
+
                 self.discoverNextCharacteristics(actualServices, timeout: timeout)
                 { error in
-                    
-                    centralManager.disconnect(self)
+                    disconnectAfterDiscovery(error)
                 }
             }
         }
         disconnected:
         { disconnectError in
             
-            completion(disconnectError)
+            guard !finished else
+            {
+                return
+            }
+            
+            finished = true
+            completion(discoveryError ?? disconnectError)
         }
     }
     

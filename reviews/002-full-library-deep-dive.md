@@ -7,6 +7,8 @@
 
 **Status update — 2026-10-11:** Findings #1 (macOS compilation and test setup), #2 (unit-test build entry point), #3 (disconnect completion loss), #4 (overlapping operation ownership), and #5 (stale local timeout delivery, under the clarified retry contract) are resolved. The original assessment and validation below describe the 2026-10-10 snapshot; each resolved finding records its follow-up evidence. Other findings remain open.
 
+**Status update — 2026-10-14:** Findings #7 (scan-restart peripheral ownership) and #9 (combined discovery completion) are resolved. Finding #8's reproduced shared-state races are fixed; its remaining caller-owned mutable object contract is recorded below. Finding #6 remains partially resolved.
+
 ## Overall assessment (original review)
 
 The thin CoreBluetooth wrappers and the session/operation workflow remain useful. The stack's synchronized, externally read-only manager/scanner construction is a substantial improvement over the provider reviewed previously. The iOS sample builds successfully.
@@ -150,7 +152,9 @@ Public entry points mutate connection maps, delegate slots, scan state, and list
 
 **Regression:** Exercise public calls and mock callbacks on different queues under Thread Sanitizer, including register/listen, scan stop/start, and operation completion.
 
-### 9. [P1] Combined discovery loses errors and can complete more than once
+### 9. [Resolved — P1] Combined discovery loses errors and can complete more than once
+
+**Resolved 2026-10-14:** The combined operation now passes its timeout to service discovery, records the discovery error before requesting disconnect, and completes from the disconnect callback once. A discovery error takes precedence over a disconnect error; a clean discovery reports the disconnect result. Late callbacks are ignored after completion. Six focused unit tests cover service failure, characteristic failure, nil services, error precedence, timeout, and success. The full macOS UnitTests plan passed all 177 tests with Thread Sanitizer enabled. The original finding below is retained as history.
 
 **Location:** [`UUPeripheral.swift:441`](../Library/Peripheral/UUPeripheral.swift#L441).
 
