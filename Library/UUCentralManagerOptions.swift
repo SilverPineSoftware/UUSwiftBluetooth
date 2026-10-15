@@ -51,7 +51,7 @@ public struct UUCentralManagerOptions: Codable
             result[CBCentralManagerOptionShowPowerAlertKey] = showPowerAlert
         }
         
-        if let identifier = stateRestorationIdentifier
+        if let identifier = stateRestorationIdentifier, !identifier.isEmpty
         {
             result[CBCentralManagerOptionRestoreIdentifierKey] = identifier
         }

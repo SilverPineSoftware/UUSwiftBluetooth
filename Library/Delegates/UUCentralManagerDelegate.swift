@@ -239,7 +239,35 @@ public class UUCentralManagerDelegate: NSObject, CBCentralManagerDelegate
 
 public class UUCentralManagerRestoringDelegate: UUCentralManagerDelegate
 {
-    var willRestoreBlock: UUWillRestoreStateBlock? = nil
+    private let restorationLock = NSLock()
+    private var restorationBlock: UUWillRestoreStateBlock?
+    private var pendingRestorationStates: [[String: Any]] = []
+
+    var willRestoreBlock: UUWillRestoreStateBlock?
+    {
+        get { restorationLock.withLock { restorationBlock } }
+        set
+        {
+            let pending = restorationLock.withLock { () -> [[String: Any]] in
+                restorationBlock = newValue
+                guard newValue != nil else { return [] }
+                let states = pendingRestorationStates
+                pendingRestorationStates.removeAll()
+                return states
+            }
+            pending.forEach { newValue?($0) }
+        }
+    }
+
+    func receiveRestorationState(_ state: [String: Any])
+    {
+        let handler = restorationLock.withLock { () -> UUWillRestoreStateBlock? in
+            if let handler = restorationBlock { return handler }
+            pendingRestorationStates.append(state)
+            return nil
+        }
+        handler?(state)
+    }
     
     /**
      *  @method centralManager:willRestoreState:
@@ -262,6 +290,6 @@ public class UUCentralManagerRestoringDelegate: UUCentralManagerDelegate
     func centralManager(_ central: CBCentralManager, willRestoreState dict: [String : Any])
     {
         UULog.debug(tag: LOG_TAG, message: "Restoring state, dict: \(dict)")
-        willRestoreBlock?(dict)
+        receiveRestorationState(dict)
     }
 }

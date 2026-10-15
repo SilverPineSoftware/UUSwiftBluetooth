@@ -99,9 +99,6 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
             advertisementHandler: { [weak self] peripheral in
                 self?.handleAdvertisement(peripheral: peripheral)
             },
-            willRestoreCallback: { [weak self] state in
-                self?.handleWillRestoreState(arg: state)
-            },
             scanEnded: { [weak self] error in
                 self?.endScanningAfterCentralStopped(error)
             })
@@ -236,8 +233,4 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
         return true
     }
     
-    private func handleWillRestoreState(arg: [String:Any]?)
-    {
-        
-    }
 }

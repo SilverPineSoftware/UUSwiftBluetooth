@@ -7,7 +7,7 @@
 
 **Status update — 2026-10-11:** Findings #1 (macOS compilation and test setup), #2 (unit-test build entry point), #3 (disconnect completion loss), #4 (overlapping operation ownership), and #5 (stale local timeout delivery, under the clarified retry contract) are resolved. The original assessment and validation below describe the 2026-10-10 snapshot; each resolved finding records its follow-up evidence. Other findings remain open.
 
-**Status update — 2026-10-14:** Findings #7 (scan-restart peripheral ownership), #9 (combined discovery completion), #10 (internal closure cycles), and #11 (deferred scan lifecycle) are resolved. Finding #8's reproduced shared-state races are fixed; its remaining caller-owned mutable object contract is recorded below. Finding #6 remains partially resolved.
+**Status update — 2026-10-14:** Findings #7 (scan-restart peripheral ownership), #9 (combined discovery completion), #10 (internal closure cycles), #11 (deferred scan lifecycle), and #12 (restoration callback wiring) are resolved. Finding #8's reproduced shared-state races are fixed; its remaining caller-owned mutable object contract is recorded below. Finding #6 remains partially resolved.
 
 ## Overall assessment (original review)
 
@@ -188,9 +188,11 @@ The central owns its delegate, and `centralStateChangedBlock = handleCentralStat
 
 **Regression:** Hold the injected central in `.unknown` through the first list publication, then power it on. Also power it off after a quiet scan and verify the chosen stop/resume contract.
 
-### 12. [P2] Restoration callbacks are never connected to the restoring delegate
+### 12. [Resolved — P2] Restoration callbacks are never connected to the restoring delegate
 
-**Locations:** [`UUCentralManager.swift:59`](../Library/Central/UUCentralManager.swift#L59), [`UUCentralManager.swift:167`](../Library/Central/UUCentralManager.swift#L167), [`UUCentralManager.swift:184`](../Library/Central/UUCentralManager.swift#L184), [`UUCentralManagerDelegate.swift:236`](../Library/Delegates/UUCentralManagerDelegate.swift#L236).
+**Resolved 2026-10-14:** The restoring delegate buffers state delivered during manager construction and forwards it to `UUCentralManager` once wired. The central caches restored peripherals as canonical wrappers, installs their delegate, and retains raw restoration state until an app registers a callback. `registerForRestoration(_:)` and the existing `startScan(..., willRestoreCallback:)` deliver one pending state once; scanner startup no longer consumes it through an empty handler. Empty restoration identifiers are omitted from Core Bluetooth options. Six focused tests cover early and late events, wrapper reuse, scanner startup, the existing scan callback, and empty identifiers. All 190 macOS unit tests passed with Thread Sanitizer enabled; the iOS 15 Simulator build passed. Live relaunch/restoration with Core Bluetooth hardware was not run.
+
+**Current paths:** [`UUCentralManager.swift`](../Library/Central/UUCentralManager.swift), [`UUCentralManagerDelegate.swift`](../Library/Delegates/UUCentralManagerDelegate.swift). The original line references below describe the reviewed snapshot.
 
 The options select `UUCentralManagerRestoringDelegate`, but its `willRestoreBlock` is never assigned. `startScan` stores `willRestoreCallback` separately, and `handleWillRestoreState` has no caller. An app can opt into restoration and provide the exposed callback without ever receiving restoration state. Wiring it only when scanning starts would also miss restoration arriving during manager creation.
 

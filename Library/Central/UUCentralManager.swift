@@ -43,6 +43,7 @@ public class UUCentralManager: UUManagerStateMonitor
     public var isScanning: Bool { scanStateLock.withLock { _isScanning } }
     
     private var willRestoreStateBlock: UUWillRestoreStateBlock? = nil
+    private var pendingRestorationStates: [[String: Any]] = []
     
     private var peripheralMap: [UUID: (UUPeripheral)] = [:]
     private var peripheralMapLock = NSRecursiveLock()
@@ -65,6 +66,9 @@ public class UUCentralManager: UUManagerStateMonitor
         delegate = injected.0
         centralManager = injected.1
         delegate.centralStateChangedBlock = { [weak self] state in self?.handleCentralStateChanged(state) }
+        (delegate as? UUCentralManagerRestoringDelegate)?.willRestoreBlock = { [weak self] state in
+            self?.performOnDispatchQueue { self?.handleWillRestoreState(state) }
+        }
         
         let state = centralManager.state
         UULog.debug(tag: LOG_TAG, message: "Central State is: \(state)")
@@ -91,6 +95,24 @@ public class UUCentralManager: UUManagerStateMonitor
     public func lookupPeripheral(_ identifier: UUID) -> CBPeripheral?
     {
         return centralManager.retrievePeripherals(withIdentifiers: [identifier]).first
+    }
+
+    /// Returns the canonical wrapper for a discovered or restored peripheral.
+    public func getPeripheral(identifier: UUID) -> UUPeripheral?
+    {
+        peripheralMapLock.withLock { peripheralMap[identifier] }
+    }
+
+    /// Receives one pending restoration state, or the next state delivered by Core Bluetooth.
+    /// The callback is consumed after delivery. Register before starting a scan to receive an
+    /// event that arrived during manager creation.
+    public func registerForRestoration(_ callback: @escaping UUWillRestoreStateBlock)
+    {
+        performOnDispatchQueue
+        {
+            willRestoreStateBlock = callback
+            deliverPendingRestorationState()
+        }
     }
     
     // MARK: UUManagerStateMonitor
@@ -213,12 +235,16 @@ public class UUCentralManager: UUManagerStateMonitor
             scanPhase = .pending
             scanEndedBlock = scanEnded
             peripheralFoundBlock = advertisementHandler
-            willRestoreStateBlock = willRestoreCallback
             delegate.didDiscoverPeripheralBlock =
             { [weak self] peripheral, advertisementData, rssi in
                 self?.handleAdvertisement(peripheral, advertisementData, rssi)
             }
             resumeScanning()
+            if let willRestoreCallback
+            {
+                willRestoreStateBlock = willRestoreCallback
+                deliverPendingRestorationState()
+            }
         }
     }
     
@@ -256,7 +282,40 @@ public class UUCentralManager: UUManagerStateMonitor
     
     private func handleWillRestoreState(_ options: [String:Any])
     {
-        willRestoreStateBlock?(options)
+        if let restored = options[CBCentralManagerRestoredStatePeripheralsKey] as? [CBPeripheral]
+        {
+            peripheralMapLock.withLock
+            {
+                for native in restored
+                {
+                    if let existing = peripheralMap[native.identifier]
+                    {
+                        let wrapperDelegate = existing.underlyingPeripheral.delegate
+                        existing.underlyingPeripheral.delegate = nil
+                        existing.underlyingPeripheral = native
+                        native.delegate = wrapperDelegate
+                    }
+                    else
+                    {
+                        peripheralMap[native.identifier] = UUPeripheral(
+                            dispatchQueue: dispatchQueue,
+                            centralState: centralState,
+                            peripheral: native,
+                            advertisement: UUAdvertisement(identifier: native.identifier))
+                    }
+                }
+            }
+        }
+        pendingRestorationStates.append(options)
+        deliverPendingRestorationState()
+    }
+
+    private func deliverPendingRestorationState()
+    {
+        guard let callback = willRestoreStateBlock, !pendingRestorationStates.isEmpty else { return }
+        let state = pendingRestorationStates.removeFirst()
+        willRestoreStateBlock = nil
+        callback(state)
     }
     
     public func stopScan()
@@ -269,7 +328,6 @@ public class UUCentralManager: UUManagerStateMonitor
             scanEndedBlock = nil
             delegate.didDiscoverPeripheralBlock = nil
             peripheralFoundBlock = nil
-            willRestoreStateBlock = nil
 
             // Xcode logs API misuse warnings if we make this call while state is anything but poweredOn
             if (isPoweredOn)
