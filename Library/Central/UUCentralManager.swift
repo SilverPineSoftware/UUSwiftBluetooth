@@ -39,7 +39,6 @@ public class UUCentralManager: UUManagerStateMonitor
     public var isScanning: Bool { scanStateLock.withLock { _isScanning } }
     
     private var willRestoreStateBlock: UUWillRestoreStateBlock? = nil
-    //private var options: [String:Any]? = nil
     
     private var peripheralMap: [UUID: (UUPeripheral)] = [:]
     private var peripheralMapLock = NSRecursiveLock()
