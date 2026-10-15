@@ -23,6 +23,8 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
     private var nearbyPeripheralMap: [UUID: (UUPeripheral)] = [:]
     private var nearbyPeripheralMapLock = NSRecursiveLock()
     private var activeConfig = UUPeripheralScannerConfig()
+    private let scanGenerationLock = NSLock()
+    private var activeScanGeneration: UUID?
     
     @Published private var nearbyPeripherals: [UUPeripheral] = []
     
@@ -67,6 +69,8 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
         }
 
         activeConfig = settings
+        let generation = UUID()
+        scanGenerationLock.withLock { activeScanGeneration = generation }
         clearNearbyPeripherals()
 
         if (settings.callbackThrottle > 0)
@@ -76,8 +80,7 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
                 .receive(on: centralManager.dispatchQueue)
                 .sink
                 { [weak self] peripheralList in
-                    
-                    self?.notifyNearbyPeripherals(peripheralList)
+                    self?.notifyNearbyPeripherals(peripheralList, generation: generation)
                 }
         }
         else
@@ -86,8 +89,7 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
                 .receive(on: centralManager.dispatchQueue)
                 .sink
                 { [weak self] peripheralList in
-                    
-                    self?.notifyNearbyPeripherals(peripheralList)
+                    self?.notifyNearbyPeripherals(peripheralList, generation: generation)
                 }
         }
         
@@ -99,6 +101,9 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
             },
             willRestoreCallback: { [weak self] state in
                 self?.handleWillRestoreState(arg: state)
+            },
+            scanEnded: { [weak self] error in
+                self?.endScanningAfterCentralStopped(error)
             })
     }
     
@@ -118,16 +123,10 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
         }
     }
     
-    private func notifyNearbyPeripherals(_ list: [UUPeripheral])
+    private func notifyNearbyPeripherals(_ list: [UUPeripheral], generation: UUID)
     {
+        guard scanGenerationLock.withLock({ activeScanGeneration == generation }) else { return }
         UULog.debug(tag: LOG_TAG, message: "notifyNearbyPeripherals, list.count: \(list.count)")
-        
-        if let err = checkCentralState()
-        {
-            UULog.debug(tag: LOG_TAG, message: "Ending scan in notifyNearbyPeripherals because of a central state error: \(String(describing: err))")
-            endScanning(err)
-            return
-        }
         
         let sorted: [UUPeripheral]
         
@@ -140,8 +139,8 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
             sorted = list
         }
         
-        DispatchQueue.main.async
-        {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.scanGenerationLock.withLock({ self.activeScanGeneration == generation }) else { return }
             self.listChanged(self, sorted)
         }
     }
@@ -153,15 +152,37 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
     
     open func stop()
     {
-        centralManager.performOnDispatchQueue { endScanning(nil) }
+        centralManager.performOnDispatchQueue
+        {
+            endScanning(nil)
+        }
     }
     
     private func endScanning(_ error: Error?)
     {
+        let wasActive = scanGenerationLock.withLock { () -> Bool in
+            let active = activeScanGeneration != nil
+            activeScanGeneration = nil
+            return active
+        }
+        guard wasActive || error != nil else { return }
         nearbyPeripheralSubscription?.cancel()
         nearbyPeripheralSubscription = nil
         
         centralManager.stopScan()
+        notifyScanEnded(error)
+    }
+
+    private func endScanningAfterCentralStopped(_ error: Error?)
+    {
+        let wasActive = scanGenerationLock.withLock { () -> Bool in
+            let active = activeScanGeneration != nil
+            activeScanGeneration = nil
+            return active
+        }
+        guard wasActive else { return }
+        nearbyPeripheralSubscription?.cancel()
+        nearbyPeripheralSubscription = nil
         notifyScanEnded(error)
     }
     
@@ -186,10 +207,12 @@ open class UUCoreBluetoothPeripheralScanner: UUPeripheralScanner
     
     private func handleAdvertisement(peripheral: UUPeripheral)
     {
-        let candidates = nearbyPeripheralMapLock.withLock { () -> [UUPeripheral] in
+        let candidates = nearbyPeripheralMapLock.withLock
+        { () -> [UUPeripheral] in
             nearbyPeripheralMap[peripheral.identifier] = peripheral
             return Array(nearbyPeripheralMap.values)
         }
+
         let discovered = candidates.filter(shouldDiscoverPeripheral)
         nearbyPeripheralMapLock.withLock { nearbyPeripherals = discovered }
         UULog.verbose(tag: LOG_TAG, message: "There are \(discovered.count) peripherals nearby")

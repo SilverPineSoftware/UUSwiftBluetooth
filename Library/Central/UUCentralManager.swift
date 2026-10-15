@@ -31,11 +31,15 @@ public class UUCentralManager: UUManagerStateMonitor
     private let queueID = UUID()
     private let scanStateLock = NSLock()
     private var _isScanning = false
+    private enum ScanPhase { case idle, pending, active }
+    private var scanPhase: ScanPhase = .idle
+    private var scanEndedBlock: UUErrorBlock?
     
     private var delegate: UUCentralManagerDelegate
     private var centralManager: UUCBCentralManager
     
     private var scanConfig: UUPeripheralScannerConfig = UUPeripheralScannerConfig()
+    /// Whether a scan has been requested, including one pending while the manager state is unknown.
     public var isScanning: Bool { scanStateLock.withLock { _isScanning } }
     
     private var willRestoreStateBlock: UUWillRestoreStateBlock? = nil
@@ -133,12 +137,13 @@ public class UUCentralManager: UUManagerStateMonitor
         {
             case .poweredOn:
                 handleCentralStatePoweredOn()
-                
-            case .resetting:
-                handleCentralReset()
-                
+
             default:
-                break
+                if state != .unknown || scanPhase == .active
+                {
+                    endScanForUnavailableState(state)
+                }
+                if state == .resetting { handleCentralReset() }
         }
         
         for peripheral in Array(peripheralMap.values)
@@ -168,10 +173,18 @@ public class UUCentralManager: UUManagerStateMonitor
     
     private func handleCentralStatePoweredOn()
     {
-        if isScanning
+        if scanPhase == .pending
         {
             resumeScanning()
         }
+    }
+
+    private func endScanForUnavailableState(_ state: CBManagerState)
+    {
+        guard scanPhase != .idle else { return }
+        let callback = scanEndedBlock
+        stopScan()
+        callback?(NSError.uuCentralStateNotReadyError(state))
     }
     
     private func handleCentralReset()
@@ -184,16 +197,21 @@ public class UUCentralManager: UUManagerStateMonitor
         return self.centralManager.retrieveConnectedPeripherals(withServices: services)
     }
     
+    /// Starts or queues a scan. A pending scan starts when the manager becomes powered on.
+    /// If power becomes unavailable, the scan ends and `scanEnded` receives the state error.
     public func startScan(
         config: UUPeripheralScannerConfig,
         advertisementHandler: @escaping UUPeripheralBlock,
-        willRestoreCallback: UUWillRestoreStateBlock? = nil)
+        willRestoreCallback: UUWillRestoreStateBlock? = nil,
+        scanEnded: UUErrorBlock? = nil)
     {
         performOnDispatchQueue
         {
             UULog.debug(tag: LOG_TAG, message: "starting scan")
             scanConfig = config
             scanStateLock.withLock { _isScanning = true }
+            scanPhase = .pending
+            scanEndedBlock = scanEnded
             peripheralFoundBlock = advertisementHandler
             willRestoreStateBlock = willRestoreCallback
             delegate.didDiscoverPeripheralBlock =
@@ -224,9 +242,11 @@ public class UUCentralManager: UUManagerStateMonitor
 
     private func resumeScanning()
     {
+        guard scanPhase == .pending else { return }
         if (self.canStartScanning)
         {
             centralManager.scanForPeripherals(withServices: scanConfig.serviceUUIDs, options: scanConfig.scanOptions)
+            scanPhase = .active
         }
         else
         {
@@ -245,6 +265,8 @@ public class UUCentralManager: UUManagerStateMonitor
         {
             UULog.debug(tag: LOG_TAG, message: "stopping scan, isScanning: \(isScanning)")
             scanStateLock.withLock { _isScanning = false }
+            scanPhase = .idle
+            scanEndedBlock = nil
             delegate.didDiscoverPeripheralBlock = nil
             peripheralFoundBlock = nil
             willRestoreStateBlock = nil

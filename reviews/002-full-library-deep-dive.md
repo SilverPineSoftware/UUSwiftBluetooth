@@ -7,7 +7,7 @@
 
 **Status update — 2026-10-11:** Findings #1 (macOS compilation and test setup), #2 (unit-test build entry point), #3 (disconnect completion loss), #4 (overlapping operation ownership), and #5 (stale local timeout delivery, under the clarified retry contract) are resolved. The original assessment and validation below describe the 2026-10-10 snapshot; each resolved finding records its follow-up evidence. Other findings remain open.
 
-**Status update — 2026-10-14:** Findings #7 (scan-restart peripheral ownership), #9 (combined discovery completion), and #10 (internal closure cycles) are resolved. Finding #8's reproduced shared-state races are fixed; its remaining caller-owned mutable object contract is recorded below. Finding #6 remains partially resolved.
+**Status update — 2026-10-14:** Findings #7 (scan-restart peripheral ownership), #9 (combined discovery completion), #10 (internal closure cycles), and #11 (deferred scan lifecycle) are resolved. Finding #8's reproduced shared-state races are fixed; its remaining caller-owned mutable object contract is recorded below. Finding #6 remains partially resolved.
 
 ## Overall assessment (original review)
 
@@ -176,9 +176,11 @@ The central owns its delegate, and `centralStateChangedBlock = handleCentralStat
 
 **Regression:** Hold weak references to an initialized custom stack's manager, a completed operation, and a stopped sniffer; release owners and assert deallocation.
 
-### 11. [P2] Scanner startup while the central is unknown can cancel its own deferred scan
+### 11. [Resolved — P2] Scanner startup while the central is unknown can cancel its own deferred scan
 
-**Locations:** [`UUCoreBluetoothPeripheralScanner.swift:35`](../Library/Scanning/UUCoreBluetoothPeripheralScanner.swift#L35), [`UUCoreBluetoothPeripheralScanner.swift:61`](../Library/Scanning/UUCoreBluetoothPeripheralScanner.swift#L61), [`UUCoreBluetoothPeripheralScanner.swift:107`](../Library/Scanning/UUCoreBluetoothPeripheralScanner.swift#L107).
+**Resolved 2026-10-14:** The original initial-empty-list scenario was overstated: `.unknown` already passed `checkCentralState`, so that publication alone did not cancel the pending scan. The real lifecycle gap was that a quiet scan did not respond to power loss, while list publication was allowed to end a scan based on manager state. `UUCentralManager` now owns idle/pending/active scan transitions, retains a pending request through `.unknown`, and ends it with a state error when power becomes unavailable. The scanner retains filtering, sorting, and list delivery; list updates no longer decide scan state. A generation check discards queued list callbacks after stop or restart. Four focused tests cover pending start, quiet power-off, power loss before activation, and queued list delivery. The second full macOS UnitTests run passed all 184 tests with Thread Sanitizer enabled; the first run had 183 passes and an unrelated crash in the existing timing-sensitive `test_didDiscoverServices_notRegistered`. The iOS 15 Simulator framework build passed. The original assessment below is retained as history.
+
+**Current paths:** [`UUCentralManager.swift`](../Library/Central/UUCentralManager.swift), [`UUCoreBluetoothPeripheralScanner.swift`](../Library/Scanning/UUCoreBluetoothPeripheralScanner.swift). The original line references below describe the reviewed snapshot.
 
 `checkCentralState` deliberately accepts `.unknown` so the central can resume scanning after power-on. However, the subscription to `@Published nearbyPeripherals` delivers its initial empty list. If that delivery reaches `notifyNearbyPeripherals` before power-on, it calls `endScanning`, which clears the central's `isScanning` intent. Power-on can no longer resume the request. Conversely, later power-off is not observed directly by the scanner, so it may remain logically scanning without an ended event when no more list updates occur.
 
