@@ -18,6 +18,8 @@ open class UUPeripheralOperation<Result>
     public private(set) var session: UUPeripheralSession
     
     private var operationCallback: ((Result?, Error?)->())? = nil
+    // Keep an accepted operation alive until its terminal session callback.
+    private var retainedWhileRunning: UUPeripheralOperation<Result>? = nil
     
     private(set) public var operationResult: Result? = nil
     
@@ -27,18 +29,25 @@ open class UUPeripheralOperation<Result>
         
         self.session = UUPeripheralSession(peripheral: peripheral, centralManager: centralManager)
         self.session.configuration = configuration
-        session.started = { session in
-            self.internalExecute()
+        session.started = { [weak self] _ in
+            self?.internalExecute()
         }
         
-        session.ended = { session, error in
-            self.operationCallback?(self.operationResult, error)
+        session.ended = { [weak self] _, error in
+            guard let self else { return }
+            let callback = self.operationCallback
+            self.operationCallback = nil
+            self.retainedWhileRunning = nil
+            callback?(self.operationResult, error)
         }
     }
     
+    /// Starts the operation and retains it until the session's terminal callback.
+    /// The completion is released before it is invoked.
     public func start(_ completion: @escaping(Result?, Error?)->())
     {
         self.operationCallback = completion
+        retainedWhileRunning = self
         
         session.start()
     }
@@ -59,8 +68,8 @@ open class UUPeripheralOperation<Result>
     private func internalExecute()
     {
         execute
-        { result, err in
-            self.end(result: result, error: err)
+        { [weak self] result, err in
+            self?.end(result: result, error: err)
         }
     }
     

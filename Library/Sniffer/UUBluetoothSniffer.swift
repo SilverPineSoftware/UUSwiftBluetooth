@@ -257,8 +257,12 @@ public class UUBluetoothSniffer
         dispatchQueue = DispatchQueue(label: "UUBluetoothSnifferQueue", qos: .userInitiated, attributes: [], autoreleaseFrequency: .inherit, target: nil)
         delegate = UUBluetoothSnifferDelegate()
         centralManager = CBCentralManager(delegate: delegate, queue: dispatchQueue, options: nil)
-        delegate.handleAdvertisement = handleAdvertisement
-        delegate.handleStateChanged = handleStateChanged
+        delegate.handleAdvertisement = { [weak self] peripheral, advertisementData, rssi in
+            self?.handleAdvertisement(peripheral, advertisementData, rssi)
+        }
+        delegate.handleStateChanged = { [weak self] state in
+            self?.handleStateChanged(state)
+        }
     }
     
     private func handleStateChanged(_ state: CBManagerState)

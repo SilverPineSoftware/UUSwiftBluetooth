@@ -7,7 +7,7 @@
 
 **Status update — 2026-10-11:** Findings #1 (macOS compilation and test setup), #2 (unit-test build entry point), #3 (disconnect completion loss), #4 (overlapping operation ownership), and #5 (stale local timeout delivery, under the clarified retry contract) are resolved. The original assessment and validation below describe the 2026-10-10 snapshot; each resolved finding records its follow-up evidence. Other findings remain open.
 
-**Status update — 2026-10-14:** Findings #7 (scan-restart peripheral ownership) and #9 (combined discovery completion) are resolved. Finding #8's reproduced shared-state races are fixed; its remaining caller-owned mutable object contract is recorded below. Finding #6 remains partially resolved.
+**Status update — 2026-10-14:** Findings #7 (scan-restart peripheral ownership), #9 (combined discovery completion), and #10 (internal closure cycles) are resolved. Finding #8's reproduced shared-state races are fixed; its remaining caller-owned mutable object contract is recorded below. Finding #6 remains partially resolved.
 
 ## Overall assessment (original review)
 
@@ -164,9 +164,11 @@ Public entry points mutate connection maps, delegate slots, scan state, and list
 
 **Regression:** Inject service failure, characteristic failure, nil services, and disconnect failure; assert exactly one result, the original meaningful error, and the promised teardown.
 
-### 10. [P2] Internal closure cycles keep managers and operations alive
+### 10. [Resolved — P2] Internal closure cycles keep managers and operations alive
 
-**Locations:** [`UUCentralManager.swift:50`](../Library/Central/UUCentralManager.swift#L50), [`UUPeripheralOperation.swift:28`](../Library/Operations/UUPeripheralOperation.swift#L28), [`UUBluetoothSniffer.swift:260`](../Library/Sniffer/UUBluetoothSniffer.swift#L260).
+**Resolved 2026-10-14:** The central manager's state-handler closure had already been changed to capture its owner weakly at [`UUCentralManager.swift:64`](../Library/Central/UUCentralManager.swift#L64). Operation session callbacks and the sniffer's delegate handlers now also capture their owners weakly. An accepted operation explicitly retains itself until the terminal session callback, then releases that retention and its completion before invoking user code. Three focused tests cover operation lifetime through completion, release of a captured completion while the caller retains the operation, and sniffer deallocation. The full macOS UnitTests plan passed all 180 tests with Thread Sanitizer enabled, and the iOS 15 Simulator framework build passed. The original finding below is retained as history.
+
+**Original locations:** [`UUCentralManager.swift:64`](../Library/Central/UUCentralManager.swift#L64), [`UUPeripheralOperation.swift:32`](../Library/Operations/UUPeripheralOperation.swift#L32), [`UUBluetoothSniffer.swift:260`](../Library/Sniffer/UUBluetoothSniffer.swift#L260).
 
 The central owns its delegate, and `centralStateChangedBlock = handleCentralStateChanged` retains the central through the bound method. That cycle exists even if scanning never starts. An operation owns a session whose `started` and `ended` closures strongly capture the operation; neither is cleared at completion. The sniffer has the same owner/delegate/bound-method cycle. Releasing configured stacks or completed operations therefore does not release their object graphs as callers would expect.
 
