@@ -63,7 +63,7 @@ final class UUCentralRestorationTests: XCTestCase
             fixture.delegate.didDiscoverPeripheralBlock?(fixture.native, [:], NSNumber(value: -50))
         }
         let wrapper = fixture.central.getPeripheral(identifier: fixture.native.identifier)
-        let restoredNative = UUMockCBPeripheral(identifier: fixture.native.identifier).backingPeripheral
+        let restoredNative = TestPeripheral(identifier: fixture.native.identifier).backingPeripheral
         fixture.restore(peripheral: restoredNative)
 
         XCTAssertTrue(fixture.central.getPeripheral(identifier: fixture.native.identifier) === wrapper)
@@ -81,7 +81,7 @@ final class UUCentralRestorationTests: XCTestCase
 
     private final class Fixture
     {
-        let backend = UUMockCBPeripheral()
+        let backend = TestPeripheral()
         let delegate = UUCentralManagerRestoringDelegate()
         let central: UUCentralManager
         var native: CBPeripheral { backend.backingPeripheral }
@@ -93,7 +93,7 @@ final class UUCentralRestorationTests: XCTestCase
             central = UUCentralManager(
                 options: UUCentralManagerOptions(stateRestorationIdentifier: "unit-test-restoration"),
                 injection: { queue, options in
-                    let mock = UUMockCBCentralManager(delegate: restoringDelegate, queue: queue,
+                    let mock = TestCentralManager(delegate: restoringDelegate, queue: queue,
                         options: options.coreBluetoothOptions)
                     mock.mockPeripherals = [native]
                     if restoreDuringConstruction

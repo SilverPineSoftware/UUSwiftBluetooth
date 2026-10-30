@@ -146,7 +146,7 @@ final class UUQueueIsolationTests: XCTestCase
 
     private final class Fixture
     {
-        let peripheral = UUMockCBPeripheral()
+        let peripheral = TestPeripheral()
         let delegate = UUCentralManagerDelegate()
         let central: UUCentralManager
 
@@ -155,7 +155,7 @@ final class UUQueueIsolationTests: XCTestCase
             let peripheral = self.peripheral
             let delegate = self.delegate
             central = UUCentralManager(options: UUCentralManagerOptions(), injection: { queue, options in
-                let mock = UUMockCBCentralManager(delegate: delegate, queue: queue, options: options.coreBluetoothOptions)
+                let mock = TestCentralManager(delegate: delegate, queue: queue, options: options.coreBluetoothOptions)
                 mock.mockPeripherals = [peripheral.backingPeripheral]
                 return (delegate, mock)
             })

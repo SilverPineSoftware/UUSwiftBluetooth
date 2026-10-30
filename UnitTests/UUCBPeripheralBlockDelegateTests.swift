@@ -328,29 +328,19 @@ final class UUCBPeripheralBlockDelegateTests: XCTestCase
     
     func test_didReadRssiBlock_notRegistered() throws
     {
-        let exp = uuExpectationForMethod()
-        exp.isInverted = true
-        
         let delegate = UUCBPeripheralBlockDelegate()
-        
         delegate.didReadRssiBlock = nil
-        
-        let mockPeripheral = try XCTUnwrap(uuMakeCBPeripheral())
-        
+        let peripheral = try XCTUnwrap(uuMakeCBPeripheral())
         XCTAssertNil(delegate.didReadRssiBlock)
-        
-        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
 
-        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.1)
-        {
-            delegate.peripheral(mockPeripheral, didReadRSSI: NSNumber(integerLiteral: -20), error: inputError)
-        }
-        
-        uuWaitForExpectations(0.2)
-        
+        // Delegate delivery is synchronous. Keep delivery and inspection on the
+        // same thread rather than relying on an inverted expectation's delay.
+        let inputError = NSError(domain: "test", code: 1, userInfo: nil)
+        delegate.peripheral(peripheral, didReadRSSI: NSNumber(integerLiteral: -20), error: inputError)
+
         XCTAssertNil(delegate.didReadRssiBlock)
     }
-        
+
     // MARK: didDiscoverIncludedServices
     
     func test_didDiscoverIncludedServices_success() throws

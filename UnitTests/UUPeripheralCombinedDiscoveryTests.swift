@@ -183,13 +183,13 @@ final class UUPeripheralCombinedDiscoveryTests: XCTestCase
         func flush() { central.dispatchQueue.sync {} }
     }
 
-    private final class ControlledPeripheral: UUMockCBPeripheral
+    private final class ControlledPeripheral: TestPeripheral
     {
         override func discoverServices(_ serviceUUIDs: [CBUUID]?) {}
         override func discoverCharacteristics(_ characteristicUUIDs: [CBUUID]?, for service: CBService) {}
     }
 
-    private final class ControlledCentral: UUMockCBCentralManager
+    private final class ControlledCentral: TestCentralManager
     {
         var cancelCount = 0
         var onCancel: (() -> Void)?

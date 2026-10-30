@@ -1,6 +1,6 @@
 
 //
-//  UUMockPeripheralTests.swift
+//  UUPeripheralOperationTests.swift
 //  UUSwiftBluetoothTests
 //
 //  Created by Ryan DeVore on 7/1/25.
@@ -22,7 +22,7 @@ fileprivate let mockDescriptorUuid = CBUUID.uuCreate(from: "2EC25CCE-D8AA-4DD6-8
 // DFAF5163-A083-4DC1-923F-66CD1BFACDA5
 // 819752E6-DD05-4A14-8475-32EA033F1F9D
 
-final class UUMockPeripheralTests: XCTestCase
+final class UUPeripheralOperationTests: XCTestCase
 {
     public override func setUpWithError() throws
     {
@@ -32,39 +32,9 @@ final class UUMockPeripheralTests: XCTestCase
         UULog.setLogger(logger)
     }
     
-//    private func loadMockPeripheral() -> UUMockPeripheral?
-//    {
-//        let bundle = Bundle(for: Self.self)
-//        
-//        //guard let path = bundle.path(forResource: "atmotube_pro", ofType: "json") else
-//        guard let path = bundle.path(forResource: "ti_sensor_tag", ofType: "json") else
-//        {
-//            NSLog("Unable to load file from bundle")
-//            return nil
-//        }
-//        
-//        guard let data = try? Data(contentsOf: URL(fileURLWithPath: path)) else
-//        {
-//            NSLog("Unable to create data from file")
-//            return nil
-//        }
-//        
-//        guard let peripheralData = try? JSONDecoder().decode(UUPeripheralRepresentation.self, from: data) else
-//        {
-//            NSLog("Unable to load JSON representation")
-//            return nil
-//        }
-//        
-//        let check = peripheralData.uuToJsonString()
-//        UULog.debug(tag: "Import", message: check)
-//        
-//        return peripheralData.mockPeripheral
-//    }
-    
-    
-    private func setupMockPeripheral() throws -> UUMockPeripheral
+    private func makePeripheralFixture() throws -> TestPeripheralFixture
     {
-        let peripheral = UUMockPeripheral()
+        let peripheral = TestPeripheralFixture()
         
         let descriptor = CBMutableDescriptor(type: mockDescriptorUuid, value: Data())
         let characteristic = CBMutableCharacteristic(type: mockCharacteristicUuid, properties: [.read, .write], value: nil, permissions: [.readable, .writeable])
@@ -79,7 +49,7 @@ final class UUMockPeripheralTests: XCTestCase
     
     func test_0001_connect_success() throws
     {
-        let peripheral = try setupMockPeripheral()
+        let peripheral = try makePeripheralFixture()
         
         let connectExp = uuExpectationForMethod(tag: "connect")
         
@@ -97,7 +67,7 @@ final class UUMockPeripheralTests: XCTestCase
     
     func test_0002_connect_error() throws
     {
-        let peripheral = try setupMockPeripheral()
+        let peripheral = try makePeripheralFixture()
         
         let connectExp = uuExpectationForMethod(tag: "connect")
         var error: Error? = nil
@@ -133,7 +103,7 @@ final class UUMockPeripheralTests: XCTestCase
     
     func test_0003_disconnect_after_connect() throws
     {
-        let peripheral = try setupMockPeripheral()
+        let peripheral = try makePeripheralFixture()
         
         let connectExp = uuExpectationForMethod(tag: "connect")
         let disconnectExp = uuExpectationForMethod(tag: "disconnect")
@@ -175,7 +145,7 @@ final class UUMockPeripheralTests: XCTestCase
     
     func test_0004_discoverServices_success() throws
     {
-        let peripheral = try setupMockPeripheral()
+        let peripheral = try makePeripheralFixture()
         
         let exp = uuExpectationForMethod()
         
@@ -205,7 +175,7 @@ final class UUMockPeripheralTests: XCTestCase
     
     func test_0005_discoverServices_error() throws
     {
-        let peripheral = try setupMockPeripheral()
+        let peripheral = try makePeripheralFixture()
         
         let exp = uuExpectationForMethod()
         
@@ -241,7 +211,7 @@ final class UUMockPeripheralTests: XCTestCase
     
     func test_0006_discoverCharacteristics_success() throws
     {
-        let peripheral = try setupMockPeripheral()
+        let peripheral = try makePeripheralFixture()
         
         let exp = uuExpectationForMethod()
         
@@ -277,7 +247,7 @@ final class UUMockPeripheralTests: XCTestCase
     
     func test_0007_discoverCharacteristics_success_none_found() throws
     {
-        let peripheral = try setupMockPeripheral()
+        let peripheral = try makePeripheralFixture()
         
         let exp = uuExpectationForMethod()
         
@@ -312,7 +282,7 @@ final class UUMockPeripheralTests: XCTestCase
     
     func test_0008_discoverDescriptors_success() throws
     {
-        let peripheral = try setupMockPeripheral()
+        let peripheral = try makePeripheralFixture()
         
         let exp = uuExpectationForMethod()
         
@@ -349,7 +319,7 @@ final class UUMockPeripheralTests: XCTestCase
     
     func test_0009_discoverDescriptors_error() throws
     {
-        let peripheral = try setupMockPeripheral()
+        let peripheral = try makePeripheralFixture()
         
         let exp = uuExpectationForMethod()
         

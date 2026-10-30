@@ -122,7 +122,7 @@ final class UUScannerPowerStateTests: XCTestCase
         }
     }
 
-    private final class RecordingCentral: UUMockCBCentralManager
+    private final class RecordingCentral: TestCentralManager
     {
         var scanCount = 0
         override func scanForPeripherals(withServices serviceUUIDs: [CBUUID]?, options: [String: Any]?)

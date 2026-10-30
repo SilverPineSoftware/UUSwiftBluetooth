@@ -46,7 +46,7 @@ final class UUPeripheralScanRestartTests: XCTestCase
             let native = backend.backingPeripheral
             let delegate = UUCentralManagerDelegate()
             let central = UUCentralManager(options: UUCentralManagerOptions(), injection: { queue, options in
-                let mock = UUMockCBCentralManager(delegate: delegate, queue: queue, options: options.coreBluetoothOptions)
+                let mock = TestCentralManager(delegate: delegate, queue: queue, options: options.coreBluetoothOptions)
                 mock.mockPeripherals = [native]
                 return (delegate, mock)
             })
@@ -210,7 +210,7 @@ final class UUPeripheralScanRestartTests: XCTestCase
             let delegate = UUCentralManagerDelegate()
             centralDelegate = delegate
             central = UUCentralManager(options: UUCentralManagerOptions(), injection: { queue, options in
-                let mock = UUMockCBCentralManager(delegate: delegate, queue: queue, options: options.coreBluetoothOptions)
+                let mock = TestCentralManager(delegate: delegate, queue: queue, options: options.coreBluetoothOptions)
                 mock.mockPeripherals = [native]
                 mock.mockDispatchQueue = queue
                 mock.mockCallbackTime = 0

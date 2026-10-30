@@ -770,7 +770,7 @@ final class UUPeripheralOverlapTests: XCTestCase
         let otherCharacteristic: CBMutableCharacteristic
         let backend: HeldResponsePeripheral
         let central: UUCentralManager
-        let mockCentral: UUMockCBCentralManager
+        let mockCentral: TestCentralManager
         let peripheral: UUPeripheral
 
         init(duplicateUUIDs: Bool = false)
@@ -790,11 +790,11 @@ final class UUPeripheralOverlapTests: XCTestCase
             characteristic.setValue(service, forKey: "service")
             backend = HeldResponsePeripheral(services: [service, otherService])
             let native = backend.backingPeripheral
-            var injected: UUMockCBCentralManager!
+            var injected: TestCentralManager!
             central = UUCentralManager(options: UUCentralManagerOptions(), injection:
             { queue, options in
                 let delegate = UUCentralManagerDelegate()
-                let mock = UUMockCBCentralManager(delegate: delegate, queue: queue, options: options.coreBluetoothOptions)
+                let mock = TestCentralManager(delegate: delegate, queue: queue, options: options.coreBluetoothOptions)
                 mock.mockPeripherals = [native]
                 mock.mockDispatchQueue = queue
                 mock.mockCallbackTime = 0

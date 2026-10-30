@@ -70,7 +70,7 @@ final class UUOwnershipCycleTests: XCTestCase
 
     private final class OperationFixture
     {
-        let backend = UUMockCBPeripheral()
+        let backend = TestPeripheral()
         let delegate = UUCentralManagerDelegate()
         let central: UUCentralManager
         let peripheral: UUPeripheral
@@ -116,7 +116,7 @@ final class UUOwnershipCycleTests: XCTestCase
         }
     }
 
-    private final class HeldConnectionCentral: UUMockCBCentralManager
+    private final class HeldConnectionCentral: TestCentralManager
     {
         var disconnectRequested: (() -> Void)?
         override func connect(_ peripheral: CBPeripheral, options: [String: Any]?) {}
