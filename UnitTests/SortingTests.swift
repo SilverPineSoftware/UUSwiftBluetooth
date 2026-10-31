@@ -14,32 +14,43 @@ final class SortingTests: XCTestCase
     [
         TestPeripheralFixture(
             identifier: UUID(uuidString: "BB06F68C-AC25-476C-AC6B-16DB517E2198")!,
+            advertisement: UUAdvertisement(
+                timestamp: Date(timeIntervalSinceNow: -100)
+            ),
             rssi: -50,
             name: "A",
-            friendlyName: "A",
-            firstDiscoveryTime: Date(timeIntervalSinceNow: -100)
+            friendlyName: "A"
         ),
             
          TestPeripheralFixture(
             identifier: UUID(uuidString: "CE54002F-3C72-4189-8663-FAD905C6D6DF")!,
+            advertisement: UUAdvertisement(
+                timestamp: Date(timeIntervalSinceNow: -200)
+            ),
             rssi: -60,
             name: "C",
-            friendlyName: "C",
-            firstDiscoveryTime: Date(timeIntervalSinceNow: -200)),
+            friendlyName: "C"
+         ),
             
         TestPeripheralFixture(
             identifier: UUID(uuidString: "DE776C44-A550-4E83-A9EA-8D5892AF3814")!,
+            advertisement: UUAdvertisement(
+                timestamp: Date(timeIntervalSinceNow: -500)
+            ),
             rssi: -70,
             name: "B",
-            friendlyName: "B",
-            firstDiscoveryTime: Date(timeIntervalSinceNow: -500)),
+            friendlyName: "B"
+        ),
         
         TestPeripheralFixture(
             identifier: UUID(uuidString: "0BC865D0-8C7F-447D-AF32-D79D1EDBFEAF")!,
+            advertisement: UUAdvertisement(
+                timestamp: Date(timeIntervalSinceNow: -10)
+            ),
             rssi: -80,
             name: "D",
-            friendlyName: "D",
-            firstDiscoveryTime: Date(timeIntervalSinceNow: -10)),
+            friendlyName: "D"
+        ),
     ]
     
     func test_rssi_sort_descending() throws

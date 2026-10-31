@@ -15,12 +15,16 @@ final class TestPeripheralFixture: UUPeripheral
          rssi: Int = 0,
          name: String = "",
          friendlyName: String = "",
-         firstDiscoveryTime: Date = Date(),
+         //firstDiscoveryTime: Date = Date(),
          peripheralState: CBPeripheralState = .disconnected,
          services: [CBMutableService]? = nil)
     {
-        let backend = TestPeripheral(identifier: identifier, name: name,
-                                     state: peripheralState, services: services)
+        let backend = TestPeripheral(
+            identifier: identifier,
+            name: name,
+            state: peripheralState,
+            services: services)
+        
         mockPeripheral = backend
         var injected: TestCentralManager!
         mockCentral = UUCentralManager(options: UUCentralManagerOptions(), injection: { queue, options in
@@ -32,10 +36,12 @@ final class TestPeripheralFixture: UUPeripheral
             return (delegate, central)
         })
         centralBackend = injected
-        advertisement.timestamp = firstDiscoveryTime
-        advertisement.rssi = rssi
+        //advertisement.timestamp = firstDiscoveryTime
+        //advertisement.rssi = rssi
         super.init(dispatchQueue: mockCentral.dispatchQueue, centralState: mockCentral.centralState,
                    peripheral: backend, advertisement: advertisement)
+        
+        self.updateRssi(rssi)
     }
 
     var mockCallbackError: Error?

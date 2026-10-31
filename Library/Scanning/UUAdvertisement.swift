@@ -8,22 +8,22 @@
 import Foundation
 import CoreBluetooth
 
-public class UUAdvertisement
+public struct UUAdvertisement
 {
-    public var identifier: UUID = UUID()
-    public var advertisementData: [String:Any] = [:]
-    public var rssi: Int = 0
-    public var localName: String = ""
-    public var isConnectable: Bool = false
-    public var manufacturingData: Data? = nil
-    public var transmitPower: Int? = nil
-    public var primaryPhy: Int? = nil
-    public var secondaryPhy: Int? = nil
-    public var timestamp: Date = Date()
-    public var services: [CBUUID]? = nil
-    public var serviceData: [CBUUID: Data]? = nil
-    public var overflowServices: [CBUUID]? = nil
-    public var solicitedServices: [CBUUID]? = nil
+    public let identifier: UUID
+    public let advertisementData: [String:Any]
+    public let rssi: Int
+    public let localName: String
+    public let isConnectable: Bool
+    public let manufacturingData: Data?
+    public let transmitPower: Int?
+    public let primaryPhy: Int?
+    public let secondaryPhy: Int?
+    public let timestamp: Date
+    public let services: [CBUUID]?
+    public let serviceData: [CBUUID: Data]?
+    public let overflowServices: [CBUUID]?
+    public let solicitedServices: [CBUUID]?
     
     public init(
         identifier: UUID = UUID(),
@@ -61,7 +61,7 @@ public class UUAdvertisement
 
 public extension UUAdvertisement // CoreBluetooth Construction
 {
-    convenience init(_ identifier: UUID, _ advertisementData: [String:Any], _ rssi: Int)
+    init(_ identifier: UUID, _ advertisementData: [String:Any], _ rssi: Int)
     {
         self.init(
             identifier: identifier,
