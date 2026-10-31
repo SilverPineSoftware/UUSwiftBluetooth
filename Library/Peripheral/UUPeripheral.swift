@@ -107,15 +107,7 @@ open class UUPeripheral: Identifiable, CustomStringConvertible
     
     func updateRssi(_ rssi: Int)
     {
-        // TODO: Implement this
-        
-        // Per CoreBluetooth documentation, a value of 127 indicates the RSSI
-        // reading is not available
-        /*if rssi != 127
-        {
-            self.rssi = rssi
-            self.lastRssiUpdateTime = Date()
-        }*/
+        self.rssi = rssi
     }
     
     public func startTimer(name: String, timeout: TimeInterval, block: @escaping ()->())

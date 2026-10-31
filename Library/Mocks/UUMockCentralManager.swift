@@ -5,22 +5,25 @@
 //  Created by Ryan DeVore on 7/18/25.
 //
 
+#if DEBUG
+
 import Foundation
 import CoreBluetooth
 
-public class UUMockCentralManager
+///
+/// Non Functional central manager for use in building out mocked objects for Swift UI previews
+///
+public extension UUCentralManager
 {
-    public var mockCentral: UUCentralManager
-    
-    public init(peripherals: [CBPeripheral] = [])
+    static func mocked() -> UUCentralManager
     {
-        self.mockCentral = UUCentralManager(options: UUCentralManagerOptions(), injection: { q, o in
+        return UUCentralManager(options: UUCentralManagerOptions(), injection: { q, o in
             
             let delegate = UUCentralManagerDelegate()
             let mgr = UUMockCBCentralManager(delegate: delegate, queue: q, options: o.coreBluetoothOptions)
-            mgr.mockPeripherals = peripherals
-            UUMockPeripheral.mockCBCentral = mgr
             return (delegate, mgr)
         })
     }
 }
+
+#endif
