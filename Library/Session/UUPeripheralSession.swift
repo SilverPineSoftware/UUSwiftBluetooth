@@ -12,6 +12,7 @@ public typealias UUPeripheralSessionStartedCallback = ((UUPeripheralSession) -> 
 public typealias UUPeripheralSessionEndedCallback = ((UUPeripheralSession, Error?) -> Void)
 public typealias UUPeripheralSessionObjectErrorCallback<T> = ((UUPeripheralSession, T?, Error?) -> Void)
 public typealias UUPeripheralSessionErrorCallback = ((UUPeripheralSession, Error?) -> Void)
+public typealias UUPeripheralSessionStateChangedCallback = ((UUPeripheralSession) -> Void)
 
 fileprivate let LOG_TAG = "UUPeripheralSession"
 
@@ -25,6 +26,7 @@ open class UUPeripheralSession
     public private(set) var discoveredCharacteristics: [CBUUID:[UUCBCharacteristic]] = [:]
     public private(set) var discoveredDescriptors: [CBUUID:[UUCBDescriptor]] = [:]
     public private(set) var sessionEndError: Error? = nil
+    public private(set) var state: UUPeripheralSessionState = .notStarted
     
     private var servicesNeedingCharacteristicDiscovery: [UUCBService] = []
     private var characteristicsNeedingDescriptorDiscovery: [UUCBCharacteristic] = []
@@ -46,6 +48,11 @@ open class UUPeripheralSession
         UULog.fatal(tag: LOG_TAG, message: "Session ended callback not implemented, session: \(session), error: \(String(describing: error))")
     }
     
+    public var stateChanged: UUPeripheralSessionStateChangedCallback =
+    { session in
+        // Default is a no-op
+    }
+    
     // Methods
     open func start()
     {
@@ -54,8 +61,7 @@ open class UUPeripheralSession
     
     open func end(error: Error?)
     {
-        sessionEndError = error
-        disconnect()
+        self.disconnect(error)
     }
     
     open func finishSessionStart(_ completion: @escaping ()->())
@@ -172,6 +178,17 @@ open class UUPeripheralSession
             completion(self, err)
         }
     }
+    
+    private func changeState(_ state: UUPeripheralSessionState)
+    {
+        let old = self.state
+        
+        self.state = state
+        
+        UULog.debug(tag: LOG_TAG, message: "Peripheral Session State changing from \(old) to \(state)")
+        
+        stateChanged(self)
+    }
 }
 
 
@@ -180,26 +197,47 @@ fileprivate extension UUPeripheralSession
 {
     func connect()
     {
-        centralManager.connect(peripheral, timeout: configuration.connectTimeout,
-                               connected: { [weak self] in self?.handleConnected() },
-                               disconnected: { [weak self] error in self?.handleDisconnection(error) })
+        centralManager.dispatchQueue.async
+        { [weak self] in
+            guard let self else { return }
+            
+            self.changeState(.connecting)
+            self.centralManager.connect(self.peripheral, timeout: self.configuration.connectTimeout,
+                                   connected: { [weak self] in self?.handleConnected() },
+                                   disconnected: { [weak self] error in self?.handleDisconnection(error) })
+        }
     }
     
     func handleSessionStarted()
     {
         UULog.debug(tag: LOG_TAG, message: "handleSessionStarted")
         
+        changeState(.finishSessionStart)
+        
         finishSessionStart
         { [weak self] in
             guard let self else { return }
             UULog.debug(tag: LOG_TAG, message: "handleSessionStarted, notifying session started delegate")
-            self.started(self)
+            
+            centralManager.dispatchQueue.async
+            { [weak self] in
+                guard let self else { return }
+                self.changeState(.started)
+                self.started(self)
+            }
         }
     }
     
-    func disconnect()
+    func disconnect(_ error: Error?)
     {
-        centralManager.disconnect(peripheral, timeout: configuration.disconnectTimeout)
+        centralManager.dispatchQueue.async
+        { [weak self] in
+            guard let self else { return }
+            
+            self.sessionEndError = error
+            self.changeState(.disconnecting)
+            self.centralManager.disconnect(self.peripheral, timeout: configuration.disconnectTimeout)
+        }
     }
     
     func handleConnected()
@@ -217,6 +255,7 @@ fileprivate extension UUPeripheralSession
             self.sessionEndError = disconnectError
         }
         
+        changeState(.ended)
         ended(self, self.sessionEndError)
     }
 }
@@ -227,6 +266,8 @@ fileprivate extension UUPeripheralSession
 {
     func startServiceDiscovery()
     {
+        changeState(.serviceDiscovery)
+        
         discoveredServices.removeAll()
         
         peripheral.discoverServices(
@@ -269,6 +310,9 @@ fileprivate extension UUPeripheralSession
 {
     func startCharacteristicDiscovery()
     {
+        UULog.debug(tag: LOG_TAG, message: "startCharacteristicDiscovery")
+        changeState(.characteristicDiscovery)
+        
         discoveredCharacteristics.removeAll()
         servicesNeedingCharacteristicDiscovery.append(contentsOf: discoveredServices)
         discoverNextCharacteristics()
@@ -371,6 +415,7 @@ fileprivate extension UUPeripheralSession
     func startDescriptorDiscovery()
     {
         UULog.debug(tag: LOG_TAG, message: "startDescriptorDiscovery")
+        changeState(.descriptorDiscovery)
         
         discoveredDescriptors.removeAll()
         characteristicsNeedingDescriptorDiscovery.append(contentsOf: discoveredCharacteristics.values.flatMap { $0 })

@@ -39,6 +39,13 @@ class ReadDeviceInfoOperation: UUPeripheralOperation<Any>
     public init(_ peripheral: UUPeripheral)
     {
         super.init(peripheral, centralManager: UUBluetooth.shared.centralManager, configuration: OperationConfig())
+        
+        session.stateChanged = handleStateChanged
+    }
+    
+    private func handleStateChanged(session: UUPeripheralSession)
+    {
+        NSLog("State Changed to \(session.state)")
     }
     
     /*
